@@ -1,0 +1,19 @@
+.block_glsubs .fsubmit  {
+    margin-left:0 !important;
+}
+
+.block_glsubs .fitemtitle  {
+    text-align:left !important;
+}
+.block_glsubs label  {
+    margin-bottom:0 !important;
+}
+.block_glsubs .fitem  {
+    margin-bottom:1px !important;
+}
+input[type="radio"], input[type="checkbox"] {
+    margin-top: 0 ;
+}
+.block_glsubs .felement  {
+    margin-left:10px !important;
+}

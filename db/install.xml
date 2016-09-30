@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="blocks/glsubs/db" VERSION="20160927" COMMENT="XMLDB file for Moodle blocks/glsubs on Glossary Enhancements"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
+>
+  <TABLES>
+    <TABLE NAME="block_glsubs_glossaries_subs" COMMENT="Table to keep track of full user glossary subscriptions per User ID">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="User ID for identifying users with full glossary subscriptions"/>
+        <FIELD NAME="glossaryid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Glossary IDs for full subscriptions for a UserID"/>
+        <FIELD NAME="active" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="flag to show if the full user glossary subscription is active"/>
+        <FIELD NAME="newcategories" TYPE="int" LENGTH="1" NOTNULL="false" SEQUENCE="false" COMMENT="New Categories Subscription Flag"/>
+        <FIELD NAME="newentriesuncategorised" TYPE="int" LENGTH="1" NOTNULL="false" SEQUENCE="false" COMMENT="New Concepts without categories Subscription flag"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="userglossarysubs" UNIQUE="true" FIELDS="userid, glossaryid" COMMENT="User Glossary Subscription index"/>
+        <INDEX NAME="glossariessubs" UNIQUE="false" FIELDS="glossaryid" COMMENT="Glossary IDs for subscriptions Index"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="block_glsubs_categories_subs" COMMENT="Glossary Categories User Subscriptions Table">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="User ID for the Glossary Category subscription"/>
+        <FIELD NAME="glossaryid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Glossary ID for the User subscription"/>
+        <FIELD NAME="categoryid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Glossary Category ID for the User ID subscription"/>
+        <FIELD NAME="active" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Active flag for the User Glossary Category subscription"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="userglossarycategories" UNIQUE="true" FIELDS="userid, glossaryid, categoryid" COMMENT="User Glossary Categories Index"/>
+        <INDEX NAME="categoriessubs" UNIQUE="false" FIELDS="categoryid" COMMENT="Category IDs index"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="block_glsubs_concept_subs" COMMENT="User Glossary Concepts and / or Comments upon them Subsctiptions">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="User ID for the concept and or comments subscription"/>
+        <FIELD NAME="glossaryid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Glossary ID for the Concept a User is Subscribing to"/>
+        <FIELD NAME="conceptid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Concept ID of the Glossary Entries (id) which a User is subscribing to"/>
+        <FIELD NAME="conceptactive" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Flag for active concept subscription"/>
+        <FIELD NAME="commentsactive" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Flag for Concept Comments subscription for a User"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="conceptssubscriptions" UNIQUE="true" FIELDS="userid, glossaryid, conceptid" COMMENT="Concept Subscriptions Index"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="block_glsubs_event_subs_log" COMMENT="Glossary Subscriptions event log table">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="User ID for the glossary subscription event log"/>
+        <FIELD NAME="glossaryid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Glossary ID for the subscription event log"/>
+        <FIELD NAME="categoryid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Category ID for theglossary  subscription event log"/>
+        <FIELD NAME="conceptid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="Concept ID for the glossary subscription event log"/>
+        <FIELD NAME="authorid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Author ID for the Glossary Subscription  Event log"/>
+        <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="time stamp of recordcreation"/>
+        <FIELD NAME="processed" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Flag of being processed entry for the subscription event log"/>
+        <FIELD NAME="timeprocessed" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="time stamp for record processing"/>
+        <FIELD NAME="useremail" TYPE="char" LENGTH="100" NOTNULL="false" SEQUENCE="false" COMMENT="e-mail of the user at the time of the subscription event"/>
+        <FIELD NAME="eventlink" TYPE="char" LENGTH="300" NOTNULL="false" SEQUENCE="false" COMMENT="Event text for the email to be sent for the subscription event"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="glossaryeventglossaryid" UNIQUE="false" FIELDS="glossaryid, processed" COMMENT="Glossary ID index for the glossary subscription events"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="block_glsubs_authors_subs" COMMENT="Glossary User subscriptions per Author/Glossary">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Glossary subscriber User ID"/>
+        <FIELD NAME="glossaryid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Glossary Subscription Glossary ID"/>
+        <FIELD NAME="authorid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Glossary Subscription concept Author User ID"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="authorsusersindex" UNIQUE="false" FIELDS="authorid" COMMENT="Index for the Glossary Subscriptions Authors ID"/>
+        <INDEX NAME="authorsubsglossaryindex" UNIQUE="false" FIELDS="glossaryid" COMMENT="Glossary User subscriptions Index per Author/Glossary"/>
+        <INDEX NAME="authorsubsuserindex" UNIQUE="false" FIELDS="userid" COMMENT="Glossary User subscriptions per Author/Glossary for User ID"/>
+      </INDEXES>
+    </TABLE>
+  </TABLES>
+</XMLDB>
