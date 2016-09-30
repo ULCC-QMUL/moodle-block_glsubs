@@ -7,7 +7,7 @@
  */
 // namespace moodle\blocks\glsubs;
 defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
-//require_once('../../config.php');
+
 // required for assignment of roles to the block
 require_once($CFG->libdir.'/formslib.php');
 echo '<link rel="stylesheet" type="text/css" href="'.$CFG->wwwroot.'/blocks/glsubs/style/block_glsubs_form_styles.css" />';

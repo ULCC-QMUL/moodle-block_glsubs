@@ -252,7 +252,7 @@ class block_glsubs extends block_base {
             // $this->content->text .= 'Module user visibility:'. $cm->uservisible  . '<br>';
 
             // Show glossary authors
-            $this->content->text .= '<strong>Glossary Authors</strong><br/>';
+/*            $this->content->text .= '<strong>Glossary Authors</strong><br/>';
             foreach ($glossary_authors as $key => $author) {
                 $checkbox = '';
                 if (isset($_REQUEST["user_" . $USER->id . "_glossary_" . $glossaryid . "_author_" . $key]) && $_REQUEST["user_" . $USER->id . "_glossary_" . $glossaryid . "_author_" . $key] == "on") {
@@ -273,7 +273,7 @@ class block_glsubs extends block_base {
                 $userlink = html_writer::link($userurl, '&#9658;');
                 $this->content->text .= $userlink;
                 $this->content->text .= '<br/>';
-            }
+            }*/
 
             // Show Glossary Categories
             $glossary_categories = $DB->get_records('glossary_categories', array('glossaryid' => $glossaryid));
@@ -323,5 +323,3 @@ class block_glsubs extends block_base {
 
     }
 }
-
-
