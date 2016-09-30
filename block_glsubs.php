@@ -156,167 +156,168 @@ class block_glsubs extends block_base {
             }
         }
         // there is a valid glossary view page
-        $PAGE->set_context(context_module::instance($cmid));
-        $cm = $courseinfo->get_cm($cmid);
+        if( $cmid > 0 ) {
+            $PAGE->set_context(context_module::instance($cmid));
+            $cm = $courseinfo->get_cm($cmid);
 
-        // Check if the course module is available and it is visible and it is visible to the user and it is a glossary module
-        if( ! ( TRUE == $cm->available && TRUE == $cm->visible && TRUE == $cm->uservisible && 'glossary' == $cm->modname ) ){
-            return $this->content ;
-        }
-        // get the glossaryid for the database entries queries
-        $glossaryid = $cm->instance;
-        $test = $cm->url->get_path();
-
-        // create a glossary subscriptions block form
-        $action = $this->curPageURL()['fullurl'];
-        $subscriptions_form =  new glsubs_form($action);
-        // test for the form status , do kee the order of cancelled, submitted, new
-        if($subscriptions_form->is_cancelled()){
-            $this->content->text .= '<br/><u>Cancelled form</u><br/>';
-        } elseif($subscriptions_form->is_submitted()){
-            $this->content->text .= '<br/><u>Submitted form</u><br/>';
-        } else {
-            $this->content->text .= '<br/><u>New form</u><br/>';
-        }
-        // add the contents of the form to the block
-        $this->content->text .= $subscriptions_form->render();
-
-        // Show Glossary Settings HTML standard Post Form
-        // $this->content->text .= 'Course: <strong>'. $courseid. ':' . $COURSE->fullname . '</strong><br>';
-        // $this->content->text .= 'Module ID:'. $cmid  . '<br>';
-
-        // define settings arrays for manipulation and display requirements
-        $full_glossary_subscription = ['desc' => get_string('fullsubscription', 'block_glsubs'), 'enabled' => FALSE , 'newcategoriesdesc'=>get_string('newcategoriessubscription', 'block_glsubs') ,'newcategories'=>FALSE , 'newentriesuncategoriseddesc'=> get_string('newuncategorisedconceptssubscription', 'block_glsubs'), 'newentriesuncategorised'=> FALSE];
-        $glossary_authors = array();
-        $glossary_categories = array();
-        $glossary_concepts = array();
-        // get data setting values from the database tables
-        $UserSubs = $this->getusersubs($USER, $glossaryid );
-
-        $glossary_authors = $DB->get_records_sql('SELECT userid id, count(userid) entries FROM {glossary_entries} WHERE glossaryid = ? GROUP BY userid', array($glossaryid));
-        foreach($glossary_authors as $key => $record){
-            $glossary_authors[$key]->fullname = fullname(\core_user::get_user($record->id)); ;//$authorfullname;
-            $glossary_authors[$key]->user = \core_user::get_user($record->id);
-            $glossary_authors[$key]->entries = $record->entries;
-        }
-        // $author = NULL;
-        // $authorfullname = NULL;
-        // check if there is a posted form and update database records accordingly
-
-        // update the settings arrays for the presentation layer
-
-        // create content for the block
-        // $this->content->text .= '<strong>'. $cm->name . '</strong><br/>';
-        // $this->content->text .= '<br/>';
-
-        // create a form for the settings
-        $this->content->text .= '<form method="post" target="_top" name="form_glossary_'.$glossaryid.'">';
-        // define a form submission identifier
-        $this->content->text .= '<input type="hidden" name="form_glossary_subs_submitted" id="form_glossary_subs_submitted" value="1">';
-
-        // Show full glossary subscription choice
-/*        $checkbox = "";
-        if($form_glossary_subs_submitted){
-            if($_REQUEST["user_".$USER->id."_glossary_".$glossaryid] == "on" ) {
-                $checkbox = "checked='checked'";
+            // Check if the course module is available and it is visible and it is visible to the user and it is a glossary module
+            if (!(TRUE == $cm->available && TRUE == $cm->visible && TRUE == $cm->uservisible && 'glossary' == $cm->modname)) {
+                return $this->content;
             }
-        }
-        $this->content->text .= '<input type="checkbox" name="user_'.$USER->id.'_glossary_'.$glossaryid.'" id="user_'.$USER->id.'_glossary_'.$glossaryid.'" '.$checkbox.'>';
-        $this->content->text .= '<label for="user_'.$USER->id.'_glossary_'.$glossaryid.'">'. $full_glossary_subscription['desc'] .'</label>';
-        $userurl = new moodle_url('/mod/glossary/view.php',array('id'=>$cmid));
-        $userlink = html_writer::link($userurl,'&#9658;');
-        $this->content->text .= $userlink;
-        $this->content->text .= '<br/>';*/
+            // get the glossaryid for the database entries queries
+            $glossaryid = $cm->instance;
+            $test = $cm->url->get_path();
 
-/*        if($form_glossary_subs_submitted){
-            if( "on" === $_REQUEST["user_".$USER->id."_glossary_".$glossaryid.'_new_category']  ) {
-                $checkbox = "checked='checked'";
+            // create a glossary subscriptions block form
+            $action = $this->curPageURL()['fullurl'];
+            $subscriptions_form = new glsubs_form($action);
+            // test for the form status , do kee the order of cancelled, submitted, new
+            if ($subscriptions_form->is_cancelled()) {
+                $this->content->text .= '<br/><u>Cancelled form</u><br/>';
+            } elseif ($subscriptions_form->is_submitted()) {
+                $this->content->text .= '<br/><u>Submitted form</u><br/>';
+            } else {
+                $this->content->text .= '<br/><u>New form</u><br/>';
             }
-        }
-        $this->content->text .= '<input type="checkbox" name="user_'.$USER->id.'_glossary_'.$glossaryid.'_new_category" id="user_'.$USER->id.'_glossary_'.$glossaryid.'_new_category" '.$checkbox.'>';
-        $this->content->text .= '<label for="user_'.$USER->id.'_glossary_'.$glossaryid.'_new_category">'. $full_glossary_subscription['newcategoriesdesc'] .'</label><br/>';*/
-/*
-        if($form_glossary_subs_submitted){
-            if("on" === $_REQUEST["user_".$USER->id."_glossary_".$glossaryid.'_new_concept']) {
-                $checkbox = "checked='checked'";
+            // add the contents of the form to the block
+            $this->content->text .= $subscriptions_form->render();
+
+            // Show Glossary Settings HTML standard Post Form
+            // $this->content->text .= 'Course: <strong>'. $courseid. ':' . $COURSE->fullname . '</strong><br>';
+            // $this->content->text .= 'Module ID:'. $cmid  . '<br>';
+
+            // define settings arrays for manipulation and display requirements
+            $full_glossary_subscription = ['desc' => get_string('fullsubscription', 'block_glsubs'), 'enabled' => FALSE, 'newcategoriesdesc' => get_string('newcategoriessubscription', 'block_glsubs'), 'newcategories' => FALSE, 'newentriesuncategoriseddesc' => get_string('newuncategorisedconceptssubscription', 'block_glsubs'), 'newentriesuncategorised' => FALSE];
+            $glossary_authors = array();
+            $glossary_categories = array();
+            $glossary_concepts = array();
+            // get data setting values from the database tables
+            $UserSubs = $this->getusersubs($USER, $glossaryid);
+
+            $glossary_authors = $DB->get_records_sql('SELECT userid id, count(userid) entries FROM {glossary_entries} WHERE glossaryid = ? GROUP BY userid', array($glossaryid));
+            foreach ($glossary_authors as $key => $record) {
+                $glossary_authors[$key]->fullname = fullname(\core_user::get_user($record->id));;//$authorfullname;
+                $glossary_authors[$key]->user = \core_user::get_user($record->id);
+                $glossary_authors[$key]->entries = $record->entries;
             }
-        }
-        $this->content->text .= '<input type="checkbox" name="user_'.$USER->id.'_glossary_'.$glossaryid.'_new_concept" id="user_'.$USER->id.'_glossary_'.$glossaryid.'_new_concept" '.$checkbox.'>';
-        $this->content->text .= '<label for="user_'.$USER->id.'_glossary_'.$glossaryid.'_new_concept">'. $full_glossary_subscription['newentriesuncategoriseddesc'] .'</label><br/>';
+            // $author = NULL;
+            // $authorfullname = NULL;
+            // check if there is a posted form and update database records accordingly
 
- */       // $this->content->text .= 'Module Type:'. $cm->modname  . '<br>';
-        // $this->content->text .= 'Module DB ID:'. $glossaryid  . '<br>';
-        // $this->content->text .= 'Module availability:'. $cm->available  . '<br>';
-        // $this->content->text .= 'Module visibility:'. $cm->visible  . '<br>';
-        // $this->content->text .= 'Module user visibility:'. $cm->uservisible  . '<br>';
+            // update the settings arrays for the presentation layer
 
-        // Show glossary authors
-        $this->content->text .= '<strong>Glossary Authors</strong><br/>';
-        foreach ($glossary_authors as $key => $author ){
-            $checkbox = '';
-            if( isset($_REQUEST["user_".$USER->id."_glossary_".$glossaryid."_author_".$key]) && $_REQUEST["user_".$USER->id."_glossary_".$glossaryid."_author_".$key] == "on"){
-                $checkbox = "checked='checked'" ;
-            }
-            // create a link with image to the author's profile
-            $userpicture = $OUTPUT->user_picture($author->user, array('size'=>35));
-            $userurl = new moodle_url('/user/view.php', array('id' => $key));
-            $userlink = html_writer::link($userurl,$userpicture);
-            $this->content->text .= $userlink. ' ';
-            // create a checkbox for author subscription
+            // create content for the block
+            // $this->content->text .= '<strong>'. $cm->name . '</strong><br/>';
+            // $this->content->text .= '<br/>';
 
-            $this->content->text .= '<input type="checkbox" name="user_'.$USER->id.'_glossary_'.$glossaryid.'_author_'.$key.'" id="user_'.$USER->id.'_glossary_'.$glossaryid.'_author_'.$key.'" '.$checkbox.'>';
-            $this->content->text .= '<label title="'.$author->fullname.'" for="user_'.$USER->id.'_glossary_'.$glossaryid.'_author_'.$key.'">'. $this->ellipsisString($author->fullname,25) .' (' .$author->entries. ')</label>';
+            // create a form for the settings
+            $this->content->text .= '<form method="post" target="_top" name="form_glossary_' . $glossaryid . '">';
+            // define a form submission identifier
+            $this->content->text .= '<input type="hidden" name="form_glossary_subs_submitted" id="form_glossary_subs_submitted" value="1">';
 
-            // create a link to the author's list of entries in this glossary
-            $userurl = new moodle_url('/mod/glossary/view.php',array('id'=>$cmid,'mode'=>'author','sortkey'=>'FIRSTNAME','hook'=>$author->fullname));
-            $userlink = html_writer::link($userurl,'&#9658;');
-            $this->content->text .= $userlink;
-            $this->content->text .= '<br/>';
-        }
+            // Show full glossary subscription choice
+            /*        $checkbox = "";
+                    if($form_glossary_subs_submitted){
+                        if($_REQUEST["user_".$USER->id."_glossary_".$glossaryid] == "on" ) {
+                            $checkbox = "checked='checked'";
+                        }
+                    }
+                    $this->content->text .= '<input type="checkbox" name="user_'.$USER->id.'_glossary_'.$glossaryid.'" id="user_'.$USER->id.'_glossary_'.$glossaryid.'" '.$checkbox.'>';
+                    $this->content->text .= '<label for="user_'.$USER->id.'_glossary_'.$glossaryid.'">'. $full_glossary_subscription['desc'] .'</label>';
+                    $userurl = new moodle_url('/mod/glossary/view.php',array('id'=>$cmid));
+                    $userlink = html_writer::link($userurl,'&#9658;');
+                    $this->content->text .= $userlink;
+                    $this->content->text .= '<br/>';*/
 
-        // Show Glossary Categories
-        $glossary_categories = $DB->get_records('glossary_categories',array('glossaryid'=>$glossaryid));
-        $glossary_categories_entries = $DB->get_records_sql('SELECT categoryid, count(categoryid) entries FROM {glossary_entries_categories} WHERE categoryid in (SELECT id FROM {glossary_categories} WHERE glossaryid = ?) GROUP BY categoryid ', array($glossaryid));
-        foreach($glossary_categories_entries as $key => $value){
-            $glossary_categories[$key]->entries = (float)$value->entries;
-        }
-        $this->content->text .= '<strong>Glossary Categories</strong><br/>';
-        foreach($glossary_categories as $key => $value){
-            if(! isset($value->entries)) {
-                $glossary_categories[$key]->entries = 0;
+            /*        if($form_glossary_subs_submitted){
+                        if( "on" === $_REQUEST["user_".$USER->id."_glossary_".$glossaryid.'_new_category']  ) {
+                            $checkbox = "checked='checked'";
+                        }
+                    }
+                    $this->content->text .= '<input type="checkbox" name="user_'.$USER->id.'_glossary_'.$glossaryid.'_new_category" id="user_'.$USER->id.'_glossary_'.$glossaryid.'_new_category" '.$checkbox.'>';
+                    $this->content->text .= '<label for="user_'.$USER->id.'_glossary_'.$glossaryid.'_new_category">'. $full_glossary_subscription['newcategoriesdesc'] .'</label><br/>';*/
+            /*
+                    if($form_glossary_subs_submitted){
+                        if("on" === $_REQUEST["user_".$USER->id."_glossary_".$glossaryid.'_new_concept']) {
+                            $checkbox = "checked='checked'";
+                        }
+                    }
+                    $this->content->text .= '<input type="checkbox" name="user_'.$USER->id.'_glossary_'.$glossaryid.'_new_concept" id="user_'.$USER->id.'_glossary_'.$glossaryid.'_new_concept" '.$checkbox.'>';
+                    $this->content->text .= '<label for="user_'.$USER->id.'_glossary_'.$glossaryid.'_new_concept">'. $full_glossary_subscription['newentriesuncategoriseddesc'] .'</label><br/>';
+
+             */       // $this->content->text .= 'Module Type:'. $cm->modname  . '<br>';
+            // $this->content->text .= 'Module DB ID:'. $glossaryid  . '<br>';
+            // $this->content->text .= 'Module availability:'. $cm->available  . '<br>';
+            // $this->content->text .= 'Module visibility:'. $cm->visible  . '<br>';
+            // $this->content->text .= 'Module user visibility:'. $cm->uservisible  . '<br>';
+
+            // Show glossary authors
+            $this->content->text .= '<strong>Glossary Authors</strong><br/>';
+            foreach ($glossary_authors as $key => $author) {
+                $checkbox = '';
+                if (isset($_REQUEST["user_" . $USER->id . "_glossary_" . $glossaryid . "_author_" . $key]) && $_REQUEST["user_" . $USER->id . "_glossary_" . $glossaryid . "_author_" . $key] == "on") {
+                    $checkbox = "checked='checked'";
+                }
+                // create a link with image to the author's profile
+                $userpicture = $OUTPUT->user_picture($author->user, array('size' => 35));
+                $userurl = new moodle_url('/user/view.php', array('id' => $key));
+                $userlink = html_writer::link($userurl, $userpicture);
+                $this->content->text .= $userlink . ' ';
+                // create a checkbox for author subscription
+
+                $this->content->text .= '<input type="checkbox" name="user_' . $USER->id . '_glossary_' . $glossaryid . '_author_' . $key . '" id="user_' . $USER->id . '_glossary_' . $glossaryid . '_author_' . $key . '" ' . $checkbox . '>';
+                $this->content->text .= '<label title="' . $author->fullname . '" for="user_' . $USER->id . '_glossary_' . $glossaryid . '_author_' . $key . '">' . $this->ellipsisString($author->fullname, 25) . ' (' . $author->entries . ')</label>';
+
+                // create a link to the author's list of entries in this glossary
+                $userurl = new moodle_url('/mod/glossary/view.php', array('id' => $cmid, 'mode' => 'author', 'sortkey' => 'FIRSTNAME', 'hook' => $author->fullname));
+                $userlink = html_writer::link($userurl, '&#9658;');
+                $this->content->text .= $userlink;
+                $this->content->text .= '<br/>';
             }
 
-            $checkbox = '';
-            if(isset($_REQUEST["user_".$USER->id."_glossary_".$glossaryid."_category_".$key]) && $_REQUEST["user_".$USER->id."_glossary_".$glossaryid."_category_".$key] == "on"){
-                $checkbox = "checked='checked'" ;
+            // Show Glossary Categories
+            $glossary_categories = $DB->get_records('glossary_categories', array('glossaryid' => $glossaryid));
+            $glossary_categories_entries = $DB->get_records_sql('SELECT categoryid, count(categoryid) entries FROM {glossary_entries_categories} WHERE categoryid in (SELECT id FROM {glossary_categories} WHERE glossaryid = ?) GROUP BY categoryid ', array($glossaryid));
+            foreach ($glossary_categories_entries as $key => $value) {
+                $glossary_categories[$key]->entries = (float)$value->entries;
             }
-            $this->content->text .= '<input type="checkbox" name="user_'.$USER->id.'_glossary_'.$glossaryid.'_category_'.$key.'" id="user_'.$USER->id.'_glossary_'.$glossaryid.'_category_'.$key.'" '.$checkbox.'>';
-            $this->content->text .= '<label title="'.$value->name.'" for="user_'.$USER->id.'_glossary_'.$glossaryid.'_category_'.$key.'">'. $this->ellipsisString($value->name,25) . ' (' . $value->entries. ')</label>';
-            $this->content->text .= '<a href="/mod/glossary/view.php?id='.$cmid.'&mode=cat&hook='.$key.'">&#9658;</a><br/>';
+            $this->content->text .= '<strong>Glossary Categories</strong><br/>';
+            foreach ($glossary_categories as $key => $value) {
+                if (!isset($value->entries)) {
+                    $glossary_categories[$key]->entries = 0;
+                }
+
+                $checkbox = '';
+                if (isset($_REQUEST["user_" . $USER->id . "_glossary_" . $glossaryid . "_category_" . $key]) && $_REQUEST["user_" . $USER->id . "_glossary_" . $glossaryid . "_category_" . $key] == "on") {
+                    $checkbox = "checked='checked'";
+                }
+                $this->content->text .= '<input type="checkbox" name="user_' . $USER->id . '_glossary_' . $glossaryid . '_category_' . $key . '" id="user_' . $USER->id . '_glossary_' . $glossaryid . '_category_' . $key . '" ' . $checkbox . '>';
+                $this->content->text .= '<label title="' . $value->name . '" for="user_' . $USER->id . '_glossary_' . $glossaryid . '_category_' . $key . '">' . $this->ellipsisString($value->name, 25) . ' (' . $value->entries . ')</label>';
+                $this->content->text .= '<a href="/mod/glossary/view.php?id=' . $cmid . '&mode=cat&hook=' . $key . '">&#9658;</a><br/>';
+            }
+
+            // Show  Glossary Entries
+            $this->content->text .= '<strong>Glossary Enries</strong><br/>';
+            $this->content->text .= '[E]&ensp;[C] Conc<strong>E</strong>pts & <strong>C</strong>omments <br/>';
+            $glossaryentries = $DB->get_records('glossary_entries', array('glossaryid' => $glossaryid));
+            foreach ($glossaryentries as $key => $entry) {
+                $checkbox = '';
+                if (isset($_REQUEST['user_' . $USER->id . '_glossary_' . $glossaryid . '_entry_' . $key]) && $_REQUEST['user_' . $USER->id . '_glossary_' . $glossaryid . '_entry_' . $key] == "on") {
+                    $checkbox = "checked='checked'";
+                }
+                $this->content->text .= '<input type="checkbox" name="user_' . $USER->id . '_glossary_' . $glossaryid . '_concept_' . $key . '" id="user_' . $USER->id . '_glossary_' . $glossaryid . '_concept_' . $key . '" ' . $checkbox . '>';
+                $checkbox = '';
+                if (isset($_REQUEST['user_' . $USER->id . '_glossary_' . $glossaryid . '_concept_' . $key . '_comments']) && $_REQUEST['user_' . $USER->id . '_glossary_' . $glossaryid . '_concept_' . $key . '_comments'] == "on") {
+                    $checkbox = "checked='checked'";
+                }
+                $this->content->text .= '<input type="checkbox" name="user_' . $USER->id . '_glossary_' . $glossaryid . '_concept_' . $key . '_comments' . '" id="user_' . $USER->id . '_glossary_' . $glossaryid . '_concept_' . $key . '_comments' . '" ' . $checkbox . '>';
+                $this->content->text .= '<span title="' . $entry->concept . '">' . $this->ellipsisString($entry->concept, 20) . '</span>';
+                $this->content->text .= '<a style="" href="/mod/glossary/view.php?id=' . $cmid . '&mode=entry&hook=' . $key . '">&#9658;</a> <br/>';
+            }
+
+            $this->content->text .= '<br/><br/><input type="submit" name="Apply" id="form_glossary_submit">';
+            $this->content->text .= '</form>';
         }
-
-        // Show  Glossary Entries
-        $this->content->text .= '<strong>Glossary Enries</strong><br/>';
-        $this->content->text .= '[E]&ensp;[C] Conc<strong>E</strong>pts & <strong>C</strong>omments <br/>';
-        $glossaryentries = $DB->get_records('glossary_entries',array('glossaryid'=>$glossaryid));
-        foreach($glossaryentries as $key => $entry){
-            $checkbox = '';
-            if(isset($_REQUEST['user_'.$USER->id.'_glossary_'.$glossaryid.'_entry_'.$key]) && $_REQUEST['user_'.$USER->id.'_glossary_'.$glossaryid.'_entry_'.$key] == "on"){
-                $checkbox = "checked='checked'" ;
-            }
-            $this->content->text .= '<input type="checkbox" name="user_'.$USER->id.'_glossary_'.$glossaryid.'_concept_'.$key.'" id="user_'.$USER->id.'_glossary_'.$glossaryid.'_concept_'.$key.'" '.$checkbox.'>';
-            $checkbox = '';
-            if(isset($_REQUEST['user_'.$USER->id.'_glossary_'.$glossaryid.'_concept_'.$key.'_comments']) && $_REQUEST['user_'.$USER->id.'_glossary_'.$glossaryid.'_concept_'.$key.'_comments'] == "on") {
-                $checkbox = "checked='checked'";
-            }
-            $this->content->text .= '<input type="checkbox" name="user_'.$USER->id.'_glossary_'.$glossaryid.'_concept_'.$key.'_comments'.'" id="user_'.$USER->id.'_glossary_'.$glossaryid.'_concept_'.$key.'_comments'.'" '.$checkbox.'>';
-            $this->content->text .= '<span title="'.$entry->concept.'">'. $this->ellipsisString($entry->concept,20) . '</span>';
-            $this->content->text .= '<a style="" href="/mod/glossary/view.php?id='.$cmid.'&mode=entry&hook='.$key.'">&#9658;</a> <br/>';
-        }
-
-        $this->content->text .= '<br/><br/><input type="submit" name="Apply" id="form_glossary_submit">';
-        $this->content->text .= '</form>';
-
         // Finish and return contents
         return $this->content ;
 
