@@ -2,7 +2,7 @@
 // namespace moodle\blocks\glsubs;
 defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 //require_once('../../config.php');
-require_once('../../blocks/glsubs/classes/block_glsubs_form.php');
+include_once($CFG->dirroot.'/blocks/glsubs/classes/block_glsubs_form.php');
 
 class block_glsubs extends block_base {
     /**
