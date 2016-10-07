@@ -22,3 +22,6 @@ $string['glossaryconcepts'] = 'Glossary Concepts';
 $string['glossaryallauthors'] = 'All Authors';
 $string['glossaryuncategorisedconcepts'] = 'Uncategorised Concepts';
 $string['glossarycommentson'] = 'Comments on ';
+$string['glossaryformfullelementname'] = 'glossary_full_subscription';
+$string['glossaryformcategorieselementname'] = 'glossary_full_newcat_subscription';
+$string['glossaryformconceptselementname'] = 'glossary_full_new_uncategorised_concept';

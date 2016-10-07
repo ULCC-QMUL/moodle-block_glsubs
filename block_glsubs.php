@@ -5,6 +5,7 @@ defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 include_once($CFG->dirroot.'/blocks/glsubs/classes/block_glsubs_form.php');
 
 class block_glsubs extends block_base {
+    protected $glsub_state;
     /**
      * Glossary Subscriptions Block Frontend Controller Presenter
      * Sept 2016
@@ -15,35 +16,6 @@ class block_glsubs extends block_base {
         $this->title = get_string('pluginname', 'block_glsubs');
     }
 
-    /**
-     * Reduce text to the maximum parameterised length
-     * @param $text
-     * @param $size
-     *
-     * @return string
-     */
-    protected function ellipsisString($text, $size){
-        $retstr = $text ;
-        if($size <1) {
-            $size = 3;
-        }
-        if ($this->is_multibyte($text)){
-            if(mb_strlen($text) > $size) {
-                $retstr = mb_substr($retstr,0,$size-3) . '...';
-            }
-        } else {
-            if(strlen($text) > $size) {
-                $retstr = substr($retstr,0,$size-3) . '...';
-            }
-        }
-        return $retstr;
-    }
-    /**
-     * check for multibyte strings
-     */
-    protected function is_multibyte($s) {
-        return mb_strlen($s,'utf-8') < strlen($s);
-    }
     /**
      * Return the current page URL
      * @return string
@@ -72,21 +44,6 @@ class block_glsubs extends block_base {
         return $pageurlparts;
     }
 
-    protected function getusersubs($user, $glossaryid ){
-        global $DB ;
-        $full_glossary_subscription = array('desc' => 'Full Subscription', 'enabled' => FALSE , 'newcategories'=>FALSE , 'newentriesuncategorised'=> FALSE );
-        $usersubs = new stdClass();
-        $usersubs->userid = $user->id;
-        $usersubs->glossaryid = $glossaryid ;
-        $usersubs->glossary     = $DB->get_record( 'block_glsubs_glossaries_subs', array('userid'=> $usersubs->userid , 'glossaryid' => $glossaryid));
-        if(! $usersubs->glossary ){
-            $usersubs->glossary = $full_glossary_subscription;
-        }
-        $usersubs->authors      = $DB->get_record( 'block_glsubs_authors_subs', array('userid'=> $usersubs->userid , 'glossaryid' => $glossaryid));
-        $usersubs->categories   = $DB->get_record( 'block_glsubs_categories_subs', array('userid'=> $usersubs->userid , 'glossaryid' => $glossaryid));
-        $usersubs->concepts     = $DB->get_record( 'block_glsubs_concept_subs', array('userid'=> $usersubs->userid , 'glossaryid' => $glossaryid));
-        return $usersubs;
-    }
     /**
      * Subscriptions Block Contents creation function
      * @return string
@@ -107,7 +64,7 @@ class block_glsubs extends block_base {
         }
 
         // this is only for logged in users
-        if( !isloggedin() or isguestuser() ){
+        if( ! isloggedin() || isguestuser() ){
             return '';
         }
 
@@ -149,16 +106,28 @@ class block_glsubs extends block_base {
             $glossaryid = $cm->instance;
             $test = $cm->url->get_path();
 
-            // create a glossary subscriptions block form
-            $action = $this->curPageURL()['fullurl'];
-            $subscriptions_form = new glsubs_form($action);
+            // create a glossary subscriptions block form and assign its action to the original page
+            $subscriptions_form = new block_glsubs_form($this->curPageURL()['fullurl']);
             // test for the form status , do kee the order of cancelled, submitted, new
             if ($subscriptions_form->is_cancelled()) {
                 $this->content->text .= '<br/><u>Cancelled form</u><br/>';
+                // flag the state
+//                $subscriptions_form->glsub_state = 'Cancelled';
+                // redirect to the original page where the cancel button was pressed, so use the $_SERVER['HTTP_REFERER'] variable
+                $url = new moodle_url($_SERVER['HTTP_REFERER'],array());
+                redirect($url);
             } elseif ($subscriptions_form->is_submitted()) {
                 $this->content->text .= '<br/><u>Submitted form</u><br/>';
+                if ($subs_data = $subscriptions_form->get_data()){
+                    $this->store_data($subs_data);
+                }
+                // store this data set
+
+                // flag the state
+//                $subscriptions_form->glsub_state = 'Submitted';
             } else {
                 $this->content->text .= '<br/><u>New form</u><br/>';
+                $subscriptions_form->glsub_state = 'New';
             }
             // add the contents of the form to the block
             $this->content->text .= $subscriptions_form->render();
@@ -168,4 +137,40 @@ class block_glsubs extends block_base {
         return $this->content ;
 
     }
+
+    private function store_data($dataset){
+        global $DB;
+        $userid = $dataset->glossary_userid;
+        $glossaryid = $dataset->glossary_glossaryid;
+        $fullsubkey =   (string)get_string('glossaryformfullelementname','block_glsubs');
+        $newcat =       get_string('glossaryformcategorieselementname','block_glsubs');
+        $newconcept =   get_string('glossaryformconceptselementname','block_glsubs');
+        $arrData = (array)$dataset;
+        foreach ( $arrData as $key => $value ){
+            $k = (string)$key;
+            $v = $value;
+            if ( substr($k ,0 ,16) == "glossary_comment") {
+                $msg = 'concepts table for comments';
+            } elseif( $k === $fullsubkey ) {
+                $msg = 'glossaries table full subscription';
+            } elseif ( $k === $newcat ){
+                $msg = 'glossaries table new categories subscription';
+            } elseif( $k === $newconcept ){
+                $msg = 'glossaries table new concepts no category subscription';
+            } elseif ( substr($k,0,17) === "glossary_category" ){
+                $msg = 'categories table';
+            } elseif ( substr($k,0,16) === "glossary_concept") {
+                $msg = 'concepts table';
+            } elseif ( substr($k ,0  ,16) === "glossary_comment") {
+                $msg = 'concepts table for comments';
+            }
+            if(! is_null($msg)){
+                $m[$k] = $msg . " $key = $value";
+                $msg = NULL;
+            }
+
+        }
+        return $m;
+    }
+
 }
