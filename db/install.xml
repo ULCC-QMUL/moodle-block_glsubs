@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="blocks/glsubs/db" VERSION="20160927" COMMENT="XMLDB file for Moodle blocks/glsubs on Glossary Enhancements"
+<XMLDB PATH="blocks/glsubs/db" VERSION="20161010" COMMENT="XMLDB file for Moodle blocks/glsubs on Glossary Enhancements"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
@@ -80,6 +80,7 @@
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Glossary subscriber User ID"/>
         <FIELD NAME="glossaryid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Glossary Subscription Glossary ID"/>
         <FIELD NAME="authorid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Glossary Subscription concept Author User ID"/>
+        <FIELD NAME="active" TYPE="int" LENGTH="1" NOTNULL="false" SEQUENCE="false" COMMENT="Flag to a user subscribing to a glossary author"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
