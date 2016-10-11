@@ -105,6 +105,7 @@ class block_glsubs_form extends moodleform
         $mform->addElement('advcheckbox',$this->usersubscriptions->full->fullnewcat->elementname,$label,'',array('group'=>1),array(0,1));
         $mform->setDefault($this->usersubscriptions->full->fullnewcat->elementname,$this->usersubscriptions->full->fullnewcat->sub);
         $mform->setType($this->usersubscriptions->full->fullnewcat->elementname,PARAM_INT);
+        $mform->disabledIf($this->usersubscriptions->full->fullnewcat->elementname,$this->usersubscriptions->full->full->elementname,'checked');
 
         // Add Glossary Subscription on New Entries without Categories
         // count the uncategorised entries of this glossary
@@ -118,6 +119,7 @@ class block_glsubs_form extends moodleform
         $mform->addElement('advcheckbox',$this->usersubscriptions->full->fullnewconcept->elementname,$label,'',array('group'=>1),array(0,1));
         $mform->setDefault($this->usersubscriptions->full->fullnewconcept->elementname,$this->usersubscriptions->full->fullnewconcept->sub);
         $mform->setType($this->usersubscriptions->full->fullnewconcept->elementname,PARAM_INT);
+        $mform->disabledIf($this->usersubscriptions->full->fullnewconcept->elementname,$this->usersubscriptions->full->full->elementname,'checked');
 
         // Add Glossary Authors Subscriptions and links
         foreach($this->usersubscriptions->authors as $key => & $author_record){
@@ -154,6 +156,7 @@ class block_glsubs_form extends moodleform
             $mform->addElement( 'advcheckbox' , $author->elementname, $text.' '.$author->fullname  ." (".$DB->count_records('glossary_entries',array('userid'=>$author->id,'glossaryid'=>$glossaryid)).")" );
             $mform->setType($author->elementname, PARAM_INT);
             $mform->setDefault($author->elementname,$author->sub);
+            $mform->disabledIf($author->elementname,$this->usersubscriptions->full->full->elementname,'checked');
             $text = "";
         }
 
@@ -169,7 +172,7 @@ class block_glsubs_form extends moodleform
 
         // Add categories
         foreach ($this->usersubscriptions->categories as $key => & $category_entry) {
-            if (!isset($category_entry->entries)) {
+            if (! isset($category_entry->entries)) {
                 $category_entry->entries = 0;
             }
 
@@ -189,6 +192,7 @@ class block_glsubs_form extends moodleform
             }
 
             $mform->setDefault($category_entry->elementname,$category_entry->sub);
+            $mform->disabledIf($category_entry->elementname,$this->usersubscriptions->full->full->elementname,'checked');
             $text = "";
         }
 
@@ -214,14 +218,28 @@ class block_glsubs_form extends moodleform
             // add concept checkbox
             $mform->addElement('advcheckbox',$concept_entry->elementname , $entrylink . '&emsp;' . $this->ellipsisString($concept_entry->concept, 20));
             $mform->setType($concept_entry->elementname,PARAM_INT);
-            $mform->setDefault($concept_entry->elementname,0);
+            // take the db value
+            if($DB->record_exists('block_glsubs_concept_subs',array('userid'=>(int)$USER->id,'glossaryid'=>$glossaryid,'conceptid'=>$key))){
+                $oldrecord = $DB->get_record('block_glsubs_concept_subs',array('userid'=>(int)$USER->id,'glossaryid'=>$glossaryid,'conceptid'=>$key));
+            } else {
+                $oldrecord = new stdClass();
+                $oldrecord->userid = (int)$USER->id ;
+                $oldrecord->glossaryid = $glossaryid ;
+                $oldrecord->conceptid = $key ;
+                $oldrecord->conceptactive = 0;
+                $oldrecord->commentsactive = 0;
+            }
+            $mform->setDefault($concept_entry->elementname,$oldrecord->conceptactive);
+            $mform->disabledIf($concept_entry->elementname,$this->usersubscriptions->full->full->elementname,'checked');
 
             // Add comments checkbox
             $mform->addElement('advcheckbox',$concept_entry->comment_elementname , get_string('glossarycommentson','block_glsubs') . $this->ellipsisString($concept_entry->concept , 20) . " (".$DB->count_records('comments',array('itemid'=>$key,'commentarea'=>'glossary_entry')).")");
             $mform->setType($concept_entry->comment_elementname,PARAM_INT);
-            $mform->setDefault($concept_entry->comment_elementname,0);
+            // take the db value
+            $mform->setDefault($concept_entry->comment_elementname,$oldrecord->commentsactive);
+            $mform->disabledIf($concept_entry->comment_elementname,$this->usersubscriptions->full->full->elementname,'checked');
 
-            // get entry's categories
+            // get concept's categories
             $linkstext = "";
             $concept_entry->categories = $DB->get_records('glossary_entries_categories',array('entryid'=>$key));
             foreach($concept_entry->categories as $categorykey => & $categoryrecord ) {
@@ -247,10 +265,10 @@ class block_glsubs_form extends moodleform
      */
     protected function get_user_subscriptions(){
         global $DB ;
-//        $userid = $this->usersubscriptions->userid;
+        $userid = $this->usersubscriptions->userid;
         $glossaryid = $this->usersubscriptions->glossaryid;
-        if($DB->record_exists('block_glsubs_glossaries_subs',array('userid'=>$this->usersubscriptions->userid,'glossaryid'=>$this->usersubscriptions->glossaryid))){
-            $record = $DB->get_record('block_glsubs_glossaries_subs',array('userid'=>$this->usersubscriptions->userid,'glossaryid'=>$this->usersubscriptions->glossaryid));
+        if( $DB->record_exists('block_glsubs_glossaries_subs',array('userid'=>$userid,'glossaryid'=>$glossaryid ) ) ){
+            $record = $DB->get_record('block_glsubs_glossaries_subs',array('userid'=>$userid,'glossaryid'=>$glossaryid));
         }
         if( $record ){
             $this->usersubscriptions->full->full->sub = $record->active ;
@@ -264,12 +282,12 @@ class block_glsubs_form extends moodleform
         // get Categories
         $this->usersubscriptions->categories = $DB->get_records('glossary_categories', array('glossaryid' => $glossaryid));
 
-        $glossary_categories_entries = $DB->get_records_sql('SELECT categoryid, count(categoryid) entries FROM {glossary_entries_categories} WHERE categoryid in (SELECT id FROM {glossary_categories} WHERE glossaryid = ?) GROUP BY categoryid ', array($glossaryid));
+        // $glossary_categories_entries = $DB->get_records_sql('SELECT categoryid, count(categoryid) entries FROM {glossary_entries_categories} WHERE categoryid in (SELECT id FROM {glossary_categories} WHERE glossaryid = ?) GROUP BY categoryid ', array($glossaryid));
 
         // convert entries values to integers
-        foreach ($glossary_categories_entries as $key => $category_entry) {
-            $this->usersubscriptions->categories[$key]->entries = (float)$category_entry->entries;
-            $this->usersubscriptions->categories[$key]->elementname = 'glossary_category_' . $key ;
+        foreach ($this->usersubscriptions->categories as $key =>& $category_entry) {
+            $category_entry->entries = (float)$category_entry->entries;
+            $category_entry->elementname = 'glossary_category_' . $key ;
         }
 
         // add Concepts
