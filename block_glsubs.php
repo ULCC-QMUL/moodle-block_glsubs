@@ -1,9 +1,10 @@
 <?php
 // namespace moodle\blocks\glsubs;
 defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
-//require_once('../../config.php');
-include_once($CFG->dirroot.'/blocks/glsubs/classes/block_glsubs_form.php');
+require_once __DIR__.'/../../config.php' ;
+global $CFG ;
 
+/** @noinspection PhpIllegalPsrClassPathInspection */
 class block_glsubs extends block_base {
     /**
      * Glossary Subscriptions Block Frontend Controller Presenter
@@ -21,7 +22,7 @@ class block_glsubs extends block_base {
      */
     private function currentPageURL() {
         $pageURL = 'http';
-        if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') {$pageURL .= 's';}
+        if (array_key_exists('HTTPS',$_SERVER) && $_SERVER['HTTPS'] === 'on') {$pageURL .= 's';}
         $pageURL .= '://';
         if ($_SERVER['SERVER_PORT'] !== '80') {
             $pageURL .= $_SERVER['SERVER_NAME']. ':' .$_SERVER['SERVER_PORT'].$_SERVER['REQUEST_URI'];
@@ -68,7 +69,7 @@ class block_glsubs extends block_base {
         }
 
         // get the current moodle configuration
-        require_once( __DIR__. '/../../config.php');
+        require_once  __DIR__. '/../../config.php' ;
 
         // this is only for logged in users
         require_login();
@@ -78,7 +79,7 @@ class block_glsubs extends block_base {
 
         // prapare for contents
         $this->content = new stdClass;
-        $this->content->text = "";
+        $this->content->text = '';
         $this->content->text .= '<strong>'.$PAGE->title . '</strong>';
 
         // add a footer for the block
@@ -90,18 +91,22 @@ class block_glsubs extends block_base {
         // check if there is a valid glossary view page
         if( $cmid > 0 ) {
             // Check if the page is referring to a glossary module view activity
-            if( ! ( '/mod/glossary/view.php' === $PAGE->url->get_path() ) ){
+            if('/mod/glossary/view.php' !== $PAGE->url->get_path()){
                 return $this->content ;
             }
             $PAGE->set_context(context_module::instance($cmid));
-            if( $courseinfo->get_cm($cmid) ) {
-                $cm = $courseinfo->get_cm($cmid);
-            } else {
-                return $this->content ;
+            try {
+                if ($courseinfo->get_cm($cmid)) {
+                    $cm = $courseinfo->get_cm($cmid);
+                } else {
+                    return $this->content;
+                }
+            } catch (Exception $e) {
+                return $this->content;
             }
 
             // Check if the course module is available and it is visible and it is visible to the user and it is a glossary module
-            if (!(TRUE == $cm->available && TRUE == $cm->visible && TRUE == $cm->uservisible && 'glossary' === $cm->modname)) {
+            if ( ! ( TRUE === $cm->available && '1' === $cm->visible && TRUE === $cm->uservisible && 'glossary' === $cm->modname ) ) {
                 return $this->content;
             }
 
@@ -110,8 +115,12 @@ class block_glsubs extends block_base {
             // test for the form status , do kee the order of cancelled, submitted, new
             if ($subscriptions_form->is_cancelled()) {
                 // redirect to the original page where the Cancel button was pressed, so use the $_SERVER['HTTP_REFERER'] variable
-                $url = new moodle_url($_SERVER['HTTP_REFERER'],array());
-                redirect($url);
+                try {
+                    $url = new moodle_url($_SERVER['HTTP_REFERER'], array());
+                    redirect($url);
+                } catch (Exception $e) {
+                    header( 'Location: '. $_SERVER['HTTP_REFERER'] ) ;
+                }
             } elseif ($subscriptions_form->is_submitted()) {
                 // $this->content->text .= '<br/><u>Submitted form</u><br/>';
                 $subs_data = $subscriptions_form->get_data();
@@ -119,7 +128,7 @@ class block_glsubs extends block_base {
                     // store this data set
                     $errors = $this->store_data($subs_data);
                     // if there were any errors, display them
-                    if($errors->messages){
+                    if(is_array($errors->messages)){
                         foreach ($errors->messages as $key => $errmsg ){
                             $this->content->text .= '<p>Error: '.$errmsg .'</p>';
                         }
@@ -129,6 +138,7 @@ class block_glsubs extends block_base {
                 // $this->content->text .= '<br/><u>New form</u><br/>';
                 $subscriptions_form->glsub_state = 'New'; // not used, just to state the condition of the flow
             }*/
+
             // add the contents of the form to the block
             $this->content->text .= $subscriptions_form->render();
         }
@@ -205,8 +215,10 @@ class block_glsubs extends block_base {
                 }
                 // $msg = 'glossaries table new concepts no category subscription';
             // if the data inthe form is a category subscription instruction then
-            } elseif ( substr($key,0,17) === 'glossary_category'){
-                $categoryid = (int)preg_replace('/[^0-9,.]/', '', $key);
+            } elseif ( 0 === strpos( $key,'glossary_category') ){
+//            } elseif ( substr($key,0,17) === 'glossary_category'){
+                $categoryid = (int) preg_replace ( '/[^0-9,.]/' , '' , $key ) ;
+
                 if($DB->record_exists('block_glsubs_categories_subs',array('userid'=>$userid,'glossaryid'=>$glossaryid,'categoryid'=>$categoryid))){
                     $old_category_record = $DB->get_record('block_glsubs_categories_subs',array('userid'=>$userid,'glossaryid'=>$glossaryid,'categoryid'=>$categoryid));
                     $old_category_record->active = $value ;
@@ -224,7 +236,8 @@ class block_glsubs extends block_base {
                 }
                 // $msg = "categories table $categoryid ";
             // if the data in the form is a concept subscription instruction then
-            } elseif ( substr($key,0,16) === 'glossary_concept') {
+            } elseif ( 0 === strpos($key,'glossary_concept') ) {
+//            } elseif ( substr($key,0,16) === 'glossary_concept') {
                 $conceptid = (int)preg_replace('/[^0-9,.]/', '', $key);
                 if($DB->record_exists('block_glsubs_concept_subs',array('userid'=>$userid,'glossaryid'=>$glossaryid,'conceptid'=>$conceptid))){
                     $oldrecord = $DB->get_record('block_glsubs_concept_subs',array('userid'=>$userid,'glossaryid'=>$glossaryid,'conceptid'=>$conceptid));
@@ -244,7 +257,8 @@ class block_glsubs extends block_base {
                 }
                 // $msg = 'concepts table';
             // if the data in the form is a concept comments subscription instruction then
-            } elseif ( substr($key ,0  ,16) === 'glossary_comment') {
+            } elseif ( 0 === strpos($key , 'glossary_comment') ) {
+//            } elseif ( substr($key ,0  ,16) === 'glossary_comment') {
                 $conceptid = (int)preg_replace('/[^0-9,.]/', '', $key);
                 if($DB->record_exists('block_glsubs_concept_subs',array('userid'=>$userid,'glossaryid'=>$glossaryid,'conceptid'=>$conceptid))){
                     $oldrecord = $DB->get_record('block_glsubs_concept_subs',array('userid'=>$userid,'glossaryid'=>$glossaryid,'conceptid'=>$conceptid));
@@ -264,7 +278,8 @@ class block_glsubs extends block_base {
                 }
                 // $msg = 'concepts table for comments';
             // if the data in the form is an author subscription instruction then
-            } elseif ( substr($key ,0  ,15) === 'glossary_author') {
+            } elseif ( 0 === strpos($key , 'glossary_author') ) {
+//            } elseif ( substr($key ,0  ,15) === 'glossary_author') {
                 $authorid = (int)preg_replace('/[^0-9,.]/', '', $key);
                 if($DB->record_exists('block_glsubs_authors_subs',array('userid'=>$userid,'glossaryid'=>$glossaryid,'authorid'=>$authorid))){
                     // $oldrecord = new stdClass();
@@ -298,4 +313,11 @@ class block_glsubs extends block_base {
         }
     }
 
+    /**
+     * @return bool
+     */
+    public function instance_allow_multiple() {
+        return FALSE;
+    }
 }
+include_once  $CFG->dirroot . '/blocks/glsubs/classes/block_glsubs_form.php' ;
