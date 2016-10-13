@@ -19,7 +19,7 @@ class block_glsubs extends block_base {
      * Return the current page URL
      * @return string
      */
-    private function curPageURL() {
+    private function currentPageURL() {
         $pageURL = 'http';
         if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') {$pageURL .= 's';}
         $pageURL .= '://';
@@ -106,7 +106,7 @@ class block_glsubs extends block_base {
             }
 
             // create a glossary subscriptions block form and assign its action to the original page
-            $subscriptions_form = new block_glsubs_form($this->curPageURL()['fullurl']);
+            $subscriptions_form = new block_glsubs_form($this->currentPageURL()['fullurl']);
             // test for the form status , do kee the order of cancelled, submitted, new
             if ($subscriptions_form->is_cancelled()) {
                 // redirect to the original page where the Cancel button was pressed, so use the $_SERVER['HTTP_REFERER'] variable
@@ -205,7 +205,7 @@ class block_glsubs extends block_base {
                 }
                 // $msg = 'glossaries table new concepts no category subscription';
             // if the data inthe form is a category subscription instruction then
-            } elseif ( substr($key,0,16) === 'glossary_category'){
+            } elseif ( substr($key,0,17) === 'glossary_category'){
                 $categoryid = (int)preg_replace('/[^0-9,.]/', '', $key);
                 if($DB->record_exists('block_glsubs_categories_subs',array('userid'=>$userid,'glossaryid'=>$glossaryid,'categoryid'=>$categoryid))){
                     $old_category_record = $DB->get_record('block_glsubs_categories_subs',array('userid'=>$userid,'glossaryid'=>$glossaryid,'categoryid'=>$categoryid));
