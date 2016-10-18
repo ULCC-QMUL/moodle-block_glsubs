@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="blocks/glsubs/db" VERSION="20161010" COMMENT="XMLDB file for Moodle blocks/glsubs on Glossary Enhancements"
+<XMLDB PATH="blocks/glsubs/db" VERSION="20161018" COMMENT="XMLDB file for Moodle blocks/glsubs on Glossary Enhancements"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
@@ -64,14 +64,16 @@
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="time stamp of recordcreation"/>
         <FIELD NAME="processed" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Flag of being processed entry for the subscription event log"/>
         <FIELD NAME="timeprocessed" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="time stamp for record processing"/>
+        <FIELD NAME="eventtype" TYPE="char" LENGTH="1" NOTNULL="true" SEQUENCE="false" COMMENT="Event Type   [G]eneric  new category or uncategorised entry [C]ategory changes [A]uthor changes [E]ntry Concept or Comment"/>
         <FIELD NAME="useremail" TYPE="char" LENGTH="100" NOTNULL="false" SEQUENCE="false" COMMENT="e-mail of the user at the time of the subscription event"/>
         <FIELD NAME="eventlink" TYPE="char" LENGTH="300" NOTNULL="false" SEQUENCE="false" COMMENT="Event text for the email to be sent for the subscription event"/>
+        <FIELD NAME="eventtext" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Event text to use for messaging"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
       <INDEXES>
-        <INDEX NAME="glossaryeventglossaryid" UNIQUE="false" FIELDS="glossaryid, processed" COMMENT="Glossary ID index for the glossary subscription events"/>
+        <INDEX NAME="glossaryeventglossaryid" UNIQUE="false" FIELDS="glossaryid, processed, eventtype" COMMENT="Glossary ID index for the glossary subscription events"/>
       </INDEXES>
     </TABLE>
     <TABLE NAME="block_glsubs_authors_subs" COMMENT="Glossary User subscriptions per Author/Glossary">
