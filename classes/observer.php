@@ -83,12 +83,12 @@ class block_glsubs_observer
 
         $record = new \stdClass() ;
         $record->userid = (int)$eventdata['userid'] ; // get the user id for the event
-        $record->glossaryid = $glossaryid ; // get the glossary id
+        $record->glossaryid = (int) $glossaryid ; // get the glossary id
         $record->categoryid = (int) $eventdata['objectid'] ; // get the category id from the event
         $record->conceptid = null ; // there is no concept id related to new category events
         $record->authorid = (int)$eventdata['userid']; // get the user id as the author id for creating this category
         $record->processed = 0; // mark it to be processed
-        $record->useremail = $user->useremail(); // get user's email at the time of the event
+        $record->useremail = $user->email; // get user's email at the time of the event
         $record->eventlink = html_writer::link($event->get_url(),null); // create a link to the event
         $record->eventtext = $event_text ;
         $record->eventtype = EVENT_CATEGORY ; // Category related event
