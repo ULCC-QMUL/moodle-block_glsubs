@@ -3,7 +3,7 @@
 defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 require_once __DIR__.'/../../config.php' ;
 global $CFG ;
-
+include_once  $CFG->dirroot . '/blocks/glsubs/classes/block_glsubs_form.php' ;
 /** @noinspection PhpIllegalPsrClassPathInspection */
 class block_glsubs extends block_base {
     /**
@@ -94,6 +94,7 @@ class block_glsubs extends block_base {
             if('/mod/glossary/view.php' !== $PAGE->url->get_path()){
                 return $this->content ;
             }
+            // ste page context
             $PAGE->set_context(context_module::instance($cmid));
             try {
                 if ($courseinfo->get_cm($cmid)) {
@@ -320,4 +321,3 @@ class block_glsubs extends block_base {
         return FALSE;
     }
 }
-include_once  $CFG->dirroot . '/blocks/glsubs/classes/block_glsubs_form.php' ;
