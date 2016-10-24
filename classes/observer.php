@@ -197,6 +197,9 @@ class block_glsubs_observer
                 $record->eventtype = EVENT_ENTRY; // Concept Entry comment related event
                 $record->timecreated = $eventdata['timecreated'];
                 $record->timeprocessed = null;
+                $record->contextinstanceid = (int) $eventdata['contextinstanceid'] ;
+                $record->crud = $eventdata['crud'];
+                $record->edulevel = (int) $eventdata['edulevel'];
 
                 // store the event record for this category
                 $logid = $DB->insert_record('block_glsubs_event_subs_log', $record, true);
@@ -234,6 +237,17 @@ class block_glsubs_observer
             } else {
                 $comment_record = $event->get_record_snapshot( $eventdata['objecttable'] ,  $commentid );
             }
+
+            // get the standard log id
+            // $filters = array();
+            // $filters['userid'] = (int) $eventdata['userid'] ;
+            // $filters['contextinstanceid'] = (int) $eventdata['contextinstanceid'] ;
+            // $filters['crud'] = $eventdata['crud'] ;
+            // $filters['edulevel'] = $eventdata['edulevel'] ;
+            // $filters['timecreated'] = $eventdata['timecreated'] ;
+            //
+            // you cannot associate at this moment the current event with the standard events log as this event will be written after this code finishes
+            // $standard_log_id = $DB->get_record( 'logstore_standard_log' , $filters  ,'id');
 
            //get comment content
             $comment_content = $comment_record->content ;
@@ -356,6 +370,9 @@ class block_glsubs_observer
                 $record->eventtype = EVENT_ENTRY; // Concept Entry comment related event
                 $record->timecreated = $eventdata['timecreated'];
                 $record->timeprocessed = null;
+                $record->contextinstanceid = (int) $eventdata['contextinstanceid'] ;
+                $record->crud = $eventdata['crud'];
+                $record->edulevel = (int) $eventdata['edulevel'];
 
                 // store the event record for this category
                 $logid = $DB->insert_record('block_glsubs_event_subs_log', $record, true);
@@ -448,6 +465,9 @@ class block_glsubs_observer
             $record->eventtype = 'created' === $eventdata['action'] ? EVENT_GENERIC : EVENT_CATEGORY;
             $record->timecreated = $eventdata['timecreated'];
             $record->timeprocessed = null;
+            $record->contextinstanceid = (int) $eventdata['contextinstanceid'] ;
+            $record->crud = $eventdata['crud'];
+            $record->edulevel = (int) $eventdata['edulevel'];
 
             // check if this is a category created action and initialise a subscription for the creator/user
             if('created' === $eventdata['action']){
