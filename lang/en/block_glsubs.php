@@ -12,6 +12,7 @@ $string['blockheader'] = 'Glossary Subscriptions';
 $string['blockfooter'] = 'User Glossary Subscriptions Preferences Panel';
 $string['glsubs:addinstance'] = 'Add a new Glossary Subscriptions block';
 $string['glsubs:myaddinstance'] = 'Add a new Glossary Subscriptions block to the Course';
+
 $string['fullsubscription'] = 'Full Glossary Subscription';
 $string['newcategoriessubscription'] = 'New Glossary Categories';
 $string['newuncategorisedconceptssubscription'] = 'Uncategorised Concepts';
@@ -25,6 +26,9 @@ $string['glossarycommentson'] = 'Comments on ';
 $string['glossaryformfullelementname'] = 'glossary_full_subscription';
 $string['glossaryformcategorieselementname'] = 'glossary_full_newcat_subscription';
 $string['glossaryformconceptselementname'] = 'glossary_full_new_uncategorised_concept';
+
 $string['glossarysubscriptionon'] = 'This user is automatically subscribed to this ';
 $string['glossarysubscriptionsdeleted'] = 'All users will automatically be unsubscribed from this ';
 $string['glossarysubscriptionsupdated'] = 'All subscribers will automatically be informed for this ';
+
+$string['findsubscribers'] = 'Find Glossary Event Subscribers Task';
