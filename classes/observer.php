@@ -7,7 +7,6 @@
  * Time: 14:42
  */
 
-// namespace moodle\blocks\glsubs\classes\;
 // define event types
 // each event may be split into more than one log entries as some activities have more aspects than one
 define('EVENT_GENERIC','G'); // New Category or New Concept without category

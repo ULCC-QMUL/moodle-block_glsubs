@@ -6,7 +6,7 @@
  * Time: 16:51
  */
 
-namespace glsubs\task;
+namespace block_glsubs\task;
 
 class find_subscribers extends \core\task\scheduled_task
 {
@@ -18,6 +18,8 @@ class find_subscribers extends \core\task\scheduled_task
     public function execute()
     {
         // TODO: Implement execute() method.
+        return false;
+
     }
 
 }
