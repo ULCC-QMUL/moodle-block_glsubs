@@ -23,6 +23,7 @@ $string['glossaryconcepts'] = 'Glossary Concepts';
 $string['glossaryallauthors'] = 'All Authors';
 $string['glossaryuncategorisedconcepts'] = 'Uncategorised Concepts';
 $string['glossarycommentson'] = 'Comments on ';
+
 $string['glossaryformfullelementname'] = 'glossary_full_subscription';
 $string['glossaryformcategorieselementname'] = 'glossary_full_newcat_subscription';
 $string['glossaryformconceptselementname'] = 'glossary_full_new_uncategorised_concept';
@@ -32,3 +33,10 @@ $string['glossarysubscriptionsdeleted'] = 'All users will automatically be unsub
 $string['glossarysubscriptionsupdated'] = 'All subscribers will automatically be informed for this ';
 
 $string['findsubscribers'] = 'Find Glossary Event Subscribers Task';
+
+$string['glossary_user'] = 'Glossary User ';
+$string['glossary_author'] = 'Glossary Author ';
+$string['glossary_concept'] = 'Glossary Concept ';
+$string['glossary_concept_definition'] = 'Glossary Concept Definition ';
+$string['glossary_comment'] = 'Glossary Comment ';
+$string['glossary_category'] = 'Glossary Category ';

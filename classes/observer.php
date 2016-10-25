@@ -164,10 +164,10 @@ class block_glsubs_observer
             }
             // save the log entry for this glossary event
             // build an event text to be used for subscription messages
-            $event_text  = PHP_EOL .'<br/> ' . fullname( \core_user::get_user( (int) $eventdata['userid'] ) ). ' @ ' . $course->fullname . ' / ' . $module_name;
-            $event_text .= PHP_EOL .'<br/> ' . '[ '. $glossary_concept->concept .' ]  ' . $categories . ' ';
+            $event_text  = PHP_EOL .'<br/> ' . get_string('glossary_user','block_glsubs') . fullname( \core_user::get_user( (int) $eventdata['userid'] ) ). ' @ ' . $course->fullname . ' / ' . $module_name;
+            $event_text .= PHP_EOL .'<br/> ' . get_string('glossary_concept','block_glsubs'). '[ '. $glossary_concept->concept .' ]  ' . get_string('glossary_category','block_glsubs') . $categories . ' ';
             $event_text .= str_replace(array("\\",'_','mod'),array(' ',' ','module'),$event->eventname) .' @ '. date('l d/F/Y G:i:s', time());
-            $event_text .= PHP_EOL .'<br/> [ '. $glossary_concept->definition .' ]  ' ;
+            $event_text .= PHP_EOL .'<br/> '. get_string('glossary_concept_definition','block_glsubs').'[ '. $glossary_concept->definition .' ]  ' ;
             $event_text .= PHP_EOL .'<br/> URL: ' . html_writer::link($event_url,'LINK');
             $event_text .= PHP_EOL .'<br/>' . $event_description = $event->get_description();
 
@@ -316,9 +316,10 @@ class block_glsubs_observer
             $event_url = $event->get_url();
 
             // build an event text to be used for subscription messages
-            $event_text  = PHP_EOL .'<br/> ' . fullname( \core_user::get_user( (int) $eventdata['userid'] ) ). ' @ ' . $course->fullname . ' / ' . $module_name;
-            $event_text .= PHP_EOL .'<br/> ' . '[ '. $glossary_concept->concept .' ]  [' . $comment_content .'] '. $categories ;
+            $event_text  = PHP_EOL .'<br/> ' . get_string('glossary_user','block_glsubs') . fullname( \core_user::get_user( (int) $eventdata['userid'] ) ). ' @ ' . $course->fullname . ' / ' . $module_name;
+            $event_text .= PHP_EOL .'<br/> ' . get_string('glossary_concept','block_glsubs') . '[ '. $glossary_concept->concept .' ] '. get_string('glossary_comment','block_glsubs') .' [' . $comment_content .'] ' . get_string('glossary_category','block_glsubs') . $categories ;
             $event_text .= str_replace(array("\\",'_','mod'),array(' ',' ','module'),$event->eventname) .' @ '. date('l d/F/Y G:i:s', time());
+            $event_text .= PHP_EOL .'<br/> '. get_string('glossary_concept_definition','block_glsubs').'[ '. $glossary_concept->definition .' ]  ' ;
             $event_text .= PHP_EOL .'<br/> URL: ' . html_writer::link($event_url,'LINK');
             $event_text .= PHP_EOL .'<br/>' . $event_description = $event->get_description();
             if('created' === $eventdata['action']){
@@ -436,8 +437,8 @@ class block_glsubs_observer
             $event_url = $event->get_url();
 
             // build an event text to be used for subscription messages
-            $event_text  = PHP_EOL .'<br/> ' . fullname( \core_user::get_user( (int) $eventdata['userid'] ) ). ' @ ' . $course->fullname . ' / ' . $module_name;
-            $event_text .= PHP_EOL .'<br/> ' . ' [' . $glossary_category->name .'] ';
+            $event_text  = PHP_EOL .'<br/> ' . get_string('glossary_user','block_glsubs') . fullname( \core_user::get_user( (int) $eventdata['userid'] ) ). ' @ ' . $course->fullname . ' / ' . $module_name;
+            $event_text .= PHP_EOL .'<br/> ' . get_string('glossary_category','block_glsubs') . ' [' . $glossary_category->name .'] ';
             $event_text .= str_replace(array("\\",'_','mod'),array(' ',' ','module'),$event->eventname) .' @ '. date('l d/F/Y G:i:s', time());
             $event_text .= PHP_EOL .'<br/> URL: ' . html_writer::link($event_url,'LINK');
             $event_text .= PHP_EOL .'<br/>' . $event_description = $event->get_description();
