@@ -486,65 +486,67 @@ class find_subscribers extends \core\task\scheduled_task
                 mtrace('ERROR: There was a database access error '.$exception->getMessage());
                 $error_status = true;
             }
+            if( ! $error_status && $new_events_counter > 0 ){
+                // deal with full subscriptins first
+                $error_status = ( ! $this->find_full_subscriptions( $timenow ) ) || $error_status ;
 
-            // deal with full subscriptins first
-            $error_status = ( ! $this->find_full_subscriptions( $timenow ) ) || $error_status ;
+                // deal with generic subscriptions now
+                // deal with new categories subscriptions
+                $error_status = ( ! $this->find_new_categories_subscriptions( $timenow ) ) || $error_status ;
 
-            // deal with generic subscriptions now
-            // deal with new categories subscriptions
-            $error_status = ( ! $this->find_new_categories_subscriptions( $timenow ) ) || $error_status ;
+                // deal with new uncategorised concepts subscriptions
+                $error_status = ( ! $this->find_new_uncategorised_subscriptions( $timenow ) ) || $error_status ;
 
-            // deal with new uncategorised concepts subscriptions
-            $error_status = ( ! $this->find_new_uncategorised_subscriptions( $timenow ) ) || $error_status ;
+                // get the list of the author IDs from these log entries
+                // find the glossary authors subscribers that are not having full subscription and register user id , log entry id pairs to be used for message deliveries
+                $error_status = ( ! $this->find_author_subscriptions( $timenow )) || $error_status ;
 
-            // get the list of the author IDs from these log entries
-            // find the glossary authors subscribers that are not having full subscription and register user id , log entry id pairs to be used for message deliveries
-            $error_status = ( ! $this->find_author_subscriptions( $timenow )) || $error_status ;
+                // get the list of the category IDs from these log entries
+                // find the glossary categories subscribers that are not having full subscription and register user id, log entry id pairs to be used for message deliveries
+                $error_status = ( ! $this->find_category_subscriptions( $timenow )) || $error_status ;
 
-            // get the list of the category IDs from these log entries
-            // find the glossary categories subscribers that are not having full subscription and register user id, log entry id pairs to be used for message deliveries
-            $error_status = ( ! $this->find_category_subscriptions( $timenow )) || $error_status ;
+                // get the list of the concept IDs from the latest loeg entries
+                // find the users subscribing to these concepts and / or their comments that are not having full subscription
+                // register user id , log entry id pairs to be used for message deliveries
+                $error_status = ( ! $this->find_concept_subscriptions( $timenow )) || $error_status ;
 
-            // get the list of the concept IDs from the latest loeg entries
-            // find the users subscribing to these concepts and / or their comments that are not having full subscription
-            // register user id , log entry id pairs to be used for message deliveries
-            $error_status = ( ! $this->find_concept_subscriptions( $timenow )) || $error_status ;
+                if( ! $error_status ){
+                    mtrace('There were no errors, continuing to remove non existing target subscriptions');
+                    // if no errors occured then
+                    // delete all non existing concept subscriptions
+                    $error_status = ( ! $this->remove_deleted_concepts_subscriptions( $timenow ) ) || $error_status ;
 
-            if( ! $error_status ){
-                mtrace('There were no errors, continuing to remove non existing target subscriptions');
-                // if no errors occured then
-                // delete all non existing concept subscriptions
-                $error_status = ( ! $this->remove_deleted_concepts_subscriptions( $timenow ) ) || $error_status ;
+                    // delete all non existing category subscriptions
+                    $error_status = ( ! $this->remove_deleted_category_subscriptions( $timenow ) ) || $error_status ;
 
-                // delete all non existing category subscriptions
-                $error_status = ( ! $this->remove_deleted_category_subscriptions( $timenow ) ) || $error_status ;
+                    // delete all non existing author subscriptions
+                    $error_status = ( ! $this->remove_deleted_author_subscriptions( $timenow ) ) || $error_status ;
 
-                // delete all non existing author subscriptions
-                $error_status = ( ! $this->remove_deleted_author_subscriptions( $timenow ) ) || $error_status ;
+                    // delete all non existing glossary subscriptions
+                    $error_status = ( ! $this->remove_deleted_concept_subscriptions( $timenow ) ) || $error_status ;
 
-                // delete all non existing glossary subscriptions
-                $error_status = ( ! $this->remove_deleted_concept_subscriptions( $timenow ) ) || $error_status ;
-
-            }
-            if($error_status){
-                mtrace('ERROR: There was an issue while erasing invalid subscriptions ');
-            } else {
-                // update all events up to now as processed and add time stamp
-                mtrace('All good, ready to mark all unprocessed events as done');
-
-                // db update processed and timeprocessed
-                try {
-                    if( $DB->set_field_select('block_glsubs_event_subs_log' , 'timeprocessed' , time() , ' processed = 0 AND timecreated < :timenow ', array('timenow' => $timenow ) ) ){
-                        $DB->set_field_select('block_glsubs_event_subs_log' , 'processed' , 1 , ' processed = 0 AND timecreated < :timenow ', array('timenow' => $timenow ) );
-                    }
-                    mtrace('Events up to '.date('c',$timenow).' are marked as processed');
-                } catch (\Exception $exception) {
-                    mtrace('ERROR: An error occured on updating the glossary event logs as processed, will try again next time');
-                    return false;
                 }
-            }
 
-            mtrace('=================================================================================================');
+                // continue if there is no error and there are unprocessed event log entries
+                if($error_status){
+                    mtrace('ERROR: There was an issue while erasing invalid subscriptions ');
+                } else {
+                    // update all events up to now as processed and add time stamp
+                    mtrace('All good, ready to mark all unprocessed events as done');
+
+                    // db update processed and timeprocessed
+                    try {
+                        if( $DB->set_field_select('block_glsubs_event_subs_log' , 'timeprocessed' , time() , ' processed = 0 AND timecreated < :timenow ', array('timenow' => $timenow ) ) ){
+                            $DB->set_field_select('block_glsubs_event_subs_log' , 'processed' , 1 , ' processed = 0 AND timecreated < :timenow ', array('timenow' => $timenow ) );
+                        }
+                        mtrace('Events up to '.date('c',$timenow).' are marked as processed');
+                    } catch (\Exception $exception) {
+                        mtrace('ERROR: An error occured on updating the glossary event logs as processed, will try again next time');
+                        return false;
+                    }
+                }
+                mtrace('=================================================================================================');
+            }
         } else {
             return;
         }
