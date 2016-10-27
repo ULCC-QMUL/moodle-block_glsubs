@@ -485,6 +485,7 @@ class find_subscribers extends \core\task\scheduled_task
             } catch (\Exception $exception) {
                 mtrace('ERROR: There was a database access error '.$exception->getMessage());
                 $error_status = true;
+                $new_events_counter = 0 ;
             }
             if( ! $error_status && $new_events_counter > 0 ){
                 // deal with full subscriptins first
