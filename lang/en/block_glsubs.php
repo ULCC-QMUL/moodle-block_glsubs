@@ -40,3 +40,5 @@ $string['glossary_concept'] = 'Glossary Concept ';
 $string['glossary_concept_definition'] = 'Glossary Concept Definition ';
 $string['glossary_comment'] = 'Glossary Comment ';
 $string['glossary_category'] = 'Glossary Category ';
+
+$string['CATEGORY_GENERIC'] = '[--generic--] ';

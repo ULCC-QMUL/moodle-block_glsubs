@@ -72,7 +72,7 @@ class block_glsubs_form extends moodleform
         $mform->setType('glossaryuserlinks',PARAM_TEXT);
 
         // Get user active subscriptions // TBD
-        $current_subscriptions = $this->get_user_subscriptions();
+        $this->get_user_subscriptions();
 
         // Add Full Glossary Subscription Choice and Pointer Link
         $elementUrl = new moodle_url('/mod/glossary/view.php',array('id'=>$cmid));
@@ -103,7 +103,8 @@ class block_glsubs_form extends moodleform
 
         // Add Glossary Subscription on New Entries without Categories
         // count the uncategorised entries of this glossary
-        $this->usersubscriptions->full->full->categorisedentries = $DB->count_records_sql('select count(distinct entryid) entries from {glossary_entries_categories}  where categoryid in (select id from {glossary_categories} where glossaryid=:glossaryid)',array('glossaryid'=>$glossaryid));
+        $counter_record = $DB->get_record_sql('SELECT count( DISTINCT id ) entries  FROM {glossary_entries} WHERE glossaryid = :glossaryid  AND id NOT IN (SELECT entryid FROM {glossary_entries_categories} ) ',array('glossaryid' => $glossaryid));
+        $this->usersubscriptions->full->full->categorisedentries = $this->usersubscriptions->full->full->allglossaryentries - (int) $counter_record->entries ;
         $elementUrl = new moodle_url('/mod/glossary/view.php',array('id'=>$cmid,'mode'=>'cat','hook'=>'-1'));
         $elementLink = html_writer::link($elementUrl,'&#9658; ');
         $label = $elementLink . '&emsp;';
@@ -283,6 +284,8 @@ class block_glsubs_form extends moodleform
 
         // get Authors
         $this->usersubscriptions->authors = $DB->get_records_sql('SELECT userid id, count(userid) entries FROM {glossary_entries} WHERE glossaryid = ? GROUP BY userid', array($glossaryid));
+
+        // get user subscriptions to the glossary authors
         $this->usersubscriptions->authorsSubs = $DB->get_records('block_glsubs_authors_subs',array('userid'=>$userid,'glossaryid'=>$glossaryid),'authorid','authorid,active');
 
         foreach($this->usersubscriptions->authors as $key => & $author_record) {
@@ -296,7 +299,9 @@ class block_glsubs_form extends moodleform
         $this->usersubscriptions->authorsSubs = NULL ;
 
         // get Categories
-        $this->usersubscriptions->categories = $DB->get_records('glossary_categories', array('glossaryid' => $glossaryid),'id','id,glossaryid,name');
+        $this->usersubscriptions->categories = $DB->get_records('glossary_categories', array('glossaryid' => $glossaryid),'name','id,glossaryid,name');
+
+        // get User Subscriptions to the glossary categories
         $this->usersubscriptions->categoriesSubs = $DB->get_records('block_glsubs_categories_subs',array('userid'=>$userid,'glossaryid'=>$glossaryid),'categoryid','categoryid,active');
 
         // convert entries values to integers
@@ -312,7 +317,7 @@ class block_glsubs_form extends moodleform
         $this->usersubscriptions->categoriesSubs = NULL ;
 
         // Add the Glossary concepts
-        $this->usersubscriptions->concepts = $DB->get_records('glossary_entries', array('glossaryid' => $glossaryid),'id','id,concept');
+        $this->usersubscriptions->concepts = $DB->get_records('glossary_entries', array('glossaryid' => $glossaryid),'concept','id,concept');
 
         // get the concepts' categories set
         $this->usersubscriptions->conceptsCategories = $DB->get_records_select('glossary_entries_categories', 'categoryid IN (SELECT id FROM {glossary_categories} WHERE glossaryid = :glossaryid ) ', array('glossaryid'=>$glossaryid), $sort='entryid', $fields='id, entryid, categoryid', $limitfrom=0, $limitnum=0);
@@ -330,7 +335,7 @@ class block_glsubs_form extends moodleform
         // get concept comments counters
         $sqlstmt = 'SELECT itemid, count(itemid) counter FROM {comments} c JOIN {glossary_entries} ge ON c.itemid = ge.id AND ge.glossaryid = :glossaryid WHERE commentarea = "glossary_entry" GROUP BY itemid ORDER BY itemid';
         $this->usersubscriptions->conceptCounters = $DB->get_records_sql( $sqlstmt , array('glossaryid' => $glossaryid ));
-//echo '';
+
         // add comment counters to relevant concepts
         foreach ($this->usersubscriptions->conceptCounters as $key => $conceptCounter) {
             $this->usersubscriptions->concepts[$key]->commentscounter = $conceptCounter->counter ;

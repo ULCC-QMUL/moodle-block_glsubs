@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="blocks/glsubs/db" VERSION="20161025" COMMENT="XMLDB file for Moodle blocks/glsubs on Glossary Enhancements"
+<XMLDB PATH="blocks/glsubs/db" VERSION="20161026" COMMENT="XMLDB file for Moodle blocks/glsubs on Glossary Enhancements"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
@@ -96,7 +96,7 @@
         <INDEX NAME="authorsubsuserindex" UNIQUE="false" FIELDS="userid" COMMENT="Glossary User subscriptions per Author/Glossary for User ID"/>
       </INDEXES>
     </TABLE>
-    <TABLE NAME="block_glsubs_messages_log" COMMENT="List of associated User ID, Glossary Event Log ID, time stamped in creation time and time stamped  when delivered ">
+    <TABLE NAME="block_glsubs_messages_log" COMMENT="List of associated User ID, Glossary Event Log ID, time stamped in creation time and time stamped  when delivered">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="User ID for the message log"/>
@@ -108,7 +108,7 @@
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
       <INDEXES>
-        <INDEX NAME="glossarymessages" UNIQUE="false" FIELDS="userid, timecreated, timedelivered" COMMENT="Glossary Event Messages index"/>
+        <INDEX NAME="glossarymessages" UNIQUE="false" FIELDS="userid, eventlogid, timecreated, timedelivered" COMMENT="Glossary Event Messages index"/>
       </INDEXES>
     </TABLE>
   </TABLES>

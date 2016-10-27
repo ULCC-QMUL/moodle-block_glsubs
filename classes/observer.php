@@ -13,6 +13,7 @@ define('EVENT_GENERIC','G'); // New Category or New Concept without category
 define('EVENT_AUTHOR','A'); // Entry activity related to the Concept Author
 define('EVENT_CATEGORY','C'); // Category Updated Or Deleted
 define('EVENT_ENTRY','E'); // Any Concept activity
+define('CATEGORY_GENERIC',get_string('CATEGORY_GENERIC','block_glsubs')); // Use this when the category of the event is generic
 
 class block_glsubs_observer
 {
@@ -104,7 +105,7 @@ class block_glsubs_observer
                 $concept_categories[0]->id = 0 ;
                 $concept_categories[0]->categoryid = null ;
                 $concept_categories[0]->entryid = $glossary_concept_id ;
-                $concept_categories[0]->name = '[--generic--] ' ;
+                $concept_categories[0]->name = CATEGORY_GENERIC ;
                 $categories = $concept_categories[0]->name ;
             }
 
@@ -193,7 +194,7 @@ class block_glsubs_observer
                 $record->useremail = $user->email; // get user's email at the time of the event
                 $record->eventlink = html_writer::link($event->get_url(), 'LINK'); // create a link to the event
                 $record->eventtext = $event_text;
-                $record->eventtype = EVENT_ENTRY; // Concept Entry comment related event
+                $record->eventtype = ( $myconcept_category->name === CATEGORY_GENERIC ) ? EVENT_GENERIC : EVENT_ENTRY ; // Concept Entry comment related event
                 $record->timecreated = $eventdata['timecreated'];
                 $record->timeprocessed = null;
                 $record->contextinstanceid = (int) $eventdata['contextinstanceid'] ;
@@ -270,9 +271,9 @@ class block_glsubs_observer
 
             // store categories as array of objects
             if( count( $concept_categories ) > 0 ){
-                foreach ( $concept_categories as $key => & $concept_category_l ) {
-                    $category =  $DB->get_record('glossary_categories', array( 'id' => (int) $concept_category_l->categoryid ));
-                    $concept_category_l->name = $category->name ;
+                foreach ( $concept_categories as $key => & $concept_category ) {
+                    $category =  $DB->get_record('glossary_categories', array( 'id' => (int) $concept_category->categoryid ));
+                    $concept_category->name = $category->name ;
                     $categories .= '['. $category->name .'] ';
                 }
             } else { // add a generic category for the event
@@ -280,7 +281,7 @@ class block_glsubs_observer
                 $concept_categories[0]->id = 0 ;
                 $concept_categories[0]->categoryid = null ;
                 $concept_categories[0]->entryid = $glossary_concept_id ;
-                $concept_categories[0]->name = '[--generic--] ' ;
+                $concept_categories[0]->name = CATEGORY_GENERIC ;
                 $categories = $concept_categories[0]->name ;
             }
 
