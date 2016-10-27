@@ -474,6 +474,7 @@ class find_subscribers extends \core\task\scheduled_task
             mtrace('Counting glossary event entries');
 
             // create a table to keep the user id , event log id pairs for the subscriptions, time creation stamp and delivery flag via XMLDB
+            // mdl_block_glsubs_messages_log
 
             // delete invalid entries
             $error_status = ( ! $this->delete_invalid_glossary_entries() ) || $error_status ;
@@ -485,9 +486,9 @@ class find_subscribers extends \core\task\scheduled_task
             } catch (\Exception $exception) {
                 mtrace('ERROR: There was a database access error '.$exception->getMessage());
                 $error_status = true;
-                $new_events_counter = 0 ;
+                $new_events_counter->entries = 0 ;
             }
-            if( ! $error_status && $new_events_counter > 0 ){
+            if( ! $error_status && $new_events_counter->entries > 0 ){
                 // deal with full subscriptins first
                 $error_status = ( ! $this->find_full_subscriptions( $timenow ) ) || $error_status ;
 
@@ -549,8 +550,9 @@ class find_subscribers extends \core\task\scheduled_task
                 mtrace('=================================================================================================');
             }
         } else {
-            return;
+            return false;
         }
+        return true;
     }
 
     /**
