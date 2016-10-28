@@ -15,6 +15,27 @@ define('CATEGORY_GENERIC',get_string('CATEGORY_GENERIC','block_glsubs'));
 // define the catered limit of user IDs in the system for assisting in creating unique query ids, one billion I think is fine
 define('MAX_USERS',1000000000);
 
+/**
+ * Class find_subscribers
+ * @usage This plugin manages glossary subscriptions on full scale, new categories and new uncategorised concepts
+ *        monitoring, new categorised concepts and their associated comments activities. The subscriptions panel
+ *        is only visible while you are in the view mode of the glossary. In all other pages there only an
+ *        informing part of the plugin showing its presence in the course or the course module.
+ *        The next development step is to add settings to this plugin to keep universal configuration values which
+ *        will be integrated into the plugin logic.
+ *        Another stp is to create a visual part for some of the user messages, and possibly a page to be able to see
+ *        the individual messages.
+ *
+ *        The messaging system tries to avoid the creation of duplicate messages for the users, by checking the
+ *        existence of previous event log id being served for the specific user id, so even if the user is qualifying
+ *        for multiple conditions for the same event (category, author, concept or full subscription), only one
+ *        message is created for the event. The message content is always the same for the same event, so there is
+ *        no risk of failure to deliver all relevant information for the event to the subscribing user.
+ *
+ * @author vasileios
+ *
+ * @package block_glsubs\task
+ */
 class find_subscribers extends \core\task\scheduled_task
 {
     public function get_name()
@@ -470,21 +491,20 @@ class find_subscribers extends \core\task\scheduled_task
             ini_set('max_execution_time',0);
             mtrace('=================================================================================================');
             mtrace('Find Glossary Subscribers Task started at '.date('c',$timenow) );
-            // mtrace("Config dir root is [$CFG->dirroot]" );
-            mtrace('Counting glossary event entries');
-
-            // create a table to keep the user id , event log id pairs for the subscriptions, time creation stamp and delivery flag via XMLDB
-            // mdl_block_glsubs_messages_log
+            // mtrace("Config dir root is [$CFG->dirroot]" ); // debug message
 
             // delete invalid entries
             $error_status = ( ! $this->delete_invalid_glossary_entries() ) || $error_status ;
 
+            // create a table to keep the user id , event log id pairs for the subscriptions, time creation stamp and delivery flag via XMLDB
+            // mdl_block_glsubs_messages_log
+
             // now it is clean to read the unprocessed entries
             try {
                 $new_events_counter = $DB->get_record_sql('SELECT COUNT(id) entries FROM {block_glsubs_event_subs_log} WHERE processed = 0 AND timecreated < :timenow ', array( 'timenow' => $timenow ) );
-                mtrace("The unprocessed log entries are $new_events_counter->entries" );
+                mtrace("There are $new_events_counter->entries unprocessed log entries " );
             } catch (\Exception $exception) {
-                mtrace('ERROR: There was a database access error '.$exception->getMessage());
+                mtrace('ERROR: There was a database access error while getting new glossary event log entries '.$exception->getMessage());
                 $error_status = true;
                 $new_events_counter->entries = 0 ;
             }
