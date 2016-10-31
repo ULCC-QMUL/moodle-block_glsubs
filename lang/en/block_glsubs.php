@@ -42,3 +42,28 @@ $string['glossary_comment'] = 'Glossary Comment ';
 $string['glossary_category'] = 'Glossary Category ';
 
 $string['CATEGORY_GENERIC'] = '[--generic--] ';
+
+$string['settings_headerconfig'] = 'QM+ Glossary Subscriptions Configuration';
+$string['settings_descconfig'] = 'QM+ GlSubs Description<br/>It is advised to keep the default values.<br/>Only where there is an impact on performance you could try to alter the default behaviour';
+$string['settings_autoselfsubscribe'] = 'Auto Self Subscribe';
+$string['settings_autoselfsubscribe_desc'] = 'Automatically subscribe oneself when creating any category, concept or comment ?';
+$string['settings_messagestoshow'] = 'Recent Messages';
+$string['settings_messagestoshow_details'] = 'Choose how many Recent Subscription Messages to present on the block';
+$string['settings_pagelayout'] = 'Message Layout';
+$string['settings_pagelayout_details'] = 'Choose whether you like a course style page or a pop up window for the messages';
+
+$string['view_the_user'] = 'The user ';
+$string['view_the_author'] = 'The author ';
+$string['view_created'] = ' created ';
+$string['view_updated'] = ' updated ';
+$string['view_deleted'] = ' deleted ';
+$string['view_generic'] = ' a generic event ';
+$string['view_category'] = ' a category event ';
+$string['view_concept'] = ' a concept event ';
+$string['view_on'] = ' for a concept written by ';
+$string['view_message_at'] = 'Message viewed at ';
+
+$string['block_found'] = 'Found ';
+$string['block_unread_messages'] = ' unread messages';
+$string['block_could_not_access'] = 'Could not access the ';
+$string['block_most_recent'] = ' most recent messages';

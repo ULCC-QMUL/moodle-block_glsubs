@@ -582,4 +582,11 @@ class find_subscribers extends \core\task\scheduled_task
     public function execute_condition(){
         return true;
     }
+
+    /**
+     * @return bool
+     */
+    public function send_messages(){
+        return true;
+    }
 }

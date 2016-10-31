@@ -52,7 +52,7 @@ class block_glsubs extends block_base {
     {
         /** @var stdClass $this */
         // define usage of global variables
-        global $PAGE, $COURSE ; // $USER, $DB, $SITE , $OUTPUT, $CFG, $THEME, $OUTPUT ;
+        global $PAGE , $COURSE , $DB , $CFG ; // $USER, $SITE , $OUTPUT, $THEME, $OUTPUT ;
 
         if ( null !== $this->title) {
             $this->title = get_string('blockheader','block_glsubs');
@@ -111,6 +111,26 @@ class block_glsubs extends block_base {
                 return $this->content;
             }
 
+            // get the block settings from its configuration
+            $glsubs_settings = get_config('block_glsubs');
+            if( (int) $glsubs_settings->messagestoshow > 0 ){
+                $messages = $this->get_latest_messages( );
+                $this->content->text .= '<table><thead><tr><th>When</th><th>By User</th><th>On</th></tr></thead><tbody>';
+                foreach ($messages as $key => $message){
+                    if( (int) $message->event->conceptid > 0 ){
+                        $record = $DB->get_record('glossary_entries', array('id' =>(int) $message->event->conceptid ) );
+                        $name = $record->concept ;
+                    } else {
+                        $record = $DB->get_record('glossary_categories', array('id' => (int) $message->event->categoryid ));
+                        $name = $record->name ;
+                    }
+                    $link = html_writer::link(new moodle_url('/blocks/glsubs/view.php' , array('id' => $key)), $message->date );
+                    $this->content->text .= '<tr><td>' . $link ;
+                    $this->content->text .= '</td><td> '.fullname($message->user).'</td><td>' . $name . '</td></tr>';
+                }
+                $this->content->text .= '</tbody></table><hr style="visibility: visible !important;"/>';
+            }
+
             // create a glossary subscriptions block form and assign its action to the original page
             $subscriptions_form = new block_glsubs_form($this->currentPageURL()['fullurl']);
             // test for the form status , do kee the order of cancelled, submitted, new
@@ -147,6 +167,39 @@ class block_glsubs extends block_base {
         return $this->content ;
     }
 
+    protected function get_latest_messages(){
+        global $DB , $USER ;
+        $messages = array();
+        $glsubs_settings = get_config('block_glsubs');
+        $messages_count = (int) $glsubs_settings->messagestoshow ;
+        try {
+            $messages = $DB->get_records('block_glsubs_messages_log',array('userid' => (int) $USER->id ),'id DESC','id,eventlogid,timecreated' ,0, $messages_count);
+            $sql = 'SELECT * FROM {block_glsubs_messages_log} WHERE userid = :userid AND timedelivered IS NULL ORDER BY id';
+            $messages = $DB->get_records_sql( $sql , array('userid' => (int) $USER->id ),0,$messages_count);
+        } catch (\Exception $exception){
+            return $messages;
+        }
+
+        if( count($messages) > 0 ){
+            $this->content->text .= '<br/>'.get_string('block_found','block_glsubs').count($messages).get_string('block_unread_messages','block_glsubs').'<br/>';
+            foreach ($messages as $key =>& $message){
+                try {
+                    $message->event = $DB->get_record('block_glsubs_event_subs_log', array('id' => $key));
+                    $message->date = gmdate('Y-m-d H:i:s', (int)$message->event->timecreated);
+                    $message->user = $DB->get_record('user', array('id' => (int)$message->event->userid));
+                    $message->author = $DB->get_record('user', array('id' => (int)$message->event->authorid));
+                } catch (\Exception $exception){
+                    $this->content->text .= '<strong>'.get_string('block_could_not_access','block_glsubs').$glsubs_settings->messagestoshow.get_string('block_most_recent','block_glsubs').'</strong>';
+                }
+            }
+        }
+        return $messages;
+    }
+    /**
+     * @param $dataset
+     *
+     * @return null|\stdClass
+     */
     private function store_data($dataset){
         global $DB;
         $error = new stdClass();
@@ -319,5 +372,17 @@ class block_glsubs extends block_base {
      */
     public function instance_allow_multiple() {
         return FALSE;
+    }
+
+    /**
+     * This function is required by Moodle to overide the default inherited function and to return true
+     * in order to be able to store and use relevant universal plugin settings.
+     * If you need more fine grained settings such as user or role or other classification
+     * you must provide a set of database structures and their associated business logic
+     * @return bool
+     */
+    public function has_config()
+    {
+        return parent::has_config() || true;
     }
 }
