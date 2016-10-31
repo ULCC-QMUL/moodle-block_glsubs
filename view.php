@@ -106,7 +106,7 @@ if(! $error){
 
     echo '<p/>' .$message->event->eventtext;
 
-    echo '<p/><p/><p/><p/>'.get_string('view_message_at','block_glsubs'). $message->timedelivered ;
+    echo '<p/><p/><p/><p/>'.get_string('view_message_at','block_glsubs'). ' '. date('Y-m-d H:i:s' ,$message->timedelivered ) ;
 }
 echo '<p><p><p><a href="'.$_SERVER['HTTP_REFERER'] . '">Go back</a>' ;
 

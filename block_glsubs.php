@@ -185,7 +185,7 @@ class block_glsubs extends block_base {
             foreach ($messages as $key =>& $message){
                 try {
                     $message->event = $DB->get_record('block_glsubs_event_subs_log', array('id' => $key));
-                    $message->date = gmdate('Y-m-d H:i:s', (int)$message->event->timecreated);
+                    $message->date = date('Y-m-d H:i:s', (int)$message->event->timecreated);
                     $message->user = $DB->get_record('user', array('id' => (int)$message->event->userid));
                     $message->author = $DB->get_record('user', array('id' => (int)$message->event->authorid));
                 } catch (\Exception $exception){
