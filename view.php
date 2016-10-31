@@ -62,7 +62,7 @@ try {
     // check if the message was delivered, and if not mark it with the date time stamp
     if( ! (int) $message->timedelivered > 0 ){
         $message->timedelivered = time() ;
-        $DB->update_record('block_glsubs_messages_log', $message );
+        $DB->update_record('block_glsubs_messages_log', $message , false);
     }
     $message->event = $DB->get_record('block_glsubs_event_subs_log', array('id' => $key));
     $message->date = gmdate("Y-m-d H:i:s", (int)$message->event->timecreated);
