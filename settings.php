@@ -64,8 +64,8 @@ $page_layouts_options = array();
 $page_layouts_options['course'] = get_string( $default_pagelayout );
 $page_layouts_options['popup'] = get_string('popup');
 
-$settings->add(new admin_setting_configselect('block_glsubs/pagelayout', get_string('settings_pagelayout', 'block_glsubs'),
-    get_string('settings_pagelayout_details', 'block_glsubs'), $default_pagelayout , $page_layouts_options));
+/*$settings->add(new admin_setting_configselect('block_glsubs/pagelayout', get_string('settings_pagelayout', 'block_glsubs'),
+    get_string('settings_pagelayout_details', 'block_glsubs'), $default_pagelayout , $page_layouts_options));*/
 
 
 //
