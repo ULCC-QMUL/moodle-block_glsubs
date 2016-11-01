@@ -75,20 +75,27 @@ try {
 
 if(! $error){
     echo '<p/><p/><p/>';
+
+    // show user
     $userpicture = $OUTPUT->user_picture($message->user, array('size'=>35));
     $elementUrl = new moodle_url('/user/view.php', array('id' => $message->user->id));
     $elementLink = html_writer::link($elementUrl,$userpicture);
 
     // create a link to the user's list of entries in this glossary
     echo get_string('view_the_user','block_glsubs') . fullname($message->user) . ' ' .$elementLink;
+
+    // show action
     if( $message->event->crud === 'c' ){
         echo get_string('view_created','block_glsubs');
     } elseif ( $message->event->crud === 'u' ){
         echo get_string('view_updated','block_glsubs');
     } elseif ( $message->event->crud === 'd' ){
         echo get_string('view_deleted','block_glsubs');
+    } else {
+        echo get_string('view_acted','block_glsubs');
     }
 
+    // show event type
     if( $message->event->eventtype === EVENT_GENERIC ){
         echo get_string('view_generic','block_glsubs');
     } elseif ( $message->event->eventtype ===  EVENT_CATEGORY ){
@@ -97,18 +104,21 @@ if(! $error){
         echo get_string('view_concept','block_glsubs');
     }
 
+    // show target
     echo get_string('view_on','block_glsubs');
     echo ' ';
+
+    // show author
     $userpicture = $OUTPUT->user_picture($message->author, array('size'=>35));
     $elementUrl = new moodle_url('/user/view.php', array('id' => $message->author->id));
     $elementLink = html_writer::link($elementUrl,$userpicture);
     echo ' '. fullname($message->user) . ' ' .$elementLink;
 
     echo '<p/>' .$message->event->eventtext;
-
+    // show message view date time
     echo '<p/><p/><p/><p/>'.get_string('view_message_at','block_glsubs'). ' '. date('Y-m-d H:i:s' ,$message->timedelivered ) ;
 }
-echo '<p><p><p><a href="'.$_SERVER['HTTP_REFERER'] . '">Go back</a>' ;
+echo '<p><p><p><strong><a href="'.$_SERVER['HTTP_REFERER'] . '">Go back</a></strong>' ;
 
 //send footer out to browser
 echo $OUTPUT->footer();

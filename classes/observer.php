@@ -70,6 +70,9 @@ class block_glsubs_observer
     private static function entry_event(\core\event\base $event ){
         global $DB;
 
+        //get the autosubscription setting
+        $auto_subscribe = ( '1' === get_config('block_glsubs','autoselfsubscribe') );
+
         // get the event data array
         $eventdata = $event->get_data();
 
@@ -152,7 +155,9 @@ class block_glsubs_observer
                     $concept_subscription = $DB->get_record( 'block_glsubs_concept_subs' , $filters );
                     $concept_subscription->conceptactive = 1 ;
                     $concept_subscription->commentsactive = 1 ;
-                    $DB->update_record('block_glsubs_concept_subs',$concept_subscription , false );
+                    if($auto_subscribe){
+                        $DB->update_record('block_glsubs_concept_subs',$concept_subscription , false );
+                    }
                 } else {
                     $concept_subscription = new \stdClass();
                     $concept_subscription->userid = (int) $user->id ;
@@ -160,7 +165,9 @@ class block_glsubs_observer
                     $concept_subscription->conceptid = $glossary_concept_id ;
                     $concept_subscription->conceptactive = 1 ;
                     $concept_subscription->commentsactive = 1 ;
-                    $logid = $DB->insert_record( 'block_glsubs_concept_subs' , $concept_subscription , true );
+                    if($auto_subscribe){
+                        $logid = $DB->insert_record( 'block_glsubs_concept_subs' , $concept_subscription , true );
+                    }
                 }
             }
             // save the log entry for this glossary event
@@ -174,7 +181,11 @@ class block_glsubs_observer
 
             // add message for automatic subscription for this on the user/creator
             if('created' === $eventdata['action']){
-                $event_text .= PHP_EOL .'<br/>' . get_string('glossarysubscriptionon','block_glsubs') . $eventdata['target'];
+                $event_text .= PHP_EOL .'<br/>' ;
+                if($auto_subscribe) {
+                    $event_text .= get_string('glossarysubscriptionon', 'block_glsubs');
+                }
+                $event_text .= $eventdata['target'];
             } elseif ('updated' === $eventdata['action']){
                 $event_text .= PHP_EOL .'<br/>' . get_string('glossarysubscriptionsupdated','block_glsubs') . $eventdata['target'];
             } elseif ('deleted' === $eventdata['action']){
@@ -220,6 +231,9 @@ class block_glsubs_observer
      */
     private static function comment_event(\core\event\base $event){
         global $DB ;
+
+        //get the autosubscription setting
+        $auto_subscribe = ( '1' === get_config('block_glsubs','autoselfsubscribe') );
 
         // get the event data array
         $eventdata = $event->get_data();
@@ -324,7 +338,11 @@ class block_glsubs_observer
             $event_text .= PHP_EOL .'<br/> URL: ' . html_writer::link($event_url,'LINK');
             $event_text .= PHP_EOL .'<br/>' . $event_description = $event->get_description();
             if('created' === $eventdata['action']){
-                $event_text .= PHP_EOL .'<br/>' . get_string('glossarysubscriptionon','block_glsubs') . $eventdata['target'];
+                $event_text .= PHP_EOL .'<br/>' ;
+                if($auto_subscribe){
+                    $event_text .= get_string('glossarysubscriptionon','block_glsubs') ;
+                }
+                $event_text .= $eventdata['target'];
             } elseif ('deleted' === $eventdata['action']){ // this is actually an update event for the concept , not a deleted one
                 $event_text .= PHP_EOL .'<br/>' . get_string('glossarysubscriptionsupdated','block_glsubs') . $eventdata['target'];
             }
@@ -343,7 +361,9 @@ class block_glsubs_observer
                 $concept_subscription = $DB->get_record('block_glsubs_concept_subs', $filters);
                 $concept_subscription->conceptactive = 1;
                 $concept_subscription->commentsactive = 1;
-                $DB->update_record( 'block_glsubs_concept_subs' , $concept_subscription, false );
+                if($auto_subscribe){
+                    $DB->update_record( 'block_glsubs_concept_subs' , $concept_subscription, false );
+                }
             } else {
                 // create a subscription as this activity should be reported to them by a message
                 $concept_subscription = new \stdClass();
@@ -352,7 +372,9 @@ class block_glsubs_observer
                 $concept_subscription->conceptid = $glossary_concept_id ;
                 $concept_subscription->conceptactive = 1 ;
                 $concept_subscription->commentsactive = 1 ;
-                $logid = $DB->insert_record( 'block_glsubs_concept_subs' , $concept_subscription , true );
+                if($auto_subscribe){
+                    $logid = $DB->insert_record( 'block_glsubs_concept_subs' , $concept_subscription , true );
+                }
             }
 
             // save the log entries for this glossary event, one for each category or a generic one
@@ -395,6 +417,9 @@ class block_glsubs_observer
      */
     private static function category_event(\core\event\base $event){
         global $DB ;
+
+        //get the autosubscription setting
+        $auto_subscribe = ( '1' === get_config('block_glsubs','autoselfsubscribe') );
 
         // get the event data array
         $eventdata = $event->get_data();
@@ -444,7 +469,11 @@ class block_glsubs_observer
             $event_text .= PHP_EOL .'<br/> URL: ' . html_writer::link($event_url,'LINK');
             $event_text .= PHP_EOL .'<br/>' . $event_description = $event->get_description();
             if('created' === $eventdata['action']){
-                $event_text .= PHP_EOL .'<br/>' . get_string('glossarysubscriptionon','block_glsubs') . $eventdata['target'];
+                $event_text .= PHP_EOL .'<br/>' ;
+                if($auto_subscribe){
+                    $event_text .= get_string('glossarysubscriptionon','block_glsubs') ;
+                }
+                $event_text .= $eventdata['target'];
             } elseif('updated' === $eventdata['action']){
                 $event_text .= PHP_EOL .'<br/>' . get_string('glossarysubscriptionsupdated','block_glsubs') . $eventdata['target'];
             } elseif ('deleted' === $eventdata['action']){
@@ -480,7 +509,9 @@ class block_glsubs_observer
                 $category_subscription->active = 1 ;
 
                 // save the subscription to this glossary category for this user/creator
-                $DB->insert_record('block_glsubs_categories_subs',$category_subscription,false);
+                if($auto_subscribe){
+                    $DB->insert_record('block_glsubs_categories_subs',$category_subscription,false);
+                }
             } elseif ('updated' === $eventdata['action']){
                 // activate the subscription to this category for the user
                 $filters['userid'] = (int) $user->id ;
@@ -488,7 +519,9 @@ class block_glsubs_observer
                 $filters['categoryid'] = (int) $categoryid ;
                 $category_subscription = $DB->get_record('block_glsubs_categories_subs' , $filters );
                 $category_subscription->active = 1 ;
-                $DB->update_record('block_glsubs_categories_subs',$category_subscription,false);
+                if ($auto_subscribe){
+                    $DB->update_record('block_glsubs_categories_subs',$category_subscription,false);
+                }
             }
 
             // save the log entry for this glossary event

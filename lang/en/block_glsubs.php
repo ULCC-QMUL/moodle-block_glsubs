@@ -62,8 +62,15 @@ $string['view_category'] = ' a category event ';
 $string['view_concept'] = ' a concept event ';
 $string['view_on'] = ' for a concept written by ';
 $string['view_message_at'] = 'Message viewed at ';
+$string['view_acted'] = ' acted on ';
+$string['view_when'] = '<strong>When</strong>';
+$string['view_by_user'] = '<strong>By user</strong>';
+$string['view_on_concept'] = '<strong>On concept</strong>';
 
 $string['block_found'] = 'Found ';
 $string['block_unread_messages'] = ' unread messages';
+$string['block_read_messages'] = ' read messages';
 $string['block_could_not_access'] = 'Could not access the ';
 $string['block_most_recent'] = ' most recent messages';
+
+$string['messageprovider:glsub_message'] = ' Glossary Event Message ';

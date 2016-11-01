@@ -44,6 +44,30 @@ class block_glsubs extends block_base {
         return $pageurlparts;
     }
 
+    private function show_unread_messages(){
+        global $DB ;
+        // get the block settings from its configuration
+        $glsubs_settings = get_config('block_glsubs');
+        if( (int) $glsubs_settings->messagestoshow > 0 ){
+            $messages = $this->get_latest_messages( );
+            $this->content->text .= '<table><thead><tr><th>'.get_string('view_when','block_glsubs');
+            $this->content->text .= '</th><th>'.get_string('view_by_user','block_glsubs').'</th><th>';
+            $this->content->text .= get_string('view_on_concept','block_glsubs').'</th></tr></thead><tbody>';
+            foreach ($messages as $key => $message){
+                if( (int) $message->event->conceptid > 0 ){
+                    $record = $DB->get_record('glossary_entries', array('id' =>(int) $message->event->conceptid ) );
+                    $name = $record->concept ;
+                } else {
+                    $record = $DB->get_record('glossary_categories', array('id' => (int) $message->event->categoryid ));
+                    $name = $record->name ;
+                }
+                $link = html_writer::link(new moodle_url('/blocks/glsubs/view.php' , array('id' => $key  )), substr( $message->date ,0 ,10 ),array('title' => $message->date, 'font-size' => '90%;' ));
+                $this->content->text .= '<tr><td>' . $link ;
+                $this->content->text .= '</td><td> '.fullname($message->user).'</td><td>' . $name . '</td></tr>';
+            }
+            $this->content->text .= '</tbody></table><hr style="visibility: visible !important;"/>';
+        }
+    }
     /**
      * Subscriptions Block Contents creation function
      * @return string
@@ -52,7 +76,7 @@ class block_glsubs extends block_base {
     {
         /** @var stdClass $this */
         // define usage of global variables
-        global $PAGE , $COURSE , $DB , $CFG ; // $USER, $SITE , $OUTPUT, $THEME, $OUTPUT ;
+        global $PAGE , $COURSE ;// , $DB , $CFG ; // $USER, $SITE , $OUTPUT, $THEME, $OUTPUT ;
 
         if ( null !== $this->title) {
             $this->title = get_string('blockheader','block_glsubs');
@@ -111,25 +135,8 @@ class block_glsubs extends block_base {
                 return $this->content;
             }
 
-            // get the block settings from its configuration
-            $glsubs_settings = get_config('block_glsubs');
-            if( (int) $glsubs_settings->messagestoshow > 0 ){
-                $messages = $this->get_latest_messages( );
-                $this->content->text .= '<table><thead><tr><th>When</th><th>By User</th><th>On</th></tr></thead><tbody>';
-                foreach ($messages as $key => $message){
-                    if( (int) $message->event->conceptid > 0 ){
-                        $record = $DB->get_record('glossary_entries', array('id' =>(int) $message->event->conceptid ) );
-                        $name = $record->concept ;
-                    } else {
-                        $record = $DB->get_record('glossary_categories', array('id' => (int) $message->event->categoryid ));
-                        $name = $record->name ;
-                    }
-                    $link = html_writer::link(new moodle_url('/blocks/glsubs/view.php' , array('id' => $key)), $message->date );
-                    $this->content->text .= '<tr><td>' . $link ;
-                    $this->content->text .= '</td><td> '.fullname($message->user).'</td><td>' . $name . '</td></tr>';
-                }
-                $this->content->text .= '</tbody></table><hr style="visibility: visible !important;"/>';
-            }
+            // show unread messages
+            $this->show_unread_messages();
 
             // create a glossary subscriptions block form and assign its action to the original page
             $subscriptions_form = new block_glsubs_form($this->currentPageURL()['fullurl']);
@@ -147,7 +154,13 @@ class block_glsubs extends block_base {
                 $subs_data = $subscriptions_form->get_data();
                 if ( $subs_data ){
                     // store this data set
-                    $errors = $this->store_data($subs_data);
+                    try {
+                        $errors = $this->store_data($subs_data);
+                    } catch (\Exception $exception){
+                        $errors = new \stdClass();
+                        $errors->messages[] = 'Error while attempting to save data '. $exception->getMessage();
+                    }
+
                     // if there were any errors, display them
                     if(is_array($errors->messages)){
                         foreach ($errors->messages as $key => $errmsg ){
@@ -173,21 +186,30 @@ class block_glsubs extends block_base {
         $glsubs_settings = get_config('block_glsubs');
         $messages_count = (int) $glsubs_settings->messagestoshow ;
         try {
-            $messages = $DB->get_records('block_glsubs_messages_log',array('userid' => (int) $USER->id ),'id DESC','id,eventlogid,timecreated' ,0, $messages_count);
+            // $messages = $DB->get_records('block_glsubs_messages_log',array('userid' => (int) $USER->id ),'id DESC','id,eventlogid,timecreated' ,0, $messages_count);
             $sql = 'SELECT * FROM {block_glsubs_messages_log} WHERE userid = :userid AND timedelivered IS NULL ORDER BY id';
-            $messages = $DB->get_records_sql( $sql , array('userid' => (int) $USER->id ),0,$messages_count);
+            $messages = $DB->get_records_sql( $sql , array('userid' => (int) $USER->id ),0 , $messages_count);
+            // if there are no unread messages show the latest read
+            $unread = true;
+            if(count($messages) === 0){
+                $sql = 'SELECT * FROM {block_glsubs_messages_log} WHERE userid = :userid ORDER BY id';
+                $messages = $DB->get_records_sql( $sql , array('userid' => (int) $USER->id ),0 , $messages_count);
+                $unread = false ;
+            }
         } catch (\Exception $exception){
             return $messages;
         }
 
         if( count($messages) > 0 ){
-            $this->content->text .= '<br/>'.get_string('block_found','block_glsubs').count($messages).get_string('block_unread_messages','block_glsubs').'<br/>';
+            $this->content->text .= '<br/>'.get_string('block_found','block_glsubs').count($messages);
+            $this->content->text .= $unread ? get_string('block_unread_messages','block_glsubs') : get_string('block_read_messages','block_glsubs');
+            $this->content->text .= '<br/>';
             foreach ($messages as $key =>& $message){
                 try {
                     $message->event = $DB->get_record('block_glsubs_event_subs_log', array('id' => $key));
-                    $message->date = date('Y-m-d H:i:s', (int)$message->event->timecreated);
-                    $message->user = $DB->get_record('user', array('id' => (int)$message->event->userid));
-                    $message->author = $DB->get_record('user', array('id' => (int)$message->event->authorid));
+                    $message->date = date('Y-m-d H:i:s', (int) $message->event->timecreated);
+                    $message->user = $DB->get_record('user', array('id' => (int) $message->event->userid));
+                    $message->author = $DB->get_record('user', array('id' => (int) $message->event->authorid));
                 } catch (\Exception $exception){
                     $this->content->text .= '<strong>'.get_string('block_could_not_access','block_glsubs').$glsubs_settings->messagestoshow.get_string('block_most_recent','block_glsubs').'</strong>';
                 }
@@ -200,7 +222,7 @@ class block_glsubs extends block_base {
      *
      * @return null|\stdClass
      */
-    private function store_data($dataset){
+    private function store_data( $dataset ){
         global $DB;
         $error = new stdClass();
         $userid = $dataset->glossary_userid;
@@ -208,158 +230,164 @@ class block_glsubs extends block_base {
         $fullsubkey     =   get_string('glossaryformfullelementname','block_glsubs');
         $newcat         =   get_string('glossaryformcategorieselementname','block_glsubs');
         $newconcept     =   get_string('glossaryformconceptselementname','block_glsubs');
-        $arrData = (array)$dataset;
-        foreach ( $arrData as $key => $value ){
+        $arrData = (array) $dataset;
+        try {
+            foreach ( $arrData as $key => $value ){
 
-            // if the data in the form is a gossary comment subscription instruction then
-            if( $key === $fullsubkey ) {
-                if( $DB->record_exists('block_glsubs_glossaries_subs',array('userid'=>$userid,'glossaryid'=>$glossaryid))){
-                    $oldrecord = $DB->get_record('block_glsubs_glossaries_subs',array('userid'=>$userid,'glossaryid'=>$glossaryid));
-                    $oldrecord->active = $value ;
-                    $DB->update_record('block_glsubs_glossaries_subs',$oldrecord, false);
-                } else {
-                    $newrecord = new stdClass();
-                    $newrecord->userid = $userid ;
-                    $newrecord->glossaryid = $glossaryid ;
-                    $newrecord->active = $value ;
-                    $newrecord->newcategories = 0 ;
-                    $newrecord->newentriesuncategorised = 0 ;
-                    $newentryid = $DB->insert_record('block_glsubs_glossaries_subs',$newrecord, true , true ); // use bulk updates
-                    if( ! $newentryid > 0 ){
-                        $error->messages[] = "Cannot create new full subscription record for $userid on glossary $glossaryid ";
+                // if the data in the form is a gossary comment subscription instruction then
+                if( $key === $fullsubkey ) {
+                    if( $DB->record_exists('block_glsubs_glossaries_subs',array('userid'=>$userid,'glossaryid'=>$glossaryid))){
+                        $oldrecord = $DB->get_record('block_glsubs_glossaries_subs',array('userid'=>$userid,'glossaryid'=>$glossaryid));
+                        $oldrecord->active = $value ;
+                        $DB->update_record('block_glsubs_glossaries_subs',$oldrecord, false);
+                    } else {
+                        $newrecord = new stdClass();
+                        $newrecord->userid = $userid ;
+                        $newrecord->glossaryid = $glossaryid ;
+                        $newrecord->active = $value ;
+                        $newrecord->newcategories = 0 ;
+                        $newrecord->newentriesuncategorised = 0 ;
+                        $newentryid = $DB->insert_record('block_glsubs_glossaries_subs',$newrecord, true , true ); // use bulk updates
+                        if( ! $newentryid > 0 ){
+                            $error->messages[] = "Cannot create new full subscription record for $userid on glossary $glossaryid ";
+                        }
                     }
-                }
-                // $msg = 'glossaries table full subscription';
-            // if the data in the form is a new categories subscription instruction then
-            } elseif ( $key === $newcat ){
-                if( $DB->record_exists('block_glsubs_glossaries_subs',array('userid'=>$userid,'glossaryid'=>$glossaryid))){
-                    $oldrecord = $DB->get_record('block_glsubs_glossaries_subs',array('userid'=>$userid,'glossaryid'=>$glossaryid));
-                    $oldrecord->newcategories = $value ;
-                    $DB->update_record('block_glsubs_glossaries_subs',$oldrecord, false);
-                } else {
-                    $newrecord = new stdClass();
-                    $newrecord->userid = $userid ;
-                    $newrecord->glossaryid = $glossaryid ;
-                    $newrecord->active = 0 ;
-                    $newrecord->newcategories = $value ;
-                    $newrecord->newentriesuncategorised = 0 ;
-                    $newentryid = $DB->insert_record('block_glsubs_glossaries_subs',$newrecord, true , true ); // use bulk updates
-                    if( ! $newentryid > 0 ){
-                        $error->messages[] = "Cannot create new new categories subscription record for $userid on glossary $glossaryid ";
+                    // $msg = 'glossaries table full subscription';
+                    // if the data in the form is a new categories subscription instruction then
+                } elseif ( $key === $newcat ){
+                    if( $DB->record_exists('block_glsubs_glossaries_subs',array('userid'=>$userid,'glossaryid'=>$glossaryid))){
+                        $oldrecord = $DB->get_record('block_glsubs_glossaries_subs',array('userid'=>$userid,'glossaryid'=>$glossaryid));
+                        $oldrecord->newcategories = $value ;
+                        $DB->update_record('block_glsubs_glossaries_subs',$oldrecord, false);
+                    } else {
+                        $newrecord = new stdClass();
+                        $newrecord->userid = $userid ;
+                        $newrecord->glossaryid = $glossaryid ;
+                        $newrecord->active = 0 ;
+                        $newrecord->newcategories = $value ;
+                        $newrecord->newentriesuncategorised = 0 ;
+                        $newentryid = $DB->insert_record('block_glsubs_glossaries_subs',$newrecord, true , true ); // use bulk updates
+                        if( ! $newentryid > 0 ){
+                            $error->messages[] = "Cannot create new new categories subscription record for $userid on glossary $glossaryid ";
+                        }
                     }
-                }
-                // $msg = 'glossaries table new categories subscription';
-            // if the data in the form is a new uncategorised consepts sbscription instruction then
-            } elseif( $key === $newconcept ){
-                if( $DB->record_exists('block_glsubs_glossaries_subs',array('userid'=>$userid,'glossaryid'=>$glossaryid))){
-                    $oldrecord = $DB->get_record('block_glsubs_glossaries_subs',array('userid'=>$userid,'glossaryid'=>$glossaryid));
-                    $oldrecord->newentriesuncategorised = $value ;
-                    $DB->update_record('block_glsubs_glossaries_subs',$oldrecord, false);
-                } else {
-                    $newrecord = new stdClass();
-                    $newrecord->userid = $userid ;
-                    $newrecord->glossaryid = $glossaryid ;
-                    $newrecord->active = 0 ;
-                    $newrecord->newcategories = 0 ;
-                    $newrecord->newentriesuncategorised = $value ;
-                    $newentryid = $DB->insert_record('block_glsubs_glossaries_subs',$newrecord, true , true ); // use bulk updates
-                    if( ! $newentryid > 0 ){
-                        $error->messages[] = "Cannot create new uncategorised concepts subscription record for $userid on glossary $glossaryid ";
+                    // $msg = 'glossaries table new categories subscription';
+                    // if the data in the form is a new uncategorised consepts sbscription instruction then
+                } elseif( $key === $newconcept ){
+                    if( $DB->record_exists('block_glsubs_glossaries_subs',array('userid'=>$userid,'glossaryid'=>$glossaryid))){
+                        $oldrecord = $DB->get_record('block_glsubs_glossaries_subs',array('userid'=>$userid,'glossaryid'=>$glossaryid));
+                        $oldrecord->newentriesuncategorised = $value ;
+                        $DB->update_record('block_glsubs_glossaries_subs',$oldrecord, false);
+                    } else {
+                        $newrecord = new stdClass();
+                        $newrecord->userid = $userid ;
+                        $newrecord->glossaryid = $glossaryid ;
+                        $newrecord->active = 0 ;
+                        $newrecord->newcategories = 0 ;
+                        $newrecord->newentriesuncategorised = $value ;
+                        $newentryid = $DB->insert_record('block_glsubs_glossaries_subs',$newrecord, true , true ); // use bulk updates
+                        if( ! $newentryid > 0 ){
+                            $error->messages[] = "Cannot create new uncategorised concepts subscription record for $userid on glossary $glossaryid ";
+                        }
                     }
-                }
-                // $msg = 'glossaries table new concepts no category subscription';
-            // if the data inthe form is a category subscription instruction then
-            } elseif ( 0 === strpos( $key,'glossary_category') ){
+                    // $msg = 'glossaries table new concepts no category subscription';
+                    // if the data inthe form is a category subscription instruction then
+                } elseif ( 0 === strpos( $key,'glossary_category') ){
 //            } elseif ( substr($key,0,17) === 'glossary_category'){
-                $categoryid = (int) preg_replace ( '/[^0-9,.]/' , '' , $key ) ;
+                    $categoryid = (int) preg_replace ( '/[^0-9,.]/' , '' , $key ) ;
 
-                if($DB->record_exists('block_glsubs_categories_subs',array('userid'=>$userid,'glossaryid'=>$glossaryid,'categoryid'=>$categoryid))){
-                    $old_category_record = $DB->get_record('block_glsubs_categories_subs',array('userid'=>$userid,'glossaryid'=>$glossaryid,'categoryid'=>$categoryid));
-                    $old_category_record->active = $value ;
-                    $DB->update_record('block_glsubs_categories_subs',$old_category_record, false);
-                } else {
-                    $newrecord = new stdClass();
-                    $newrecord->userid = $userid;
-                    $newrecord->glossaryid = $glossaryid ;
-                    $newrecord->categoryid = (int)preg_replace('/[^0-9,.]/', '', $key);
-                    $newrecord->active = $value ;
-                    $newentryid = $DB->insert_record('block_glsubs_categories_subs',$newrecord, true , true ); //use bulk updates
-                    if( ! $newentryid > 0 ){
-                        $error->messages[] = "Cannot create new category subscription record for $userid on glossary $glossaryid and category $key";
+                    if($DB->record_exists('block_glsubs_categories_subs',array('userid'=>$userid,'glossaryid'=>$glossaryid,'categoryid'=>$categoryid))){
+                        $old_category_record = $DB->get_record('block_glsubs_categories_subs',array('userid'=>$userid,'glossaryid'=>$glossaryid,'categoryid'=>$categoryid));
+                        $old_category_record->active = $value ;
+                        $DB->update_record('block_glsubs_categories_subs',$old_category_record, false);
+                    } else {
+                        $newrecord = new stdClass();
+                        $newrecord->userid = $userid;
+                        $newrecord->glossaryid = $glossaryid ;
+                        $newrecord->categoryid = (int)preg_replace('/[^0-9,.]/', '', $key);
+                        $newrecord->active = $value ;
+                        $newentryid = $DB->insert_record('block_glsubs_categories_subs',$newrecord, true , true ); //use bulk updates
+                        if( ! $newentryid > 0 ){
+                            $error->messages[] = "Cannot create new category subscription record for $userid on glossary $glossaryid and category $key";
+                        }
                     }
-                }
-                // $msg = "categories table $categoryid ";
-            // if the data in the form is a concept subscription instruction then
-            } elseif ( 0 === strpos($key,'glossary_concept') ) {
+                    // $msg = "categories table $categoryid ";
+                    // if the data in the form is a concept subscription instruction then
+                } elseif ( 0 === strpos($key,'glossary_concept') ) {
 //            } elseif ( substr($key,0,16) === 'glossary_concept') {
-                $conceptid = (int)preg_replace('/[^0-9,.]/', '', $key);
-                if($DB->record_exists('block_glsubs_concept_subs',array('userid'=>$userid,'glossaryid'=>$glossaryid,'conceptid'=>$conceptid))){
-                    $oldrecord = $DB->get_record('block_glsubs_concept_subs',array('userid'=>$userid,'glossaryid'=>$glossaryid,'conceptid'=>$conceptid));
-                    $oldrecord->conceptactive = $value;
-                    $DB->update_record('block_glsubs_concept_subs',$oldrecord, false);
-                } else {
-                    $newrecord = new stdClass();
-                    $newrecord->userid = $userid ;
-                    $newrecord->glossaryid = $glossaryid ;
-                    $newrecord->conceptid = $conceptid ;
-                    $newrecord->conceptactive = $value ;
-                    $newrecord->commentsactive = 0 ;
-                    $newentryid = $DB->insert_record('block_glsubs_concept_subs',$newrecord, true , true ); // use bulk updates
-                    if( ! $newentryid > 0 ){
-                        $error->messages[] = "Cannot create new concept subscription record for $userid on glossary $glossaryid and concept $key ";
+                    $conceptid = (int)preg_replace('/[^0-9,.]/', '', $key);
+                    if($DB->record_exists('block_glsubs_concept_subs',array('userid'=>$userid,'glossaryid'=>$glossaryid,'conceptid'=>$conceptid))){
+                        $oldrecord = $DB->get_record('block_glsubs_concept_subs',array('userid'=>$userid,'glossaryid'=>$glossaryid,'conceptid'=>$conceptid));
+                        $oldrecord->conceptactive = $value;
+                        $DB->update_record('block_glsubs_concept_subs',$oldrecord, false);
+                    } else {
+                        $newrecord = new stdClass();
+                        $newrecord->userid = $userid ;
+                        $newrecord->glossaryid = $glossaryid ;
+                        $newrecord->conceptid = $conceptid ;
+                        $newrecord->conceptactive = $value ;
+                        $newrecord->commentsactive = 0 ;
+                        $newentryid = $DB->insert_record('block_glsubs_concept_subs',$newrecord, true , true ); // use bulk updates
+                        if( ! $newentryid > 0 ){
+                            $error->messages[] = "Cannot create new concept subscription record for $userid on glossary $glossaryid and concept $key ";
+                        }
                     }
-                }
-                // $msg = 'concepts table';
-            // if the data in the form is a concept comments subscription instruction then
-            } elseif ( 0 === strpos($key , 'glossary_comment') ) {
+                    // $msg = 'concepts table';
+                    // if the data in the form is a concept comments subscription instruction then
+                } elseif ( 0 === strpos($key , 'glossary_comment') ) {
 //            } elseif ( substr($key ,0  ,16) === 'glossary_comment') {
-                $conceptid = (int)preg_replace('/[^0-9,.]/', '', $key);
-                if($DB->record_exists('block_glsubs_concept_subs',array('userid'=>$userid,'glossaryid'=>$glossaryid,'conceptid'=>$conceptid))){
-                    $oldrecord = $DB->get_record('block_glsubs_concept_subs',array('userid'=>$userid,'glossaryid'=>$glossaryid,'conceptid'=>$conceptid));
-                    $oldrecord->commentsactive = $value;
-                    $DB->update_record('block_glsubs_concept_subs',$oldrecord, false);
-                } else {
-                    $newrecord = new stdClass();
-                    $newrecord->userid = $userid ;
-                    $newrecord->glossaryid = $glossaryid ;
-                    $newrecord->conceptid = $conceptid ;
-                    $newrecord->conceptactive = 0 ;
-                    $newrecord->commentsactive = $value ;
-                    $newentryid = $DB->insert_record('block_glsubs_concept_subs',$newrecord, true , true ); // use bulk updates
-                    if( ! $newentryid > 0 ){
-                        $error->messages[] = "Cannot create new concept comments subscription record for $userid on glossary $glossaryid and concept $key ";
+                    $conceptid = (int)preg_replace('/[^0-9,.]/', '', $key);
+                    if($DB->record_exists('block_glsubs_concept_subs',array('userid'=>$userid,'glossaryid'=>$glossaryid,'conceptid'=>$conceptid))){
+                        $oldrecord = $DB->get_record('block_glsubs_concept_subs',array('userid'=>$userid,'glossaryid'=>$glossaryid,'conceptid'=>$conceptid));
+                        $oldrecord->commentsactive = $value;
+                        $DB->update_record('block_glsubs_concept_subs',$oldrecord, false);
+                    } else {
+                        $newrecord = new stdClass();
+                        $newrecord->userid = $userid ;
+                        $newrecord->glossaryid = $glossaryid ;
+                        $newrecord->conceptid = $conceptid ;
+                        $newrecord->conceptactive = 0 ;
+                        $newrecord->commentsactive = $value ;
+                        $newentryid = $DB->insert_record('block_glsubs_concept_subs',$newrecord, true , true ); // use bulk updates
+                        if( ! $newentryid > 0 ){
+                            $error->messages[] = "Cannot create new concept comments subscription record for $userid on glossary $glossaryid and concept $key ";
+                        }
                     }
-                }
-                // $msg = 'concepts table for comments';
-            // if the data in the form is an author subscription instruction then
-            } elseif ( 0 === strpos($key , 'glossary_author') ) {
+                    // $msg = 'concepts table for comments';
+                    // if the data in the form is an author subscription instruction then
+                } elseif ( 0 === strpos($key , 'glossary_author') ) {
 //            } elseif ( substr($key ,0  ,15) === 'glossary_author') {
-                $authorid = (int)preg_replace('/[^0-9,.]/', '', $key);
-                if($DB->record_exists('block_glsubs_authors_subs',array('userid'=>$userid,'glossaryid'=>$glossaryid,'authorid'=>$authorid))){
-                    // $oldrecord = new stdClass();
-                    $oldrecord = $DB->get_record('block_glsubs_authors_subs',array('userid'=>$userid,'glossaryid'=>$glossaryid,'authorid'=>$authorid));
-                    $oldrecord->active = $value ;
-                    $DB->update_record('block_glsubs_authors_subs', $oldrecord, false);
-                    // $msg = 'active author subscription';
-                } else {
-                    $newrecord =  new stdClass();
-                    $newrecord->userid = $userid ;
-                    $newrecord->glossaryid = $glossaryid ;
-                    $newrecord->authorid = $authorid ;
-                    $newrecord->active = $value ;
-                    $newentryid = $DB->insert_record('block_glsubs_authors_subs',$newrecord, true , true ); // use bulk updates
-                    if( ! $newentryid > 0 ){
-                        $error->messages[] = "Cannot create new author subscription record for $userid on glossary $glossaryid and author $authorid ";
+                    $authorid = (int)preg_replace('/[^0-9,.]/', '', $key);
+                    if($DB->record_exists('block_glsubs_authors_subs',array('userid'=>$userid,'glossaryid'=>$glossaryid,'authorid'=>$authorid))){
+                        // $oldrecord = new stdClass();
+                        $oldrecord = $DB->get_record('block_glsubs_authors_subs',array('userid'=>$userid,'glossaryid'=>$glossaryid,'authorid'=>$authorid));
+                        $oldrecord->active = $value ;
+                        $DB->update_record('block_glsubs_authors_subs', $oldrecord, false);
+                        // $msg = 'active author subscription';
+                    } else {
+                        $newrecord =  new stdClass();
+                        $newrecord->userid = $userid ;
+                        $newrecord->glossaryid = $glossaryid ;
+                        $newrecord->authorid = $authorid ;
+                        $newrecord->active = $value ;
+                        $newentryid = $DB->insert_record('block_glsubs_authors_subs',$newrecord, true , true ); // use bulk updates
+                        if( ! $newentryid > 0 ){
+                            $error->messages[] = "Cannot create new author subscription record for $userid on glossary $glossaryid and author $authorid ";
+                        }
                     }
+                    // $msg = 'concepts table for authors';
                 }
-                // $msg = 'concepts table for authors';
+                // if there is a message to show then add it to the messages
+                /*            if(! is_null($msg)){
+                                $m[$key] = $msg . " $key = $value";
+                                $msg = NULL;
+                            }*/
             }
-            // if there is a message to show then add it to the messages
-/*            if(! is_null($msg)){
-                $m[$key] = $msg . " $key = $value";
-                $msg = NULL;
-            }*/
+        } catch (\Exception $exception) {
+            $error->messages[] = 'Error while attempting to store data '.$exception->getMessage();
         }
+
+        // what to report at the end ?
         if(count($error->messages) > 0) {
             return $error;
         } else {
