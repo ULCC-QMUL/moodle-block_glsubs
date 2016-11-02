@@ -64,10 +64,14 @@ try {
         $message->timedelivered = time() ;
         $DB->update_record('block_glsubs_messages_log', $message , false);
     }
+    // get the event
     $message->event = $DB->get_record('block_glsubs_event_subs_log', array('id' => $key));
-    $message->date = gmdate("Y-m-d H:i:s", (int)$message->event->timecreated);
-    $message->user = $DB->get_record('user', array('id' => (int)$message->event->userid));
-    $message->author = $DB->get_record('user', array('id' => (int)$message->event->authorid));
+    if($message->event){
+        // if the event is valid , show it
+        $message->date = gmdate("Y-m-d H:i:s", (int)$message->event->timecreated);
+        $message->user = $DB->get_record('user', array('id' => (int)$message->event->userid));
+        $message->author = $DB->get_record('user', array('id' => (int)$message->event->authorid));
+    }
 } catch (\Exception $exception){
     echo 'There was an error while attempting to read from the glossary event log';
     $error = true ;
@@ -77,12 +81,14 @@ if(! $error){
     echo '<p/><p/><p/>';
 
     // show user
-    $userpicture = $OUTPUT->user_picture($message->user, array('size'=>35));
-    $elementUrl = new moodle_url('/user/view.php', array('id' => $message->user->id));
-    $elementLink = html_writer::link($elementUrl,$userpicture);
+    if($message->user){
+        $userpicture = $OUTPUT->user_picture($message->user, array('size'=>35));
+        $elementUrl = new moodle_url('/user/view.php', array('id' => $message->user->id));
+        $elementLink = html_writer::link($elementUrl,$userpicture);
 
-    // create a link to the user's list of entries in this glossary
-    echo get_string('view_the_user','block_glsubs') . fullname($message->user) . ' ' .$elementLink;
+        // create a link to the user's list of entries in this glossary
+        echo get_string('view_the_user','block_glsubs') . fullname($message->user) . ' ' .$elementLink;
+    }
 
     // show action
     if( $message->event->crud === 'c' ){
@@ -108,13 +114,18 @@ if(! $error){
     echo get_string('view_on','block_glsubs');
     echo ' ';
 
-    // show author
-    $userpicture = $OUTPUT->user_picture($message->author, array('size'=>35));
-    $elementUrl = new moodle_url('/user/view.php', array('id' => $message->author->id));
-    $elementLink = html_writer::link($elementUrl,$userpicture);
-    echo ' '. fullname($message->user) . ' ' .$elementLink;
+    if($message->author){
+        // show author
+        $userpicture = $OUTPUT->user_picture($message->author, array('size'=>35));
+        $elementUrl = new moodle_url('/user/view.php', array('id' => $message->author->id));
+        $elementLink = html_writer::link($elementUrl,$userpicture);
+        echo ' '. fullname($message->user) . ' ' .$elementLink;
+    }
 
-    echo '<p/>' .$message->event->eventtext;
+    if($message->event){
+        echo '<p/>' .$message->event->eventtext;
+    }
+
     // show message view date time
     echo '<p/><p/><p/><p/>'.get_string('view_message_at','block_glsubs'). ' '. date('Y-m-d H:i:s' ,$message->timedelivered ) ;
 }

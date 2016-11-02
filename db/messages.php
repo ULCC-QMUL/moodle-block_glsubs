@@ -32,7 +32,7 @@
 $messageproviders = array (
 
 /// Ordinary single forum posts
-    'glsub_message' => array (
+    'glsubs_message' => array (
         'defaults' => array(
             'popup' => MESSAGE_PERMITTED + MESSAGE_DEFAULT_LOGGEDIN + MESSAGE_DEFAULT_LOGGEDOFF,
             'email' => MESSAGE_PERMITTED,

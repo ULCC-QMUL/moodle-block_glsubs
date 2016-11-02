@@ -44,15 +44,81 @@ class block_glsubs extends block_base {
         return $pageurlparts;
     }
 
-    private function show_unread_messages(){
-        global $DB ;
+    /**
+     * @return array
+     */
+    protected function get_latest_messages(){
+        global $DB , $USER ;
+        $messages = array();
+        $glsubs_settings = get_config('block_glsubs');
+        $messages_count = (int) $glsubs_settings->messagestoshow ;
+        try {
+            $sql = 'SELECT id,userid,eventlogid,timecreated,timedelivered FROM {block_glsubs_messages_log} WHERE userid = :userid AND timedelivered IS NULL ORDER BY id';
+            $messages = $DB->get_records_sql( $sql , array('userid' => (int) $USER->id ),0 , $messages_count);
+            // if there are no unread messages show the latest read
+            $unread = true;
+            if(count($messages) === 0){
+                $sql = 'SELECT * FROM {block_glsubs_messages_log} WHERE userid = :userid ORDER BY id DESC ';
+                $messages = $DB->get_records_sql( $sql , array('userid' => (int) $USER->id ),0 , $messages_count);
+                $unread = false ;
+            }
+        } catch (\Exception $exception){
+            return $messages;
+        }
+
+        if( count($messages) > 0 ){
+            foreach ($messages as $key =>& $message){
+                try {
+                    $message->event = $DB->get_record('block_glsubs_event_subs_log', array('id' => $key));
+                    $message->date = date('Y-m-d H:i:s', (int) $message->event->timecreated);
+                    $message->user = $DB->get_record('user', array('id' => (int) $message->event->userid));
+                    $message->author = $DB->get_record('user', array('id' => (int) $message->event->authorid));
+                } catch (\Exception $exception){
+                    $this->content->text .= '<strong>'.get_string('block_could_not_access','block_glsubs').$glsubs_settings->messagestoshow.get_string('block_most_recent','block_glsubs').'</strong>';
+                }
+            }
+        }
+        return $messages;
+    }
+
+    private function show_messages(){
+        global $DB, $USER ;
         // get the block settings from its configuration
         $glsubs_settings = get_config('block_glsubs');
         if( (int) $glsubs_settings->messagestoshow > 0 ){
             $messages = $this->get_latest_messages( );
-            $this->content->text .= '<table><thead><tr><th>'.get_string('view_when','block_glsubs');
-            $this->content->text .= '</th><th>'.get_string('view_by_user','block_glsubs').'</th><th>';
-            $this->content->text .= get_string('view_on_concept','block_glsubs').'</th></tr></thead><tbody>';
+            $unread = true;
+            try {
+                $sql = 'SELECT count(id) counter FROM {block_glsubs_messages_log} WHERE userid = :userid AND timedelivered IS NULL';
+                $unread = $DB->get_record_sql( $sql , array( 'userid' => (int) $USER->id ) ) ;
+                $unread = ( $unread->counter > 0 );
+            } catch (\Exception $exception){
+                $unread = false ;
+            }
+            $javascriptswitch  = chr(13).' <script> $( document ).ready(function(){ ';
+            $javascriptswitch .= chr(13).'      $("#glossarymessagesshowhide").click(function(){ ';
+            $javascriptswitch .= chr(13).'          $("#glossarymessagesblocktable").toggle();  ';
+            $javascriptswitch .= chr(13).'      }); ';
+            $javascriptswitch .= chr(13).' }) ; ';
+            $javascriptswitch .= chr(13).' </script>';
+            $javascriptswitch .= chr(13);
+            $this->content->text .= '<div id="glossarymessagesblock">';
+            $this->content->text .= '<span id="glossarymessagesshowhide">';
+            $this->content->text .= get_string('view_show_hide','block_glsubs');
+            $this->content->text .= '</span>'; // id="glossarymessagesshowhide"
+
+            $this->content->text .= get_string('block_found','block_glsubs').count($messages);
+            $this->content->text .= $unread ? get_string('block_unread_messages','block_glsubs') : get_string('block_read_messages','block_glsubs');
+            $this->content->text .= '<br/>';
+            $this->content->text .= '<div id="glossarymessagesblocktable" style="display: none ;">';
+
+
+            $this->content->text .= '<table id="glossarymessagestable" cellspacing="2" ><thead><tr>';
+            $this->content->text .= '<th>'.get_string('view_when','block_glsubs') .'</th>';
+            $this->content->text .= '<th>&nbsp;</th>';
+            $this->content->text .= '</th><th>'.get_string('view_by_user','block_glsubs').'</th>';
+            $this->content->text .= '<th>&nbsp;</th>';
+            $this->content->text .= '<th>' . get_string('view_on_concept','block_glsubs').'</th></tr></thead><tbody>';
             foreach ($messages as $key => $message){
                 if( (int) $message->event->conceptid > 0 ){
                     $record = $DB->get_record('glossary_entries', array('id' =>(int) $message->event->conceptid ) );
@@ -62,10 +128,19 @@ class block_glsubs extends block_base {
                     $name = $record->name ;
                 }
                 $link = html_writer::link(new moodle_url('/blocks/glsubs/view.php' , array('id' => $key  )), substr( $message->date ,0 ,10 ),array('title' => $message->date, 'font-size' => '90%;' ));
-                $this->content->text .= '<tr><td>' . $link ;
-                $this->content->text .= '</td><td> '.fullname($message->user).'</td><td>' . $name . '</td></tr>';
+                $this->content->text .= '<tr><td>' . $link .'</td>';
+                $this->content->text .= '<td>&nbsp;</td>';
+                $this->content->text .= '<td> '.fullname($message->user).'</td>';
+                $this->content->text .= '<td>&nbsp;</td>';
+                $this->content->text .= '<td>' . $name . '</td></tr>';
             }
-            $this->content->text .= '</tbody></table><hr style="visibility: visible !important;"/>';
+            $this->content->text .= '</tbody></table><hr style="visibility: visible !important; display: inline !important;"/>';
+
+
+            $this->content->text .= '</div>'; // id="glossarymessagesblocktable"
+            $this->content->text .= '</div>'; // id="glossarymessagesblock"
+            $this->content->text .= $javascriptswitch ;
+
         }
     }
     /**
@@ -136,7 +211,7 @@ class block_glsubs extends block_base {
             }
 
             // show unread messages
-            $this->show_unread_messages();
+            $this->show_messages();
 
             // create a glossary subscriptions block form and assign its action to the original page
             $subscriptions_form = new block_glsubs_form($this->currentPageURL()['fullurl']);
@@ -180,43 +255,6 @@ class block_glsubs extends block_base {
         return $this->content ;
     }
 
-    protected function get_latest_messages(){
-        global $DB , $USER ;
-        $messages = array();
-        $glsubs_settings = get_config('block_glsubs');
-        $messages_count = (int) $glsubs_settings->messagestoshow ;
-        try {
-            // $messages = $DB->get_records('block_glsubs_messages_log',array('userid' => (int) $USER->id ),'id DESC','id,eventlogid,timecreated' ,0, $messages_count);
-            $sql = 'SELECT * FROM {block_glsubs_messages_log} WHERE userid = :userid AND timedelivered IS NULL ORDER BY id';
-            $messages = $DB->get_records_sql( $sql , array('userid' => (int) $USER->id ),0 , $messages_count);
-            // if there are no unread messages show the latest read
-            $unread = true;
-            if(count($messages) === 0){
-                $sql = 'SELECT * FROM {block_glsubs_messages_log} WHERE userid = :userid ORDER BY id';
-                $messages = $DB->get_records_sql( $sql , array('userid' => (int) $USER->id ),0 , $messages_count);
-                $unread = false ;
-            }
-        } catch (\Exception $exception){
-            return $messages;
-        }
-
-        if( count($messages) > 0 ){
-            $this->content->text .= '<br/>'.get_string('block_found','block_glsubs').count($messages);
-            $this->content->text .= $unread ? get_string('block_unread_messages','block_glsubs') : get_string('block_read_messages','block_glsubs');
-            $this->content->text .= '<br/>';
-            foreach ($messages as $key =>& $message){
-                try {
-                    $message->event = $DB->get_record('block_glsubs_event_subs_log', array('id' => $key));
-                    $message->date = date('Y-m-d H:i:s', (int) $message->event->timecreated);
-                    $message->user = $DB->get_record('user', array('id' => (int) $message->event->userid));
-                    $message->author = $DB->get_record('user', array('id' => (int) $message->event->authorid));
-                } catch (\Exception $exception){
-                    $this->content->text .= '<strong>'.get_string('block_could_not_access','block_glsubs').$glsubs_settings->messagestoshow.get_string('block_most_recent','block_glsubs').'</strong>';
-                }
-            }
-        }
-        return $messages;
-    }
     /**
      * @param $dataset
      *
