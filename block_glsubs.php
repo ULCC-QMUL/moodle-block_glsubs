@@ -85,7 +85,7 @@ class block_glsubs extends block_base {
         $glsubs_settings = get_config('block_glsubs');
         if( (int) $glsubs_settings->messagestoshow > 0 ){
             $messages = $this->get_latest_messages( );
-            $unread = true;
+            // $unread = true;
             try {
                 $sql = 'SELECT count(id) counter FROM {block_glsubs_messages_log} WHERE userid = :userid AND timedelivered IS NULL';
                 $unread = $DB->get_record_sql( $sql , array( 'userid' => (int) $USER->id ) ) ;
@@ -93,9 +93,17 @@ class block_glsubs extends block_base {
             } catch (\Exception $exception){
                 $unread = false ;
             }
-            $javascriptswitch  = chr(13).' <script> $( document ).ready(function(){ ';
+            $javascriptswitch  = chr(13).' <script>';
+            $javascriptswitch .= chr(13).' $( document ).ready(function(){ ';
             $javascriptswitch .= chr(13).'      $("#glossarymessagesshowhide").click(function(){ ';
             $javascriptswitch .= chr(13).'          $("#glossarymessagesblocktable").toggle();  ';
+            $javascriptswitch .= chr(13).'          $("#glossarymessagesshowhide").toggle();  ';
+            $javascriptswitch .= chr(13).'          $("#glossarymessagesshowhide_2").toggle();  ';
+            $javascriptswitch .= chr(13).'      }); ';
+            $javascriptswitch .= chr(13).'      $("#glossarymessagesshowhide_2").click(function(){ ';
+            $javascriptswitch .= chr(13).'          $("#glossarymessagesblocktable").toggle();  ';
+            $javascriptswitch .= chr(13).'          $("#glossarymessagesshowhide").toggle();  ';
+            $javascriptswitch .= chr(13).'          $("#glossarymessagesshowhide_2").toggle();  ';
             $javascriptswitch .= chr(13).'      }); ';
             $javascriptswitch .= chr(13).' }) ; ';
             $javascriptswitch .= chr(13).' </script>';
@@ -104,6 +112,9 @@ class block_glsubs extends block_base {
             $this->content->text .= '<span id="glossarymessagesshowhide">';
             $this->content->text .= get_string('view_show_hide','block_glsubs');
             $this->content->text .= '</span>'; // id="glossarymessagesshowhide"
+            $this->content->text .= '<span id="glossarymessagesshowhide_2" style="display: none ;">';
+            $this->content->text .= get_string('view_show_hide_2','block_glsubs');
+            $this->content->text .= '</span>'; // id="glossarymessagesshowhide"
 
             $this->content->text .= get_string('block_found','block_glsubs').count($messages);
             $this->content->text .= $unread ? get_string('block_unread_messages','block_glsubs') : get_string('block_read_messages','block_glsubs');
@@ -111,7 +122,7 @@ class block_glsubs extends block_base {
             $this->content->text .= '<div id="glossarymessagesblocktable" style="display: none ;">';
 
 
-            $this->content->text .= '<table id="glossarymessagestable" cellspacing="2" ><thead><tr>';
+            $this->content->text .= '<table id="glossarymessagestable"><thead><tr>';
             $this->content->text .= '<th>'.get_string('view_when','block_glsubs') .'</th>';
             $this->content->text .= '<th>&nbsp;</th>';
             $this->content->text .= '</th><th>'.get_string('view_by_user','block_glsubs').'</th>';
@@ -188,10 +199,10 @@ class block_glsubs extends block_base {
         // check if there is a valid glossary view page
         if( $cmid > 0 ) {
             // Check if the page is referring to a glossary module view activity
-            if('/mod/glossary/view.php' !== $PAGE->url->get_path()){
+            if('mod-glossary-view' !== $PAGE->pagetype){
                 return $this->content ;
             }
-            // ste page context
+            // set page context
             $PAGE->set_context(context_module::instance($cmid));
             try {
                 if ($courseinfo->get_cm($cmid)) {

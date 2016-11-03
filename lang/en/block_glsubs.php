@@ -67,6 +67,7 @@ $string['view_when'] = '<strong>When</strong>';
 $string['view_by_user'] = '<strong>By user</strong>';
 $string['view_on_concept'] = '<strong>On concept</strong>';
 $string['view_show_hide'] = '&#9658;&emsp;';
+$string['view_show_hide_2'] = '&#9660;&emsp;';
 
 $string['block_found'] = 'Your subscription has ';
 $string['block_unread_messages'] = ' unread messages';
