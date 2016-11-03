@@ -23,7 +23,7 @@ class block_glsubs_observer
      * @return bool|null
      */
     static public function observe_all (\core\event\base $event){
-//        $event_dummy = '';
+
         switch ($event->eventname) {
             case '\mod_glossary\event\category_created':
                 block_glsubs_observer::category_event( $event );
@@ -140,7 +140,7 @@ class block_glsubs_observer
             $module_name = $course_module_entry->name ;
 
             // get the event url
-            $event_url = $event->get_url();
+            // $event_url = $event->get_url();
 
             if( 'created' === $eventdata['action'] || 'updated' === $eventdata['action'] ){
                 // add a subscription for this concept comment for this user/creator
@@ -173,29 +173,8 @@ class block_glsubs_observer
             // save the log entry for this glossary event
 
             // get the event text
-            $event_text  = block_glsubs_observer::get_event_text('entry', $event , $glossary_concept ,$course , $module_name , null , $concept_categories );
-/*
-            // build an event text to be used for subscription messages
-            $event_text  = PHP_EOL .'<br/> ' . get_string('glossary_user','block_glsubs') . fullname( \core_user::get_user( (int) $eventdata['userid'] ) ). ' @ ' . $course->fullname . ' / ' . $module_name;
-            $event_text .= PHP_EOL .'<br/> ' . get_string('glossary_concept','block_glsubs'). '[ '. $glossary_concept->concept .' ]  ' . get_string('glossary_category','block_glsubs') . $categories . ' ';
-            $event_text .= str_replace(array("\\",'_','mod'),array(' ',' ','module'),$event->eventname) .' @ '. date('l d/F/Y G:i:s', time());
-            $event_text .= PHP_EOL .'<br/> '. get_string('glossary_concept_definition','block_glsubs').'[ '. $glossary_concept->definition .' ]  ' ;
-            $event_text .= PHP_EOL .'<br/> URL: ' . html_writer::link($event_url,'LINK');
-            $event_text .= PHP_EOL .'<br/>' . $event_description = $event->get_description();
+            $event_text  = block_glsubs_observer::get_event_text('entry', $event , $glossary_concept ,$course , $module_name , null , $categories );
 
-            // add message for automatic subscription for this on the user/creator
-            if('created' === $eventdata['action']){
-                $event_text .= PHP_EOL .'<br/>' ;
-                if($auto_subscribe) {
-                    $event_text .= get_string('glossarysubscriptionon', 'block_glsubs');
-                }
-                $event_text .= $eventdata['target'];
-            } elseif ('updated' === $eventdata['action']){
-                $event_text .= PHP_EOL .'<br/>' . get_string('glossarysubscriptionsupdated','block_glsubs') . $eventdata['target'];
-            } elseif ('deleted' === $eventdata['action']){
-                $event_text .= PHP_EOL .'<br/>' . get_string('glossarysubscriptionsdeleted','block_glsubs') . $eventdata['target'];
-            }
-*/
             // create log entries for each concept category or one generic
             foreach ( $concept_categories as $key => $myconcept_category ) {
                 // build an event record to add to the subscriptions log for each category or the generic category
@@ -520,7 +499,7 @@ class block_glsubs_observer
         // $event_url = $event->get_url();
 
         // build an event text to be used for subscription messages
-        $event_text  = PHP_EOL . get_string('glossary_user','block_glsubs') ;
+        $event_text  = get_string('glossary_user','block_glsubs') ;
         $event_text .= fullname( \core_user::get_user( (int) $eventdata['userid'] ) ). ' @ ' . $course->fullname . ' / ' . $module_name;
         if($event_type === 'category'){
             $event_text .= PHP_EOL . get_string('glossary_category','block_glsubs') . ' [' . $item->name .'] ';

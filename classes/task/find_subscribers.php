@@ -65,7 +65,7 @@ class find_subscribers extends \core\task\scheduled_task
      *
      * @return bool
      */
-    protected function find_full_subscriptions($timenow ){
+    protected function find_full_subscriptions( $timenow ){
         global $DB;
         // get the list of the glossary IDs in these log entries for the full subscribers
         // find full glossary subscriber users to these glossaries and register the user id , log entry id pairs to be used for message deliveries
@@ -80,9 +80,9 @@ class find_subscribers extends \core\task\scheduled_task
                 $full_glossary_subscriber_IDs = $DB->get_records('block_glsubs_glossaries_subs', array('glossaryid' => $full_log_glossary_id->glossaryid, 'active' => 1),'userid','userid');
                 $records = array();
                 foreach ($full_glossary_subscriber_IDs as $key => $glossary_subscriber_ID ){
-                    $filters = array('userid' => (int) $glossary_subscriber_ID , 'eventlogid' => $log_id );
+                    $filters = array('userid' => (int) $glossary_subscriber_ID->userid , 'eventlogid' => $log_id );
                     // avoid duplicate messages logged in the system
-                    if(! $DB->record_exists('mdl_block_glsubs_messages_log' , $filters )){
+                    if(! $DB->record_exists('block_glsubs_messages_log' , $filters )){
                         $record = new \stdClass();
                         $record->userid = (int) $glossary_subscriber_ID->userid ;
                         $record->eventlogid = (int) $log_id ;
@@ -96,7 +96,7 @@ class find_subscribers extends \core\task\scheduled_task
                 }
                 if(count($records) > 0 ){
                     // store the new records into the messages log
-                    $DB->insert_records('mdl_block_glsubs_messages_log',$records);
+                    $DB->insert_records('block_glsubs_messages_log',$records);
                     mtrace('Added '.count($records).' new full subscription messages');
                 }
 
@@ -207,7 +207,7 @@ class find_subscribers extends \core\task\scheduled_task
         mtrace('Fetching log IDs for the Glossary Author subscriptions');
         // cater for a lot of user IDs to get unique query IDs
         $sql  = ' SELECT ( l.id * '. MAX_USERS . ' + a.userid ) i , l.id logid , a.userid ';
-        $sql .= ' FROM mdl_block_glsubs_event_subs_log l';
+        $sql .= ' FROM {block_glsubs_event_subs_log} l';
         $sql .= ' JOIN {block_glsubs_glossaries_subs} f ON f.glossaryid = l.glossaryid AND f.active = 0 ';
         $sql .= ' JOIN {block_glsubs_authors_subs} a  ON a.glossaryid = l.glossaryid AND a.authorid = l.authorid ';
         $sql .= ' WHERE l.processed = 0 AND l.authorid > 0 AND l.timecreated < :timenow GROUP BY l.categoryid, l.conceptid ORDER BY i';
@@ -249,9 +249,9 @@ class find_subscribers extends \core\task\scheduled_task
         global $DB ;
         mtrace('Fetching log IDs for the Glossary Category subscriptions');
         // cater for a lot of user IDs to get unique query IDs
-        $sql  = ' SELECT ( l.id * ' . MAX_USERS . ' + c.userid ) i , l.id logid , c.userid , l.categoryid , l.conceptid, l.eventtext FROM mdl_block_glsubs_event_subs_log l';
-        $sql .= ' JOIN mdl_block_glsubs_glossaries_subs f ON f.userid = l.userid AND f.active = 0';
-        $sql .= ' JOIN mdl_block_glsubs_categories_subs c ON c.glossaryid = l.glossaryid AND c.categoryid = l.categoryid';
+        $sql  = ' SELECT ( l.id * ' . MAX_USERS . ' + c.userid ) i , l.id logid , c.userid , l.categoryid , l.conceptid, l.eventtext FROM {block_glsubs_event_subs_log} l';
+        $sql .= ' JOIN {block_glsubs_glossaries_subs} f ON f.userid = l.userid AND f.active = 0';
+        $sql .= ' JOIN {block_glsubs_categories_subs} c ON c.glossaryid = l.glossaryid AND c.categoryid = l.categoryid';
         $sql .= ' WHERE l.processed = 0 AND l.authorid > 0 AND l.categoryid > 0 AND l.timecreated < :timenow';
         $sql .= ' GROUP BY l.categoryid, l.conceptid ORDER BY i';
 
@@ -293,9 +293,9 @@ class find_subscribers extends \core\task\scheduled_task
         mtrace('Fetching log IDs for the Glossary Concepts subscriptions');
         // cater for a lot of user IDs to get unique query IDs
         $sql  = ' SELECT ( l.id * ' . MAX_USERS . ' + c.userid ) i , l.id logid , c.userid , c.conceptactive , c.commentsactive';
-        $sql .= ' FROM mdl_block_glsubs_event_subs_log l';
-        $sql .= ' JOIN mdl_block_glsubs_glossaries_subs f ON f.userid = l.userid AND f.active = 0';
-        $sql .= ' JOIN mdl_block_glsubs_concept_subs c ON c.glossaryid = l.glossaryid AND c.conceptid = l.conceptid ';
+        $sql .= ' FROM {block_glsubs_event_subs_log} l';
+        $sql .= ' JOIN {block_glsubs_glossaries_subs} f ON f.userid = l.userid AND f.active = 0';
+        $sql .= ' JOIN {block_glsubs_concept_subs} c ON c.glossaryid = l.glossaryid AND c.conceptid = l.conceptid ';
         $sql .= ' AND (c.conceptactive = 1 OR c.commentsactive = 1)';
         $sql .= ' WHERE l.processed = 0 AND l.authorid > 0 AND l.conceptid > 0 AND l.timecreated < :timenow';
         $sql .= ' GROUP BY l.categoryid, l.conceptid ORDER BY i';
@@ -497,7 +497,7 @@ class find_subscribers extends \core\task\scheduled_task
             $error_status = ( ! $this->delete_invalid_glossary_entries() ) || $error_status ;
 
             // create a table to keep the user id , event log id pairs for the subscriptions, time creation stamp and delivery flag via XMLDB
-            // mdl_block_glsubs_messages_log
+            // block_glsubs_messages_log
 
             // now it is clean to read the unprocessed entries
             try {
@@ -506,6 +506,7 @@ class find_subscribers extends \core\task\scheduled_task
             } catch (\Exception $exception) {
                 mtrace('ERROR: There was a database access error while getting new glossary event log entries '.$exception->getMessage());
                 $error_status = true;
+                $new_events_counter = new \stdClass();
                 $new_events_counter->entries = 0 ;
             }
             if( ! $error_status && $new_events_counter->entries > 0 ){
@@ -569,10 +570,10 @@ class find_subscribers extends \core\task\scheduled_task
                 }
 
             }
-            mtrace('=================================================================================================');
         } else {
             return false;
         }
+        mtrace('=================================================================================================');
         return true;
     }
 
