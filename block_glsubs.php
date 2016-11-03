@@ -56,11 +56,9 @@ class block_glsubs extends block_base {
             $sql = 'SELECT id,userid,eventlogid,timecreated,timedelivered FROM {block_glsubs_messages_log} WHERE userid = :userid AND timedelivered IS NULL ORDER BY id';
             $messages = $DB->get_records_sql( $sql , array('userid' => (int) $USER->id ),0 , $messages_count);
             // if there are no unread messages show the latest read
-            $unread = true;
             if(count($messages) === 0){
                 $sql = 'SELECT * FROM {block_glsubs_messages_log} WHERE userid = :userid ORDER BY id DESC ';
                 $messages = $DB->get_records_sql( $sql , array('userid' => (int) $USER->id ),0 , $messages_count);
-                $unread = false ;
             }
         } catch (\Exception $exception){
             return $messages;
@@ -69,7 +67,7 @@ class block_glsubs extends block_base {
         if( count($messages) > 0 ){
             foreach ($messages as $key =>& $message){
                 try {
-                    $message->event = $DB->get_record('block_glsubs_event_subs_log', array('id' => $key));
+                    $message->event = $DB->get_record('block_glsubs_event_subs_log', array('id' => (int) $message->eventlogid ));
                     $message->date = date('Y-m-d H:i:s', (int) $message->event->timecreated);
                     $message->user = $DB->get_record('user', array('id' => (int) $message->event->userid));
                     $message->author = $DB->get_record('user', array('id' => (int) $message->event->authorid));

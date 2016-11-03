@@ -44,18 +44,18 @@ $elementUrl = new moodle_url('/user/view.php', array('id' => $USER->id));
 $elementLink = html_writer::link($elementUrl,$userpicture);
 
 // create a link to the user's list of entries in this glossary
-
 echo  fullname($USER);
 echo '<br>' .$elementLink;
-
 echo '<p/>';
 
 if( ! ( $msgID = required_param('id',PARAM_INT) ) > 0 ){
     $url = new moodle_url($_SERVER['HTTP_REFERER'], array());
     redirect($url);
 }
-// echo $msgID . '<br/>';
+
+// get the message ID
 $key = (int) $msgID;
+
 try {
     // $message = new \stdClass();
     $message = $DB->get_record( 'block_glsubs_messages_log',array('id' => $key ));
@@ -65,7 +65,7 @@ try {
         $DB->update_record('block_glsubs_messages_log', $message , false);
     }
     // get the event
-    $message->event = $DB->get_record('block_glsubs_event_subs_log', array('id' => $key));
+    $message->event = $DB->get_record('block_glsubs_event_subs_log', array('id' => (int) $message->eventlogid ));
     if($message->event){
         // if the event is valid , show it
         $message->date = gmdate("Y-m-d H:i:s", (int)$message->event->timecreated);
