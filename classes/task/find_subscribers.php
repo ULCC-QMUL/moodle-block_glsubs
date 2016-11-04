@@ -348,7 +348,7 @@ class find_subscribers extends \core\task\scheduled_task
         $sql .= ' GROUP BY c.userid , l.categoryid , l.conceptid ORDER BY i';
 
         // debugging
-        mtrace( $sql );
+        // mtrace( $sql );
 
         try {
             $new_concept_sub_messages = $DB->get_records_sql( $sql , array('timenow' => $timenow ) );
@@ -356,7 +356,7 @@ class find_subscribers extends \core\task\scheduled_task
             foreach ($new_concept_sub_messages as $id => $new_concept_sub_message) {
 
                 // debugging
-                mtrace('New concept subscription log ID ' . (string) $id . ' on ' . (string) $new_concept_sub_message->logid  );
+                // mtrace('New concept subscription log ID ' . (string) $id . ' on ' . (string) $new_concept_sub_message->logid  );
 
                 // check if we have either concept or comment related active subscription
                 if( (int) $new_concept_sub_message->conceptactive === 1 || (int) $new_concept_sub_message->commentsactive === 1 ){
@@ -375,7 +375,7 @@ class find_subscribers extends \core\task\scheduled_task
                         mtrace('Already in the message log');
                     }
                 } else {
-                    mtrace('No active concept or comments on it subscription found');
+                    // mtrace('No active concept or comments on it subscription found');
                 }
             }
             // if there are any new records store them in the message log
@@ -386,7 +386,7 @@ class find_subscribers extends \core\task\scheduled_task
             }
             // clear memory
             $records = null ;
-            mtrace('Glossary concepts subscriptions process is finished');
+            // mtrace('Glossary concepts subscriptions process is finished');
             return true;
         } catch (\Exception $exception) {
             mtrace('ERROR: There was a database access error while processing the glossary concept subscriptions '.$exception->getMessage());
