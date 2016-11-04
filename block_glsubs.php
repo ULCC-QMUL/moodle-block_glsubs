@@ -55,14 +55,14 @@ class block_glsubs extends block_base {
         $glsubs_settings = get_config('block_glsubs');
         $messages_count = (int) $glsubs_settings->messagestoshow ;
         try {
-            $sql  = 'SELECT id,userid,eventlogid,timecreated,timedelivered FROM {block_glsubs_messages_log} l ';
+            $sql  = 'SELECT l.id , l.userid , l.eventlogid , l.timecreated ,l.timedelivered FROM {block_glsubs_messages_log} l ';
             $sql .= ' JOIN {block_glsubs_event_subs_log} e ON l.eventlogid = e.id AND e.glossaryid = :glossaryid ';
             $sql .= ' WHERE l.userid = :userid AND l.timedelivered IS NULL ORDER BY l.id';
             $messages = $DB->get_records_sql( $sql , array('userid' => (int) $USER->id , 'glossaryid' => $glossaryid ) , 0 , $messages_count);
             // if there are no unread messages show the latest read
             if( count($messages ) === 0){
                 $sql  = 'SELECT l.* FROM {block_glsubs_messages_log} l ';
-                $sql .= 'JOIN {} e ON e.id = l.eventlogid AND e.glossaryid = :glossaryid ';
+                $sql .= 'JOIN {block_glsubs_event_subs_log} e ON e.id = l.eventlogid AND e.glossaryid = :glossaryid ';
                 $sql .=' WHERE l.userid = :userid ORDER BY l.id DESC ';
                 $messages = $DB->get_records_sql( $sql , array('userid' => (int) $USER->id , 'glossaryid' => $glossaryid ) , 0 , $messages_count);
             }
@@ -89,17 +89,17 @@ class block_glsubs extends block_base {
         global $DB, $USER ;
         // get the block settings from its configuration
         $glsubs_settings = get_config('block_glsubs');
+        $messages_count = (int) $glsubs_settings->messagestoshow ;
         if( (int) $glsubs_settings->messagestoshow > 0 ){
             $messages = $this->get_latest_messages( $glossaryid );
-            $messages_count = (int) $glsubs_settings->messagestoshow ;
-            // $unread = true;
             try {
                 // read how many unread messages exist for this glossary
-                $sql  = 'SELECT id,userid,eventlogid,timecreated,timedelivered FROM {block_glsubs_messages_log} l ';
+                $sql  = 'SELECT l.id , l.userid , l.eventlogid , l.timecreated ,l.timedelivered FROM {block_glsubs_messages_log} l ';
                 $sql .= ' JOIN {block_glsubs_event_subs_log} e ON l.eventlogid = e.id AND e.glossaryid = :glossaryid ';
                 $sql .= ' WHERE l.userid = :userid AND l.timedelivered IS NULL ORDER BY l.id';
-                $unread = $DB->get_records_sql( $sql , array('userid' => (int) $USER->id , 'glossaryid' => $glossaryid ) , 0 , $messages_count);
-                $unread = ( $unread->counter > 0 );
+                $cmessages = $DB->get_records_sql( $sql , array('userid' => (int) $USER->id , 'glossaryid' => $glossaryid ) , 0 , $messages_count );
+                $counter = count( $cmessages ) ;
+                $unread = ( $counter > 0 );
             } catch (\Exception $exception){
                 $unread = false ;
             }

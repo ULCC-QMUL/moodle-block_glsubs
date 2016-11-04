@@ -356,7 +356,7 @@ class find_subscribers extends \core\task\scheduled_task
             foreach ($new_concept_sub_messages as $id => $new_concept_sub_message) {
 
                 // debugging
-                mtrace('New concept subscription log ID' . (string) $id . ' on ' . (string) $new_concept_sub_message->i  );
+                mtrace('New concept subscription log ID ' . (string) $id . ' on ' . (string) $new_concept_sub_message->logid  );
 
                 // check if we have either concept or comment related active subscription
                 if( (int) $new_concept_sub_message->conceptactive === 1 || (int) $new_concept_sub_message->commentsactive === 1 ){
@@ -372,7 +372,7 @@ class find_subscribers extends \core\task\scheduled_task
                             $records[] = $record ;
                         }
                     } else {
-                        mtrace('Already in the messae log');
+                        mtrace('Already in the message log');
                     }
                 } else {
                     mtrace('No active concept or comments on it subscription found');
@@ -561,7 +561,7 @@ class find_subscribers extends \core\task\scheduled_task
             $timenow = time();
             ini_set('max_execution_time',0);
 
-            mtrace('Find Glossary Subscribers Task started at '.date('c',$timenow) );
+            // mtrace('Find Glossary Subscribers Task started at '.date('c',$timenow) );
 
             // delete invalid entries
             $error_status = ( ! $this->delete_invalid_glossary_entries() ) || $error_status ;
