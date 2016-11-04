@@ -119,7 +119,7 @@ if(! $error){
         $userpicture = $OUTPUT->user_picture($message->author, array('size'=>35));
         $elementUrl = new moodle_url('/user/view.php', array('id' => $message->author->id));
         $elementLink = html_writer::link($elementUrl,$userpicture);
-        echo ' '. fullname($message->user) . ' ' .$elementLink;
+        echo ' '. fullname($message->author) . ' ' .$elementLink;
     }
 
     if($message->event){
