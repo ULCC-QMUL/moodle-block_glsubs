@@ -372,7 +372,7 @@ class find_subscribers extends \core\task\scheduled_task
                             $records[] = $record ;
                         }
                     } else {
-                        mtrace('Already in the message log');
+                        // mtrace('Already in the message log');
                     }
                 } else {
                     // mtrace('No active concept or comments on it subscription found');
