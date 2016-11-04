@@ -149,12 +149,17 @@ class block_glsubs_observer
                 $glossary_concept_id = (int) $glossary_concept_id ;
                 $filters = array( 'userid' => $userid , 'glossaryid' => $glossaryid , 'conceptid' => $glossary_concept_id ) ;
 
+                // check if the user is registered into the glossary subscriptions main table
+                block_glsubs_observer::check_user_subscription( $auto_subscribe , $userid , $glossaryid );
+
                 // save the subscription to this glossary concept comments for this user/creator
                 // check if the subscription to the concept/comments already exists first
                 if( $DB->record_exists( 'block_glsubs_concept_subs' , $filters ) ) {
                     $concept_subscription = $DB->get_record( 'block_glsubs_concept_subs' , $filters );
-                    $concept_subscription->conceptactive = 1 ;
-                    $concept_subscription->commentsactive = 1 ;
+                    $concept_subscription->conceptactive = 1 ;  // mark active the concept subscription
+                    $concept_subscription->commentsactive = 1 ; // mark active the concept comments subscription
+
+                    // check if an automatic subscription should be created
                     if($auto_subscribe){
                         $DB->update_record('block_glsubs_concept_subs',$concept_subscription , false );
                     }
@@ -322,6 +327,10 @@ class block_glsubs_observer
             $glossary_concept_id = (int) $glossary_concept_id ;
             $filters = array( 'userid' => $userid , 'glossaryid' => $glossaryid , 'conceptid' => $glossary_concept_id ) ;
 
+
+            // check if the user is registered into the glossary subscriptions main table
+            block_glsubs_observer::check_user_subscription( $auto_subscribe , $userid , $glossaryid );
+
             // save the subscription to this glossary concept comments for this user/creator
             // check if the subscription to the concept/comments already exists first
             if( $DB->record_exists( 'block_glsubs_concept_subs' , $filters ) ) {
@@ -433,6 +442,10 @@ class block_glsubs_observer
 
             // build an event text to be used for subscription messages
             $event_text  = block_glsubs_observer::get_event_text( $event_type = 'category' , $event , $glossary_category  , $course , $module_name , null , null , $author = $user->id );
+
+            // check if the user is registered into the glossary subscriptions main table
+            block_glsubs_observer::check_user_subscription( $auto_subscribe , (int) $user->id , $glossaryid );
+
 
             // build an event record to add to the subscriptions log
             $record = new \stdClass() ;
@@ -553,5 +566,30 @@ class block_glsubs_observer
         // add HTML line breaks
         $event_text = nl2br($event_text);
         return $event_text ;
+    }
+
+    /**
+     * @param $auto_subscribe
+     * @param $userid
+     * @param $glossaryid
+     */
+    protected static function check_user_subscription($auto_subscribe , $userid  , $glossaryid ){
+        global $DB ;
+        // check if the user is registered into the glossary subscriptions main table
+        if( $auto_subscribe ){
+            // check if the user is registered into the glossary subscriptions main table
+            if(! $DB->record_exists('block_glsubs_glossaries_subs',array('userid' => (int) $userid , 'glossaryid' => $glossaryid ))){
+                // you must add a subscription record for the user in this main table
+                // in order for the subscriptions logic to work
+                $record = new \stdClass();
+                $record->userid = (int) $userid ; // specify user id
+                $record->glossaryid = $glossaryid ; // specify glossary id
+                $record->active = 0 ;               // specify full subscription
+                $record->newcategories = 0 ;        // specify new categories subscription
+                $record->newentriesuncategorised = 0 ; // specify new concepts without categories subscription
+                // insert the main record for th user on the specific glossary
+                $DB->insert_record('block_glsubs_glossaries_subs', $record) ;
+            }
+        }
     }
 }

@@ -14,7 +14,7 @@ $tasks = array(
     array(
         'classname' => 'block_glsubs\task\find_subscribers' ,
         'blocking'  => 0 ,
-        'minute'    => '*/5' ,
+        'minute'    => '*/2' ,
         'hour'      => '*' ,
         'day'       => '*' ,
         'dayofweek' => '*' ,

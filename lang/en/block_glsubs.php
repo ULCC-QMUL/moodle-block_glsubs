@@ -75,4 +75,4 @@ $string['block_read_messages'] = ' read messages';
 $string['block_could_not_access'] = 'Could not access the ';
 $string['block_most_recent'] = ' most recent messages';
 
-$string['messageprovider:glsub_message'] = ' Glossary Event Message ';
+$string['messageprovider:glsubs_message'] = ' Glossary Event Message ';

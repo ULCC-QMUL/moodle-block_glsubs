@@ -281,7 +281,7 @@ class block_glsubs extends block_base {
         try {
             foreach ( $arrData as $key => $value ){
 
-                // if the data in the form is a gossary comment subscription instruction then
+                // if the data in the form is a glossary comment subscription instruction then
                 if( $key === $fullsubkey ) {
                     if( $DB->record_exists('block_glsubs_glossaries_subs',array('userid'=>$userid,'glossaryid'=>$glossaryid))){
                         $oldrecord = $DB->get_record('block_glsubs_glossaries_subs',array('userid'=>$userid,'glossaryid'=>$glossaryid));
