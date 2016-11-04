@@ -45,20 +45,26 @@ class block_glsubs extends block_base {
     }
 
     /**
+     * @param $glossaryid
+     *
      * @return array
      */
-    protected function get_latest_messages(){
+    protected function get_latest_messages( $glossaryid ){
         global $DB , $USER ;
         $messages = array();
         $glsubs_settings = get_config('block_glsubs');
         $messages_count = (int) $glsubs_settings->messagestoshow ;
         try {
-            $sql = 'SELECT id,userid,eventlogid,timecreated,timedelivered FROM {block_glsubs_messages_log} WHERE userid = :userid AND timedelivered IS NULL ORDER BY id';
-            $messages = $DB->get_records_sql( $sql , array('userid' => (int) $USER->id ),0 , $messages_count);
+            $sql  = 'SELECT id,userid,eventlogid,timecreated,timedelivered FROM {block_glsubs_messages_log} l ';
+            $sql .= ' JOIN {block_glsubs_event_subs_log} e ON l.eventlogid = e.id AND e.glossaryid = :glossaryid ';
+            $sql .= ' WHERE l.userid = :userid AND l.timedelivered IS NULL ORDER BY l.id';
+            $messages = $DB->get_records_sql( $sql , array('userid' => (int) $USER->id , 'glossaryid' => $glossaryid ) , 0 , $messages_count);
             // if there are no unread messages show the latest read
-            if(count($messages) === 0){
-                $sql = 'SELECT * FROM {block_glsubs_messages_log} WHERE userid = :userid ORDER BY id DESC ';
-                $messages = $DB->get_records_sql( $sql , array('userid' => (int) $USER->id ),0 , $messages_count);
+            if( count($messages ) === 0){
+                $sql  = 'SELECT l.* FROM {block_glsubs_messages_log} l ';
+                $sql .= 'JOIN {} e ON e.id = l.eventlogid AND e.glossaryid = :glossaryid ';
+                $sql .=' WHERE l.userid = :userid ORDER BY l.id DESC ';
+                $messages = $DB->get_records_sql( $sql , array('userid' => (int) $USER->id , 'glossaryid' => $glossaryid ) , 0 , $messages_count);
             }
         } catch (\Exception $exception){
             return $messages;
@@ -79,16 +85,20 @@ class block_glsubs extends block_base {
         return $messages;
     }
 
-    private function show_messages(){
+    private function show_messages( $glossaryid ){
         global $DB, $USER ;
         // get the block settings from its configuration
         $glsubs_settings = get_config('block_glsubs');
         if( (int) $glsubs_settings->messagestoshow > 0 ){
-            $messages = $this->get_latest_messages( );
+            $messages = $this->get_latest_messages( $glossaryid );
+            $messages_count = (int) $glsubs_settings->messagestoshow ;
             // $unread = true;
             try {
-                $sql = 'SELECT count(id) counter FROM {block_glsubs_messages_log} WHERE userid = :userid AND timedelivered IS NULL';
-                $unread = $DB->get_record_sql( $sql , array( 'userid' => (int) $USER->id ) ) ;
+                // read how many unread messages exist for this glossary
+                $sql  = 'SELECT id,userid,eventlogid,timecreated,timedelivered FROM {block_glsubs_messages_log} l ';
+                $sql .= ' JOIN {block_glsubs_event_subs_log} e ON l.eventlogid = e.id AND e.glossaryid = :glossaryid ';
+                $sql .= ' WHERE l.userid = :userid AND l.timedelivered IS NULL ORDER BY l.id';
+                $unread = $DB->get_records_sql( $sql , array('userid' => (int) $USER->id , 'glossaryid' => $glossaryid ) , 0 , $messages_count);
                 $unread = ( $unread->counter > 0 );
             } catch (\Exception $exception){
                 $unread = false ;
@@ -116,7 +126,7 @@ class block_glsubs extends block_base {
             $this->content->text .= get_string('view_show_hide_2','block_glsubs');
             $this->content->text .= '</span>'; // id="glossarymessagesshowhide"
 
-            $this->content->text .= get_string('block_found','block_glsubs').count($messages);
+            $this->content->text .= get_string('block_found','block_glsubs') . count($messages);
             $this->content->text .= $unread ? get_string('block_unread_messages','block_glsubs') : get_string('block_read_messages','block_glsubs');
             $this->content->text .= '<br/>';
             $this->content->text .= '<div id="glossarymessagesblocktable" style="display: none ;">';
@@ -219,8 +229,11 @@ class block_glsubs extends block_base {
                 return $this->content;
             }
 
+            // get glossary ID
+            $glossaryid = (int) $cm->instance ;
+
             // show unread messages
-            $this->show_messages();
+            $this->show_messages( $glossaryid );
 
             // create a glossary subscriptions block form and assign its action to the original page
             $subscriptions_form = new block_glsubs_form($this->currentPageURL()['fullurl']);
@@ -283,10 +296,10 @@ class block_glsubs extends block_base {
 
                 // if the data in the form is a glossary comment subscription instruction then
                 if( $key === $fullsubkey ) {
-                    if( $DB->record_exists('block_glsubs_glossaries_subs',array('userid'=>$userid,'glossaryid'=>$glossaryid))){
-                        $oldrecord = $DB->get_record('block_glsubs_glossaries_subs',array('userid'=>$userid,'glossaryid'=>$glossaryid));
+                    if( $DB->record_exists( 'block_glsubs_glossaries_subs',array( 'userid' => $userid,'glossaryid' => $glossaryid ) ) ){
+                        $oldrecord = $DB->get_record( 'block_glsubs_glossaries_subs',array( 'userid'=>$userid,'glossaryid' => $glossaryid ) );
                         $oldrecord->active = $value ;
-                        $DB->update_record('block_glsubs_glossaries_subs',$oldrecord, false);
+                        $DB->update_record( 'block_glsubs_glossaries_subs' , $oldrecord , false);
                     } else {
                         $newrecord = new stdClass();
                         $newrecord->userid = $userid ;
