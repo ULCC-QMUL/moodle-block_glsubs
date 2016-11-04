@@ -103,63 +103,64 @@ class block_glsubs extends block_base {
             } catch (\Exception $exception){
                 $unread = false ;
             }
-            $javascriptswitch  = chr(13).' <script>';
-            $javascriptswitch .= chr(13).' $( document ).ready(function(){ ';
-            $javascriptswitch .= chr(13).'      $("#glossarymessagesshowhide").click(function(){ ';
-            $javascriptswitch .= chr(13).'          $("#glossarymessagesblocktable").toggle();  ';
-            $javascriptswitch .= chr(13).'          $("#glossarymessagesshowhide").toggle();  ';
-            $javascriptswitch .= chr(13).'          $("#glossarymessagesshowhide_2").toggle();  ';
-            $javascriptswitch .= chr(13).'      }); ';
-            $javascriptswitch .= chr(13).'      $("#glossarymessagesshowhide_2").click(function(){ ';
-            $javascriptswitch .= chr(13).'          $("#glossarymessagesblocktable").toggle();  ';
-            $javascriptswitch .= chr(13).'          $("#glossarymessagesshowhide").toggle();  ';
-            $javascriptswitch .= chr(13).'          $("#glossarymessagesshowhide_2").toggle();  ';
-            $javascriptswitch .= chr(13).'      }); ';
-            $javascriptswitch .= chr(13).' }) ; ';
-            $javascriptswitch .= chr(13).' </script>';
-            $javascriptswitch .= chr(13);
-            $this->content->text .= '<div id="glossarymessagesblock">';
-            $this->content->text .= '<span id="glossarymessagesshowhide">';
-            $this->content->text .= get_string('view_show_hide','block_glsubs');
-            $this->content->text .= '</span>'; // id="glossarymessagesshowhide"
-            $this->content->text .= '<span id="glossarymessagesshowhide_2" style="display: none ;">';
-            $this->content->text .= get_string('view_show_hide_2','block_glsubs');
-            $this->content->text .= '</span>'; // id="glossarymessagesshowhide"
+            if(count($messages)> 0){
+                $javascriptswitch  = chr(13).' <script>';
+                $javascriptswitch .= chr(13).' $( document ).ready(function(){ ';
+                $javascriptswitch .= chr(13).'      $("#glossarymessagesshowhide").click(function(){ ';
+                $javascriptswitch .= chr(13).'          $("#glossarymessagesblocktable").toggle();  ';
+                $javascriptswitch .= chr(13).'          $("#glossarymessagesshowhide").toggle();  ';
+                $javascriptswitch .= chr(13).'          $("#glossarymessagesshowhide_2").toggle();  ';
+                $javascriptswitch .= chr(13).'      }); ';
+                $javascriptswitch .= chr(13).'      $("#glossarymessagesshowhide_2").click(function(){ ';
+                $javascriptswitch .= chr(13).'          $("#glossarymessagesblocktable").toggle();  ';
+                $javascriptswitch .= chr(13).'          $("#glossarymessagesshowhide").toggle();  ';
+                $javascriptswitch .= chr(13).'          $("#glossarymessagesshowhide_2").toggle();  ';
+                $javascriptswitch .= chr(13).'      }); ';
+                $javascriptswitch .= chr(13).' }) ; ';
+                $javascriptswitch .= chr(13).' </script>';
+                $javascriptswitch .= chr(13);
+                $this->content->text .= '<div id="glossarymessagesblock">';
+                $this->content->text .= '<span id="glossarymessagesshowhide">';
+                $this->content->text .= get_string('view_show_hide','block_glsubs');
+                $this->content->text .= '</span>'; // id="glossarymessagesshowhide"
+                $this->content->text .= '<span id="glossarymessagesshowhide_2" style="display: none ;">';
+                $this->content->text .= get_string('view_show_hide_2','block_glsubs');
+                $this->content->text .= '</span>'; // id="glossarymessagesshowhide"
 
-            $this->content->text .= get_string('block_found','block_glsubs') . count($messages);
-            $this->content->text .= $unread ? get_string('block_unread_messages','block_glsubs') : get_string('block_read_messages','block_glsubs');
-            $this->content->text .= '<br/>';
-            $this->content->text .= '<div id="glossarymessagesblocktable" style="display: none ;">';
+                $this->content->text .= get_string('block_found','block_glsubs') . count($messages);
+                $this->content->text .= $unread ? get_string('block_unread_messages','block_glsubs') : get_string('block_read_messages','block_glsubs');
+                $this->content->text .= '<br/>';
+                $this->content->text .= '<div id="glossarymessagesblocktable" style="display: none ;">';
 
 
-            $this->content->text .= '<table id="glossarymessagestable"><thead><tr>';
-            $this->content->text .= '<th>'.get_string('view_when','block_glsubs') .'</th>';
-            $this->content->text .= '<th>&nbsp;</th>';
-            $this->content->text .= '</th><th>'.get_string('view_by_user','block_glsubs').'</th>';
-            $this->content->text .= '<th>&nbsp;</th>';
-            $this->content->text .= '<th>' . get_string('view_on_concept','block_glsubs').'</th></tr></thead><tbody>';
-            foreach ($messages as $key => $message){
-                if( (int) $message->event->conceptid > 0 ){
-                    $record = $DB->get_record('glossary_entries', array('id' =>(int) $message->event->conceptid ) );
-                    $name = $record->concept ;
-                } else {
-                    $record = $DB->get_record('glossary_categories', array('id' => (int) $message->event->categoryid ));
-                    $name = $record->name ;
+                $this->content->text .= '<table id="glossarymessagestable"><thead><tr>';
+                $this->content->text .= '<th>'.get_string('view_when','block_glsubs') .'</th>';
+                $this->content->text .= '<th>&nbsp;</th>';
+                $this->content->text .= '</th><th>'.get_string('view_by_user','block_glsubs').'</th>';
+                $this->content->text .= '<th>&nbsp;</th>';
+                $this->content->text .= '<th>' . get_string('view_on_concept','block_glsubs').'</th></tr></thead><tbody>';
+                foreach ($messages as $key => $message){
+                    if( (int) $message->event->conceptid > 0 ){
+                        $record = $DB->get_record('glossary_entries', array('id' =>(int) $message->event->conceptid ) );
+                        $name = $record->concept ;
+                    } else {
+                        $record = $DB->get_record('glossary_categories', array('id' => (int) $message->event->categoryid ));
+                        $name = $record->name ;
+                    }
+                    $link = html_writer::link(new moodle_url('/blocks/glsubs/view.php' , array('id' => $key  )), substr( $message->date ,0 ,10 ),array('title' => $message->date, 'font-size' => '90%;' ));
+                    $this->content->text .= '<tr><td>' . $link .'</td>';
+                    $this->content->text .= '<td>&nbsp;</td>';
+                    $this->content->text .= '<td> '.fullname($message->user).'</td>';
+                    $this->content->text .= '<td>&nbsp;</td>';
+                    $this->content->text .= '<td>' . $name . '</td></tr>';
                 }
-                $link = html_writer::link(new moodle_url('/blocks/glsubs/view.php' , array('id' => $key  )), substr( $message->date ,0 ,10 ),array('title' => $message->date, 'font-size' => '90%;' ));
-                $this->content->text .= '<tr><td>' . $link .'</td>';
-                $this->content->text .= '<td>&nbsp;</td>';
-                $this->content->text .= '<td> '.fullname($message->user).'</td>';
-                $this->content->text .= '<td>&nbsp;</td>';
-                $this->content->text .= '<td>' . $name . '</td></tr>';
+                $this->content->text .= '</tbody></table><hr style="visibility: visible !important; display: inline !important;"/>';
+
+
+                $this->content->text .= '</div>'; // id="glossarymessagesblocktable"
+                $this->content->text .= '</div>'; // id="glossarymessagesblock"
+                $this->content->text .= $javascriptswitch ;
             }
-            $this->content->text .= '</tbody></table><hr style="visibility: visible !important; display: inline !important;"/>';
-
-
-            $this->content->text .= '</div>'; // id="glossarymessagesblocktable"
-            $this->content->text .= '</div>'; // id="glossarymessagesblock"
-            $this->content->text .= $javascriptswitch ;
-
         }
     }
     /**
