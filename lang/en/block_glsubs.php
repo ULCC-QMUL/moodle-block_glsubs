@@ -33,6 +33,7 @@ $string['glossarysubscriptionsdeleted'] = 'All users will automatically be unsub
 $string['glossarysubscriptionsupdated'] = 'All subscribers will automatically be informed for this ';
 
 $string['findsubscribers'] = 'Find Glossary Event Subscribers Task';
+$string['messagesubscribers'] = 'Messaging Glossary Event Subscribers Task';
 
 $string['glossary_user'] = 'Glossary User ';
 $string['glossary_author'] = 'Glossary Author ';

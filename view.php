@@ -123,7 +123,8 @@ if(! $error){
     }
 
     if($message->event){
-        echo '<p/>' .$message->event->eventtext;
+        $messageHtml = preg_replace('#<script(.*?)>(.*?)</script>#is', '', $message->event->eventtext);
+        echo '<p/>' . $messageHtml;
     }
 
     // show message view date time

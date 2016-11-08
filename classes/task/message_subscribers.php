@@ -1,0 +1,145 @@
+<?php
+/**
+ * Created by PhpStorm.
+ * User: vasileios
+ * Date: 08/11/2016
+ * Time: 09:19
+ */
+
+// use this namespace also in the ./db/tasks.php
+namespace block_glsubs\task;
+
+
+class message_subscribers extends \core\task\scheduled_task
+{
+    /**
+     * @return string
+     */
+    public function get_name()
+    {
+        return get_string('messagesubscribers','block_glsubs');
+    }
+
+    /**
+     * the entry point of execution of the task
+     */
+    public function execute()
+    {
+        $system_user = $this->system_user();
+        $messages_log = $this->get_undelivered_log();
+        mtrace('Found some ' . count( $messages_log ) . ' undelivered glossary subscription messages');
+        foreach ( $messages_log as $id => $message_log ){
+            $message_id = $this->send_message( $system_user , $message_log );
+            if( $message_id > 0 ){
+                if( ! $this->update_message_log( $id ) ){
+                    mtrace('Will try again next time to update the message log record with ID ' . (string) $id );
+                } else {
+                    // mtrace('Sent message with ID ' . $message_id );
+                }
+            } else {
+                mtrace('Error while sending message for the record with ID '. (string) $id . ' of the glossary subscriptions log ');
+            }
+        }
+    }
+
+    /**
+     * @param $message_id
+     *
+     * @return bool
+     */
+    private function update_message_log( $message_id ){
+        global $DB;
+        try {
+            $record = $DB->get_record( 'block_glsubs_messages_log' , array( 'id' => (int) $message_id) );
+            $record->timedelivered = time();
+            $DB->update_record('block_glsubs_messages_log' , $record , false ); // update immediately
+        } catch (\Exception $exception){
+            mtrace('Error while updating the time delivered for the log with record ID ' . (string) $message_id );
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * @param $system_user
+     * @param $message
+     *
+     * @return int|mixed
+     */
+    private function send_message($system_user , $log_message){
+        global $DB, $USER ;
+
+        $messageHtml = preg_replace('#<script(.*?)>(.*?)</script>#is', '', $log_message->eventtext );
+        $messageText = html_to_text( $messageHtml );
+        // email_to_user($toUser, $system_user, $subject, $messageText, $messageHtml, ", ", true);
+        $messageid = 0 ;
+        try {
+            $user = $DB->get_record('user',array('id' => (int) $log_message->userid ) );
+        } catch (\Exception $exception) {
+            mtrace('Error while accessing the database ' . $exception->getMessage() );
+        }
+        if( $user ){
+            $moodle_message = new \core\message\message();
+            $moodle_message->component = 'moodle';
+            $moodle_message->name = 'instantmessage';
+            $moodle_message->userfrom = $system_user;
+            $moodle_message->userto = $user;
+            $moodle_message->subject = get_string('pluginname','block_glsubs');
+            // $moodle_message->fullmessage = $messageText;
+            $moodle_message->fullmessageformat = FORMAT_HTML;
+            $moodle_message->fullmessagehtml = $messageHtml;
+            // $moodle_message->smallmessage = get_string('messageprovider:glsubs_message','block_glsubs');
+            $moodle_message->notification = '1';
+            // $moodle_message->contexturl = $log_message->elink ;
+            // $moodle_message->contexturlname = get_string('pluginname','block_glsubs');
+            $moodle_message->replyto = $USER->email;
+            // $moodle_message->replyto = $CFG->supportemail;
+            $content = array('*' => array('header' => ' ----- ', 'footer' => ' ---- ')); // Extra content for specific processor
+            $moodle_message->set_additional_content('email', $content);
+            try {
+                $messageid = message_send( $moodle_message );
+            } catch (\Exception $exception){
+                mtrace('Error while sending a message ' . $exception->getMessage() );
+            }
+        }
+        return $messageid;
+    }
+    /**
+     * @return array
+     */
+    private function get_undelivered_log(){
+        global $DB;
+        $message_logs = array();
+        $sql  = 'SELECT l.id , l.userid , l.eventlogid , l.timecreated , e.eventtext, e.eventlink elink FROM {block_glsubs_messages_log} l ';
+        $sql .= 'JOIN {block_glsubs_event_subs_log} e ON e.id = l.eventlogid ';
+        $sql .= 'WHERE l.timedelivered IS NULL';
+        try {
+            $message_logs = $DB->get_records_sql( $sql , array() );
+        } catch (\Exception $exception) {
+            mtrace('Error reading the glossary subscriptions log ' . $exception->getMessage() );
+        }
+        return $message_logs ;
+    }
+
+    /**
+     * @return \stdClass
+     */
+    private function system_user(){
+        global $CFG, $USER;
+        $user = new \stdClass();
+        // $user->email = $CFG->supportemail ; // : Email address
+        $user->email = $USER->email ; // : Email address
+        $user->firstname = fullname( $USER ) ; // : You can put both first and last name in this field.
+        // $user->firstname = $CFG->supportname ; // : You can put both first and last name in this field.
+        $user->lastname = get_string('pluginname','block_glsubs'); //
+        $user->maildisplay = false ; // If you want the email to come from noreply@yourwebsite.com, set this from true parameter to  false .
+        $user->mailformat = 1 ; // 0 (zero) text-only emails, 1 (one) for HTML/Text emails.
+        $user->id = (int) $USER->id ; // : Moodle User ID. If it is for someone who is not a Moodle user, use an invalid ID like -99.
+        // $user->id = -99; // : Moodle User ID. If it is for someone who is not a Moodle user, use an invalid ID like -99.
+        $user->firstnamephonetic = ''; //
+        $user->lastnamephonetic = ''; //
+        $user->middlename = ''; //
+        $user->alternatename = ''; //
+        return $user;
+    }
+}

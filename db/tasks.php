@@ -20,4 +20,14 @@ $tasks = array(
         'dayofweek' => '*' ,
         'month'     => '*'
     ),
+
+    array(
+        'classname' => 'block_glsubs\task\message_subscribers' ,
+        'blocking'  => 0 ,
+        'minute'    => '*/2' ,
+        'hour'      => '*' ,
+        'day'       => '*' ,
+        'dayofweek' => '*' ,
+        'month'     => '*'
+    ),
 );
