@@ -95,21 +95,22 @@ class message_subscribers extends \core\task\scheduled_task
             mtrace('Error while accessing the database ' . $exception->getMessage() );
         }
         if( $user ){
+            // prepare the Moodle message
             $moodle_message = new \core\message\message();
             $moodle_message->component = 'moodle';
             $moodle_message->name = 'instantmessage';
             $moodle_message->userfrom = $system_user;
             $moodle_message->userto = $user;
             $moodle_message->subject = get_string('pluginname','block_glsubs');
-            // $moodle_message->fullmessage = $messageText;
+            // ignore this $moodle_message->fullmessage = $messageText;
             $moodle_message->fullmessageformat = FORMAT_HTML;
+            // set only this field to send HTML, ignore fullmessage , smallmessage , contexturl and contexturlname
             $moodle_message->fullmessagehtml = $messageHtml;
-            // $moodle_message->smallmessage = get_string('messageprovider:glsubs_message','block_glsubs');
+            // ignore this $moodle_message->smallmessage = get_string('messageprovider:glsubs_message','block_glsubs');
             $moodle_message->notification = get_config('block_glsubs','messagenotification'); // get the setting for this block
-            // $moodle_message->contexturl = $log_message->elink ;
-            // $moodle_message->contexturlname = get_string('pluginname','block_glsubs');
+            // ignore this $moodle_message->contexturl = $log_message->elink ;
+            // ignore this $moodle_message->contexturlname = get_string('pluginname','block_glsubs');
             $moodle_message->replyto = $USER->email;
-            // $moodle_message->replyto = $CFG->supportemail;
             $content = array('*' => array('header' => ' ----- ', 'footer' => ' ---- ')); // Extra content for specific processor
             $moodle_message->set_additional_content('email', $content);
             try {
@@ -141,6 +142,7 @@ class message_subscribers extends \core\task\scheduled_task
     }
 
     /**
+     * this function should return an object of the CRON user modified to reflect the current activity
      * @return \stdClass
      */
     private function system_user(){

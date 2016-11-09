@@ -34,19 +34,22 @@ defined('MOODLE_INTERNAL') || die();
 // do not forget !!!
 // in order this to be activated you must create a function in the main class named has_config returning true
 
+// add settings header
 $settings->add(new admin_setting_heading('settings_header',
     get_string('settings_headerconfig', 'block_glsubs'),
     get_string('settings_descconfig', 'block_glsubs')));
 
+// add auto self subscription option
 $settings_autoselfsubscribe = 1 ;
 $settings->add(new admin_setting_configcheckbox('block_glsubs/autoselfsubscribe',
     get_string('settings_autoselfsubscribe', 'block_glsubs'),
     get_string('settings_autoselfsubscribe_desc', 'block_glsubs'),
     $settings_autoselfsubscribe ));
 
-$recent_messages_default_option = 'No messages shown' ; // no recent messages show
+// add option to show how many recent or iunread messages
+$recent_messages_default_option = get_string('settings_no_messages','block_glsubs') ; // no recent messages show
 $recent_messages_options = array();
-$recent_messages_options[0] = 'No messages shown';
+$recent_messages_options[0] = $recent_messages_default_option;
 $recent_messages_options[1] = '1' ;
 $recent_messages_options[5] = '5' ;
 $recent_messages_options[10] = '10' ;
@@ -58,22 +61,27 @@ $settings->add(new admin_setting_configselect('block_glsubs/messagestoshow',
     $recent_messages_default_option ,
     $recent_messages_options ) );
 
-$default_pagelayout = 'course';
-$page_layouts_options = array();
-$page_layouts_options['course'] = get_string( $default_pagelayout );
-$page_layouts_options['popup'] = get_string('popup');
 
-$batch_name = get_string('settings_messagebatchsize','block_glsubs');
-$batch_details = get_string('settings_messagebatchsize_details','block_glsubs');
-$batch_default = 10000;
-$settings->add(new admin_setting_configtext_int_only('block_glsubs/messagebatchsize',
-    $batch_name ,
-    $batch_details ,
-    $batch_default,
-    5 ));
+// add option to enable message notifications
+$settings_messagenotification = 1 ;
+$settings->add(new admin_setting_configcheckbox('block_glsubs/messagebatchsize',
+    get_string('settings_messagenotification', 'block_glsubs'),
+    get_string('settings_messagenotification_desc', 'block_glsubs'),
+    $settings_messagenotification ));
 
-$settings_messagenotification = '1';
-$settings->add(new admin_setting_configcheckbox('block_glsubs/messagenotification',
-    get_string('settings_messagenotification', 'block_glsubs'), get_string('settings_messagenotification_desc', 'block_glsubs'), $settings_messagenotification ));
+// add option to set the default batch size of message deliveries
+$delivery_messages_default_option = '1000'; // get_string('settings_no_deliveries','block_glsubs') ; // no delivery messages show
+$delivery_messages_options = array();
+$delivery_messages_options[0] = $delivery_messages_default_option;
+$delivery_messages_options[100] = '100' ;
+$delivery_messages_options[500] = '500' ;
+$delivery_messages_options[1000] = '1000' ;
+$delivery_messages_options[2000] = '2000' ;
+$delivery_messages_options[5000] = '5000' ;
 
+$settings->add(new admin_setting_configselect('block_glsubs/messagenotifocation',
+    get_string('settings_deliveriesnotification', 'block_glsubs'),
+    get_string('settings_deliveriesnotification_desc', 'block_glsubs'),
+    $delivery_messages_default_option ,
+    $delivery_messages_options ) );
 

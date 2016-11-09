@@ -62,7 +62,7 @@ $string['glossary_category'] = 'Glossary Category ';
 $string['CATEGORY_GENERIC'] = '[--generic--] ';
 
 $string['settings_headerconfig'] = 'QM+ Glossary Subscriptions Configuration';
-$string['settings_descconfig'] = 'QM+ GlSubs Description<br/>It is advised to keep the default values.<br/>Only where there is an impact on performance you could try to alter the default behaviour';
+$string['settings_descconfig'] = 'QM+ Glossary Subscription Settings<br/>It is advised to keep the default values.<br/>Only where there is an impact on performance you could try to alter the default behaviour';
 $string['settings_autoselfsubscribe'] = 'Auto Self Subscribe';
 $string['settings_autoselfsubscribe_desc'] = 'Automatically subscribe oneself when creating any category, concept or comment ?';
 $string['settings_messagestoshow'] = 'Recent Messages';
@@ -73,6 +73,10 @@ $string['settings_messagebatchsize'] = 'Messaging Batch Size';
 $string['settings_messagebatchsize_details'] = 'Set the maximum Messaging Batch Size in records to send on every run';
 $string['settings_messagenotification'] = 'Message Notification';
 $string['settings_messagenotification_desc'] = 'Choose if you want to send a Message Notification';
+$string['settings_no_messages'] = 'No messages shown';
+$string['settings_no_deliveries'] = 'No message deliveries';
+$string['settings_deliveriesnotification'] = 'Message Notification';
+$string['settings_deliveriesnotification_desc'] = 'Choose if you want to send a Message Notification';
 
 $string['view_the_user'] = 'The user ';
 $string['view_the_author'] = 'The author ';
