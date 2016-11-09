@@ -4,7 +4,24 @@
  * User: vasileios
  * Date: 08/11/2016
  * Time: 09:19
+
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
  */
+
 
 // use this namespace also in the ./db/tasks.php
 namespace block_glsubs\task;
@@ -33,8 +50,6 @@ class message_subscribers extends \core\task\scheduled_task
             if( $message_id > 0 ){
                 if( ! $this->update_message_log( $id ) ){
                     mtrace('Will try again next time to update the message log record with ID ' . (string) $id );
-                } else {
-                    // mtrace('Sent message with ID ' . $message_id );
                 }
             } else {
                 mtrace('Error while sending message for the record with ID '. (string) $id . ' of the glossary subscriptions log ');
@@ -62,17 +77,18 @@ class message_subscribers extends \core\task\scheduled_task
 
     /**
      * @param $system_user
-     * @param $message
+     * @param $log_message
      *
      * @return int|mixed
+     * @internal param $message
+     *
      */
     private function send_message($system_user , $log_message){
         global $DB, $USER ;
 
         $messageHtml = preg_replace('#<script(.*?)>(.*?)</script>#is', '', $log_message->eventtext );
-        $messageText = html_to_text( $messageHtml );
-        // email_to_user($toUser, $system_user, $subject, $messageText, $messageHtml, ", ", true);
         $messageid = 0 ;
+        $user = null ;
         try {
             $user = $DB->get_record('user',array('id' => (int) $log_message->userid ) );
         } catch (\Exception $exception) {
@@ -89,7 +105,7 @@ class message_subscribers extends \core\task\scheduled_task
             $moodle_message->fullmessageformat = FORMAT_HTML;
             $moodle_message->fullmessagehtml = $messageHtml;
             // $moodle_message->smallmessage = get_string('messageprovider:glsubs_message','block_glsubs');
-            $moodle_message->notification = '1';
+            $moodle_message->notification = get_config('block_glsubs','messagenotification'); // get the setting for this block
             // $moodle_message->contexturl = $log_message->elink ;
             // $moodle_message->contexturlname = get_string('pluginname','block_glsubs');
             $moodle_message->replyto = $USER->email;
@@ -106,15 +122,18 @@ class message_subscribers extends \core\task\scheduled_task
     }
     /**
      * @return array
+     * Sends the unprocessed message log entries
+     * Should put a limit to records retrieved in order to avoid large memory usage and processor overloads
      */
     private function get_undelivered_log(){
         global $DB;
+        $def_config = (int) get_config('block_glsubs','messagebatchsize');
         $message_logs = array();
         $sql  = 'SELECT l.id , l.userid , l.eventlogid , l.timecreated , e.eventtext, e.eventlink elink FROM {block_glsubs_messages_log} l ';
         $sql .= 'JOIN {block_glsubs_event_subs_log} e ON e.id = l.eventlogid ';
         $sql .= 'WHERE l.timedelivered IS NULL';
         try {
-            $message_logs = $DB->get_records_sql( $sql , array() );
+            $message_logs = $DB->get_records_sql( $sql , array() , 0 , $def_config );
         } catch (\Exception $exception) {
             mtrace('Error reading the glossary subscriptions log ' . $exception->getMessage() );
         }
@@ -125,17 +144,14 @@ class message_subscribers extends \core\task\scheduled_task
      * @return \stdClass
      */
     private function system_user(){
-        global $CFG, $USER;
+        global $USER;
         $user = new \stdClass();
-        // $user->email = $CFG->supportemail ; // : Email address
         $user->email = $USER->email ; // : Email address
         $user->firstname = fullname( $USER ) ; // : You can put both first and last name in this field.
-        // $user->firstname = $CFG->supportname ; // : You can put both first and last name in this field.
         $user->lastname = get_string('pluginname','block_glsubs'); //
-        $user->maildisplay = false ; // If you want the email to come from noreply@yourwebsite.com, set this from true parameter to  false .
+        $user->maildisplay = false ; // If you want the email to come from noreply@yourwebsite.com, set this from true parameter to false .
         $user->mailformat = 1 ; // 0 (zero) text-only emails, 1 (one) for HTML/Text emails.
         $user->id = (int) $USER->id ; // : Moodle User ID. If it is for someone who is not a Moodle user, use an invalid ID like -99.
-        // $user->id = -99; // : Moodle User ID. If it is for someone who is not a Moodle user, use an invalid ID like -99.
         $user->firstnamephonetic = ''; //
         $user->lastnamephonetic = ''; //
         $user->middlename = ''; //

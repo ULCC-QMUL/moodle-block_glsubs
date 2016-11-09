@@ -2,9 +2,26 @@
 /**
  * Created by PhpStorm.
  * User: vasileios
- * Date: 26/07/2016
- * Time: 10:27
+ * Date: 28/10/2016
+ * Time: 15:03
+
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
  */
+
 defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 
 $string['pluginname'] = 'QM+ Glossary Subscriptions';
@@ -52,6 +69,10 @@ $string['settings_messagestoshow'] = 'Recent Messages';
 $string['settings_messagestoshow_details'] = 'Choose how many Recent Subscription Messages to present on the block';
 $string['settings_pagelayout'] = 'Message Layout';
 $string['settings_pagelayout_details'] = 'Choose whether you like a course style page or a pop up window for the messages';
+$string['settings_messagebatchsize'] = 'Messaging Batch Size';
+$string['settings_messagebatchsize_details'] = 'Set the maximum Messaging Batch Size in records to send on every run';
+$string['settings_messagenotification'] = 'Message Notification';
+$string['settings_messagenotification_desc'] = 'Choose if you want to send a Message Notification';
 
 $string['view_the_user'] = 'The user ';
 $string['view_the_author'] = 'The author ';

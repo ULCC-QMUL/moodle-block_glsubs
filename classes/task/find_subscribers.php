@@ -4,6 +4,22 @@
  * User: vasileios
  * Date: 24/10/2016
  * Time: 16:51
+
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
  */
 
 // for tasks the namespace is based on the frankenstyle of plugin type plus underscore plus the plugin name plus backslash plus task
@@ -74,21 +90,14 @@ class find_subscribers extends \core\task\scheduled_task
         $sql .= ' WHERE glossaryid > 0 AND processed = 0 AND timecreated < :timenow ';
         $sql .= ' GROUP BY userid,glossaryid,eventlink, timecreated ORDER BY timecreated,glossaryid';
 
-        // mtrace($sql);
-
         try {
             $full_log_glossary_ids = $DB->get_records_sql($sql,array('timenow' => $timenow ));
             foreach ($full_log_glossary_ids as $log_id => & $full_log_glossary_id ){
-                // debugging
-                // mtrace('Event Log ID = '.(string) $log_id);
 
                 $full_glossary_subscriber_IDs = $DB->get_records('block_glsubs_glossaries_subs', array('glossaryid' => (int) $full_log_glossary_id->glossaryid, 'active' => 1),'userid','userid');
                 $records = array();
                 foreach ($full_glossary_subscriber_IDs as $key => $glossary_subscriber_ID ){
                     $filters = array('userid' => (int) $glossary_subscriber_ID->userid , 'eventlogid' => $log_id );
-
-                    // debugging
-                    // mtrace( 'Full Subscription ID ' . $key . ' for User ID ' . $glossary_subscriber_ID->userid .' on Glossary ID ' . (int ) $full_log_glossary_id->glossaryid );
 
                     // avoid duplicate messages logged in the system
                     if(! $DB->record_exists('block_glsubs_messages_log' , $filters )){
@@ -101,8 +110,6 @@ class find_subscribers extends \core\task\scheduled_task
                         if($record->userid * $record->eventlogid > 0 ) {
                             $records[] = $record;
                         }
-                    } else {
-                        // mtrace('Message Log ID is already in the message log');
                     }
                 }
                 if(count($records) > 0 ){
@@ -117,7 +124,6 @@ class find_subscribers extends \core\task\scheduled_task
                 // mark this event as processed for full subscriptions
                 $full_log_glossary_id->full = 1;
             }
-            // mtrace('Full subscriptions process is finished');
             return true;
         } catch (\Exception $exception) {
             mtrace('ERROR: There was a database access error while processing the new full glossary subscriptions '.$exception->getMessage());
@@ -134,16 +140,10 @@ class find_subscribers extends \core\task\scheduled_task
         $sql .= ' WHERE l.processed = 0 AND l.timecreated < :timenow  AND l.eventtype = \'G\' AND ( l.conceptid IS NOT NULL ) ';
         $sql .= ' ORDER BY l.id, l.glossaryid, l.conceptid , f.userid';
 
-        // debugging
-        // mtrace($sql);
-
         try {
             $new_uncategorised_concept_log_ids = $DB->get_records_sql($sql,array('timenow' => $timenow ) );
             $records = array();
             foreach ($new_uncategorised_concept_log_ids as $log_id => $new_uncategorised_concept_log_id){
-
-                //debugging
-                // mtrace('Uncategorised concept ID ' . (string ) $log_id);
 
                 $filter =  array( 'userid' => (int) $new_uncategorised_concept_log_id->userid , 'eventlogid' => (int) $new_uncategorised_concept_log_id->logid );
                 // avoid duplicate messages logged in the system
@@ -156,10 +156,9 @@ class find_subscribers extends \core\task\scheduled_task
                     if($record->userid * $record->eventlogid > 0 ) {
                         $records[] = $record;
                     }
-                } else {
-                    // mtrace('This concept ID already exists in the message log');
                 }
             }
+
             // if there are any new records store them in the message log
             if(count($records) > 0 ){
                 // add the new messages to the message log
@@ -168,7 +167,6 @@ class find_subscribers extends \core\task\scheduled_task
             }
             // clear memory
             $records = null ;
-            // mtrace('New uncategorised concept subscriptions process is finished');
             return true;
         } catch (\Exception $exception) {
             mtrace('ERROR: There was a database access error while processing the glossary new uncategorised concepts subscriptions '.$exception->getMessage());
@@ -189,16 +187,10 @@ class find_subscribers extends \core\task\scheduled_task
         $sql .= ' WHERE l.processed = 0 AND l.categoryid > 0 AND l.timecreated < :timenow  AND l.eventtype = \'G\' AND ( l.categoryid IS NOT NULL ) ';
         $sql .= ' ORDER BY l.id, l.glossaryid, l.categoryid , f.userid';
 
-        //debugging
-        // mtrace($sql);
-
         try {
             $new_category_log_ids = $DB->get_records_sql( $sql , array('timenow' => $timenow ) );
             $records = array();
             foreach ($new_category_log_ids as $log_id => $new_category_log_id){
-
-                // debugging
-                // mtrace('New category log ID ' . (string) $log_id . ' with ID ' . (string) $new_category_log_id->i );
 
                 $filter = array( 'userid' => (int) $new_category_log_id->userid , 'eventlogid' => (int) $new_category_log_id->logid );
                 // avoid duplicate messages logged in the system
@@ -211,8 +203,6 @@ class find_subscribers extends \core\task\scheduled_task
                     if($record->userid * $record->eventlogid > 0 ){
                         $records[] = $record ;
                     }
-                } else {
-                    // mtrace('The new category log ID '. (string) $new_category_log_id->i .' is already in the message log ');
                 }
             }
             // if there are any new records store them in the message log
@@ -223,7 +213,6 @@ class find_subscribers extends \core\task\scheduled_task
             }
             // clear memory
             $records = null ;
-            // mtrace('New categories subscriptions process is finished');
             return true;
         } catch (\Exception $exception) {
             mtrace('ERROR: There was a database access error while processing the glossary new categories subscriptions '.$exception->getMessage());
@@ -241,16 +230,10 @@ class find_subscribers extends \core\task\scheduled_task
         $sql .= ' JOIN {block_glsubs_authors_subs} a  ON a.glossaryid = l.glossaryid AND a.authorid = l.authorid ';
         $sql .= ' WHERE l.processed = 0 AND l.authorid > 0 AND l.timecreated < :timenow GROUP BY l.categoryid, l.conceptid ORDER BY i';
 
-        // debugging
-        // mtrace( $sql );
-
         try {
             $new_author_sub_messages = $DB->get_records_sql( $sql , array('timenow' => $timenow ) );
             $records = array();
             foreach ($new_author_sub_messages as $id => $new_author_sub_message) {
-
-                // debugging
-                // mtrace('New Author message log ID '. (string) $id );
 
                 $filter = array('userid' => (int) $new_author_sub_message->userid , 'eventlogid' => (int) $new_author_sub_message->logid );
                 // avoid duplicate messages logged in the system
@@ -263,8 +246,6 @@ class find_subscribers extends \core\task\scheduled_task
                     if($record->userid * $record->eventlogid > 0 ){
                         $records[] = $record ;
                     }
-                } else {
-                    // mtrace('The Author message ID '. (string) $id .' already exists in the message log');
                 }
             }
 
@@ -276,7 +257,7 @@ class find_subscribers extends \core\task\scheduled_task
             }
             // clear memory
             $records = null ;
-            // mtrace('Authors subscriptions process is finished');
+
             return true;
         } catch (\Exception $exception) {
             mtrace('ERROR: There was a database access error while processing the glossary authors subscriptions '.$exception->getMessage());
@@ -293,16 +274,10 @@ class find_subscribers extends \core\task\scheduled_task
         $sql .= ' WHERE l.processed = 0 AND l.authorid > 0 AND l.categoryid > 0 AND l.timecreated < :timenow';
         $sql .= ' GROUP BY c.userid , l.categoryid, l.conceptid ORDER BY i';
 
-        // debugging
-        // mtrace( $sql );
-
         try {
             $new_category_sub_messages = $DB->get_records_sql( $sql , array('timenow' => $timenow ) );
             $records = array();
             foreach ($new_category_sub_messages as $id => $new_category_sub_message) {
-
-                // debugging
-                // mtrace('New category subscription log ID' . (string) $id . ' on ' . (string) $new_category_sub_message->i  );
 
                 $filter = array('userid' => (int) $new_category_sub_message->userid , 'eventlogid' => (int) $new_category_sub_message->logid );
                 // avoid duplicate messages logged in the system
@@ -315,8 +290,6 @@ class find_subscribers extends \core\task\scheduled_task
                     if($record->userid * $record->eventlogid > 0 ){
                         $records[] = $record ;
                     }
-                } else {
-                    // mtrace('This new category event ID '.(string) $id  . ' on ' . (string) $new_category_sub_message->i .' is already in the message log');
                 }
             }
 
@@ -328,7 +301,7 @@ class find_subscribers extends \core\task\scheduled_task
             }
             // clear memory
             $records = null ;
-            // mtrace('Category subscriptions process is finished');
+
             return true;
         } catch (\Exception $exception) {
             mtrace('ERROR: There was a database access error while processing the glossary category subscriptions '.$exception->getMessage());
@@ -347,16 +320,10 @@ class find_subscribers extends \core\task\scheduled_task
         $sql .= ' WHERE l.processed = 0 AND l.authorid > 0 AND l.conceptid > 0 AND l.timecreated < :timenow';
         $sql .= ' GROUP BY c.userid , l.categoryid , l.conceptid ORDER BY i';
 
-        // debugging
-        // mtrace( $sql );
-
         try {
             $new_concept_sub_messages = $DB->get_records_sql( $sql , array('timenow' => $timenow ) );
             $records = array();
             foreach ($new_concept_sub_messages as $id => $new_concept_sub_message) {
-
-                // debugging
-                // mtrace('New concept subscription log ID ' . (string) $id . ' on ' . (string) $new_concept_sub_message->logid  );
 
                 // check if we have either concept or comment related active subscription
                 if( (int) $new_concept_sub_message->conceptactive === 1 || (int) $new_concept_sub_message->commentsactive === 1 ){
@@ -371,11 +338,7 @@ class find_subscribers extends \core\task\scheduled_task
                         if($record->userid * $record->eventlogid > 0 ){
                             $records[] = $record ;
                         }
-                    } else {
-                        // mtrace('Already in the message log');
                     }
-                } else {
-                    // mtrace('No active concept or comments on it subscription found');
                 }
             }
             // if there are any new records store them in the message log
@@ -386,7 +349,7 @@ class find_subscribers extends \core\task\scheduled_task
             }
             // clear memory
             $records = null ;
-            // mtrace('Glossary concepts subscriptions process is finished');
+
             return true;
         } catch (\Exception $exception) {
             mtrace('ERROR: There was a database access error while processing the glossary concept subscriptions '.$exception->getMessage());
@@ -416,9 +379,6 @@ class find_subscribers extends \core\task\scheduled_task
         $sql .= ' ON t.conceptid = l.conceptid AND l.processed = 0 AND l.timecreated < :timenow ';
         $sql .= ' WHERE t.conceptid > 0 AND t.conceptid NOT IN (SELECT id FROM {glossary_entries})';
 
-        //debugging
-        // mtrace($sql);
-
         try {
             $deleted_concept_IDs = $DB->get_records_sql( $sql , array( 'timenow' => $timenow ) );
             $counter = 0 ;
@@ -426,7 +386,7 @@ class find_subscribers extends \core\task\scheduled_task
                 $counter += $DB->count_records( 'block_glsubs_concept_subs' , array('conceptid' => (int) $key ) );
                 $DB->delete_records( 'block_glsubs_concept_subs' , array('conceptid' => (int) $key ) );
             }
-            // mtrace('Erased '. $counter . ' subscriptions with erased concept IDs');
+
         } catch (\Exception $exception) {
             mtrace('ERROR: There was a database error while removing subscriptions on erased concept IDs '.$exception->getMessage() );
             return false;
@@ -456,9 +416,6 @@ class find_subscribers extends \core\task\scheduled_task
         $sql .= ' ON t.categoryid = l.categoryid AND l.processed = 0 AND l.timecreated < :timenow ';
         $sql .= ' WHERE t.categoryid > 0 AND t.categoryid NOT IN (SELECT id FROM {glossary_categories})';
 
-        // debugging
-        // mtrace($sql);
-
         try {
             $deleted_category_IDs = $DB->get_records_sql( $sql , array( 'timenow' => $timenow ) );
             $counter = 0 ;
@@ -466,7 +423,7 @@ class find_subscribers extends \core\task\scheduled_task
                 $counter += $DB->count_records( 'block_glsubs_categories_subs' , array('categoryid' => (int) $key ) );
                 $DB->delete_records( 'block_glsubs_categories_subs' , array('categoryid' => (int) $key ) );
             }
-            // mtrace('Erased '. $counter . ' subscriptions with erased category IDs');
+
         } catch (\Exception $exception) {
             mtrace('ERROR: There was a database error while removing subscriptions on erased category IDs '.$exception->getMessage() );
             return false;
@@ -496,9 +453,6 @@ class find_subscribers extends \core\task\scheduled_task
         $sql  = 'SELECT l.authorid FROM {block_glsubs_event_subs_log} l JOIN {user} u ON u.id = l.authorid and u.deleted = 1 ';
         $sql .=' WHERE l.authorid > 0 AND l.processed = 0 AND l.timecreated < :timenow GROUP BY l.authorid ';
 
-        // debugging
-        // mtrace($sql);
-
         try {
             $deleted_author_IDs = $DB->get_records_sql( $sql , array( 'timenow' => $timenow ) );
             $counter = 0 ;
@@ -506,7 +460,7 @@ class find_subscribers extends \core\task\scheduled_task
                 $counter += $DB->count_records( 'block_glsubs_authors_subs' , array('authorid' => (int) $key ) );
                 $DB->delete_records( 'block_glsubs_authors_subs' , array('authorid' => (int) $key ) );
             }
-            // mtrace('Erased '. $counter . ' subscriptions with erased author IDs');
+
         } catch (\Exception $exception) {
             mtrace('ERROR: There was a database error while removing subscriptions on erased author IDs '.$exception->getMessage() );
             return false;
@@ -517,7 +471,7 @@ class find_subscribers extends \core\task\scheduled_task
         global $DB ;
         mtrace('Removing deleted concept subscriptions');
         try {
-            $counter = $DB->count_records( 'block_glsubs_concept_subs',array('conceptid' => 0 ));
+            // $counter = $DB->count_records( 'block_glsubs_concept_subs',array('conceptid' => 0 ));
             // delete records refering to a non existing concept ID like 0
             $DB->delete_records('block_glsubs_concept_subs',array('conceptid' => 0 ) );
             // mtrace('Erased '. $counter . ' subscriptions with invalid concept ID');
@@ -531,9 +485,6 @@ class find_subscribers extends \core\task\scheduled_task
         $sql .= ' WHERE l.conceptid > 0 AND l.processed = 0 AND l.timecreated < :timenow AND l.conceptid NOT IN ( SELECT id FROM {glossary_entries} )';
         $sql .= ' ORDER BY l.conceptid';
 
-        //debugging
-        // mtrace($sql);
-
         try {
             $deleted_concept_IDs = $DB->get_records_sql( $sql , array( 'timenow' => $timenow ) );
             $counter = 0 ;
@@ -541,12 +492,12 @@ class find_subscribers extends \core\task\scheduled_task
                 $counter += $DB->count_records( 'block_glsubs_concept_subs' , array('conceptid' => (int) $key ) );
                 $DB->delete_records( 'block_glsubs_concept_subs' , array('conceptid' => (int) $key ) );
             }
-            // mtrace('Erased '. $counter . ' subscriptions with erased concept IDs');
+
         } catch (\Exception $exception) {
             mtrace('ERROR: There was a database error while removing subscriptions on erased concept IDs '.$exception->getMessage() );
             return false;
         }
-        // all fine
+
         return true;
     }
     /**
@@ -561,13 +512,8 @@ class find_subscribers extends \core\task\scheduled_task
             $timenow = time();
             ini_set('max_execution_time',0);
 
-            // mtrace('Find Glossary Subscribers Task started at '.date('c',$timenow) );
-
             // delete invalid entries
             $error_status = ( ! $this->delete_invalid_glossary_entries() ) || $error_status ;
-
-            // create a table to keep the user id , event log id pairs for the subscriptions, time creation stamp and delivery flag via XMLDB
-            // block_glsubs_messages_log
 
             // now it is clean to read the unprocessed entries
             try {
@@ -583,7 +529,6 @@ class find_subscribers extends \core\task\scheduled_task
                 // deal with full subscriptins first
                 $error_status = ( ! $this->find_full_subscriptions( $timenow ) ) || $error_status ;
 
-                // deal with generic subscriptions now
                 // deal with new categories subscriptions
                 $error_status = ( ! $this->find_new_categories_subscriptions( $timenow ) ) || $error_status ;
 
@@ -617,7 +562,6 @@ class find_subscribers extends \core\task\scheduled_task
 
                     // delete all non existing glossary subscriptions
                     $error_status = ( ! $this->remove_deleted_concept_subscriptions( $timenow ) ) || $error_status ;
-
                 }
 
                 // continue if there is no error and there are unprocessed event log entries
@@ -638,12 +582,11 @@ class find_subscribers extends \core\task\scheduled_task
                         return false;
                     }
                 }
-
             }
         } else {
             return false;
         }
-        // mtrace('=================================================================================================');
+
         return true;
     }
 

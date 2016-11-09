@@ -4,7 +4,6 @@
  * User: vasileios
  * Date: 28/10/2016
  * Time: 15:03
- */
 
 // This file is part of Moodle - http://moodle.org/
 //
@@ -20,6 +19,8 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+*/
 
 /**
  * glsubs block caps.
@@ -37,16 +38,11 @@ $settings->add(new admin_setting_heading('settings_header',
     get_string('settings_headerconfig', 'block_glsubs'),
     get_string('settings_descconfig', 'block_glsubs')));
 
-/*
-$settings->add(new admin_setting_configcheckbox('glsubs/foo',
-                                                get_string('labelfoo', 'block_glsubs'),
-                                                get_string('descfoo', 'block_glsubs'),
-                                                '0'));
-*/
-
 $settings_autoselfsubscribe = 1 ;
 $settings->add(new admin_setting_configcheckbox('block_glsubs/autoselfsubscribe',
-    get_string('settings_autoselfsubscribe', 'block_glsubs'), get_string('settings_autoselfsubscribe_desc', 'block_glsubs'), $settings_autoselfsubscribe ));
+    get_string('settings_autoselfsubscribe', 'block_glsubs'),
+    get_string('settings_autoselfsubscribe_desc', 'block_glsubs'),
+    $settings_autoselfsubscribe ));
 
 $recent_messages_default_option = 'No messages shown' ; // no recent messages show
 $recent_messages_options = array();
@@ -56,37 +52,28 @@ $recent_messages_options[5] = '5' ;
 $recent_messages_options[10] = '10' ;
 $recent_messages_options[25] = '25' ;
 
-$settings->add(new admin_setting_configselect('block_glsubs/messagestoshow', get_string('settings_messagestoshow', 'block_glsubs'),
-    get_string('settings_messagestoshow_details', 'block_glsubs'), $recent_messages_default_option , $recent_messages_options ) );
+$settings->add(new admin_setting_configselect('block_glsubs/messagestoshow',
+    get_string('settings_messagestoshow', 'block_glsubs'),
+    get_string('settings_messagestoshow_details', 'block_glsubs'),
+    $recent_messages_default_option ,
+    $recent_messages_options ) );
 
 $default_pagelayout = 'course';
 $page_layouts_options = array();
 $page_layouts_options['course'] = get_string( $default_pagelayout );
 $page_layouts_options['popup'] = get_string('popup');
 
-/*$settings->add(new admin_setting_configselect('block_glsubs/pagelayout', get_string('settings_pagelayout', 'block_glsubs'),
-    get_string('settings_pagelayout_details', 'block_glsubs'), $default_pagelayout , $page_layouts_options));*/
+$batch_name = get_string('settings_messagebatchsize','block_glsubs');
+$batch_details = get_string('settings_messagebatchsize_details','block_glsubs');
+$batch_default = 10000;
+$settings->add(new admin_setting_configtext_int_only('block_glsubs/messagebatchsize',
+    $batch_name ,
+    $batch_details ,
+    $batch_default,
+    5 ));
+
+$settings_messagenotification = '1';
+$settings->add(new admin_setting_configcheckbox('block_glsubs/messagenotification',
+    get_string('settings_messagenotification', 'block_glsubs'), get_string('settings_messagenotification_desc', 'block_glsubs'), $settings_messagenotification ));
 
 
-//
-//$defaulturl='https://quizlet.com/132695231/scatter/embed';
-//$settings->add(new admin_setting_configtext('block_glsubs/url', get_string('settings_url', 'block_glsubs'),
-//    get_string('settings_url_details', 'block_glsubs'), $defaulturl, PARAM_RAW));
-//
-//$default_width = 600;
-//$settings->add(new admin_setting_configtext('block_glsubs/width', get_string('settings_width', 'block_glsubs'),
-//    get_string('settings_width_details', 'block_glsubs'), $default_width, PARAM_INT));
-//
-//$default_height = 400;
-//$settings->add(new admin_setting_configtext('block_glsubs/height', get_string('settings_height', 'block_glsubs'),
-//    get_string('settings_height_details', 'block_glsubs'), $default_height, PARAM_INT));
-//
-//
-//$default_pagelayout = 'course';
-//$page_layouts_options = array();
-//$page_layouts_options['course'] = get_string( $default_pagelayout );
-//$page_layouts_options['popup'] = get_string('popup');
-//
-//$settings->add(new admin_setting_configselect('block_glsubs/pagelayout', get_string('pagelayout', 'block_glsubs'),
-//    get_string('pagelayout_details', 'block_glsubs'), $default_pagelayout , $page_layouts_options));
-//

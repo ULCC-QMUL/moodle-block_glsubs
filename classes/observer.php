@@ -5,6 +5,22 @@
  * Queen Mary University of London
  * Date: 14/10/2016
  * Time: 14:42
+
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
  */
 
 // define event types
@@ -240,17 +256,6 @@ class block_glsubs_observer
                 $comment_record = $event->get_record_snapshot( $eventdata['objecttable'] ,  $commentid );
             }
 
-            // get the standard log id
-            // $filters = array();
-            // $filters['userid'] = (int) $eventdata['userid'] ;
-            // $filters['contextinstanceid'] = (int) $eventdata['contextinstanceid'] ;
-            // $filters['crud'] = $eventdata['crud'] ;
-            // $filters['edulevel'] = $eventdata['edulevel'] ;
-            // $filters['timecreated'] = $eventdata['timecreated'] ;
-            //
-            // you cannot associate at this moment the current event with the standard events log as this event will be written after this code finishes
-            // $standard_log_id = $DB->get_record( 'logstore_standard_log' , $filters  ,'id');
-
            //get comment content
             $comment_content = $comment_record->content ;
 
@@ -260,7 +265,6 @@ class block_glsubs_observer
             } else {
                 $glossary_concept_id = (int) $eventdata['other']['itemid'];
             }
-
 
             // get glossary concept
             $glossary_concept = $DB->get_record('glossary_entries', array('id' => $glossary_concept_id));
@@ -302,7 +306,6 @@ class block_glsubs_observer
             // get course module
             $course_module = $DB->get_record('course_modules', array('id' => (int)$eventdata['contextinstanceid']));
 
-
             // get module
             $module = $DB->get_record('modules',array( 'id' => (int) $course_module->module ));
 
@@ -315,9 +318,6 @@ class block_glsubs_observer
             // get the module name
             $module_name = $course_module_entry->name ;
 
-            // get the event url
-            // $event_url = $event->get_url();
-
             // get the ever text
             $event_text  = block_glsubs_observer::get_event_text('comment', $event , $glossary_concept ,$course , $module_name , $comment_content , $categories , $authorid );
 
@@ -326,7 +326,6 @@ class block_glsubs_observer
             $glossaryid = (int) $glossaryid ;
             $glossary_concept_id = (int) $glossary_concept_id ;
             $filters = array( 'userid' => $userid , 'glossaryid' => $glossaryid , 'conceptid' => $glossary_concept_id ) ;
-
 
             // check if the user is registered into the glossary subscriptions main table
             block_glsubs_observer::check_user_subscription( $auto_subscribe , $userid , $glossaryid );
@@ -446,7 +445,6 @@ class block_glsubs_observer
             // check if the user is registered into the glossary subscriptions main table
             block_glsubs_observer::check_user_subscription( $auto_subscribe , (int) $user->id , $glossaryid );
 
-
             // build an event record to add to the subscriptions log
             $record = new \stdClass() ;
             $record->userid = (int)$eventdata['userid'] ; // get the user id for the event
@@ -507,13 +505,6 @@ class block_glsubs_observer
 
         //get the autosubscription setting
         $auto_subscribe = ( '1' === get_config('block_glsubs','autoselfsubscribe') );
-
-        // get event url
-        // $event_url = $event->get_url();
-
-        // build an event text to be used for subscription messages
-
-
 
         // get event user link to use it in the message
         if((int) $eventdata['userid'] > 0 ){
@@ -576,20 +567,17 @@ class block_glsubs_observer
     protected static function check_user_subscription($auto_subscribe , $userid  , $glossaryid ){
         global $DB ;
         // check if the user is registered into the glossary subscriptions main table
-        if( $auto_subscribe ){
-            // check if the user is registered into the glossary subscriptions main table
-            if(! $DB->record_exists('block_glsubs_glossaries_subs',array('userid' => (int) $userid , 'glossaryid' => $glossaryid ))){
-                // you must add a subscription record for the user in this main table
-                // in order for the subscriptions logic to work
-                $record = new \stdClass();
-                $record->userid = (int) $userid ; // specify user id
-                $record->glossaryid = $glossaryid ; // specify glossary id
-                $record->active = 0 ;               // specify full subscription
-                $record->newcategories = 0 ;        // specify new categories subscription
-                $record->newentriesuncategorised = 0 ; // specify new concepts without categories subscription
-                // insert the main record for th user on the specific glossary
-                $DB->insert_record('block_glsubs_glossaries_subs', $record) ;
-            }
+        if( $auto_subscribe && ( ! $DB->record_exists('block_glsubs_glossaries_subs',array('userid' => (int) $userid , 'glossaryid' => $glossaryid ) ) ) ){
+            // you must add a subscription record for the user in this main table
+            // in order for the subscriptions logic to work
+            $record = new \stdClass();
+            $record->userid = (int) $userid ; // specify user id
+            $record->glossaryid = $glossaryid ; // specify glossary id
+            $record->active = 0 ;               // specify full subscription
+            $record->newcategories = 0 ;        // specify new categories subscription
+            $record->newentriesuncategorised = 0 ; // specify new concepts without categories subscription
+            // insert the main record for th user on the specific glossary
+            $DB->insert_record('block_glsubs_glossaries_subs', $record) ;
         }
     }
 }

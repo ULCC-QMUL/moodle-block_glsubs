@@ -1,5 +1,29 @@
 <?php
-// namespace moodle\blocks\glsubs;
+
+/**
+ * Created by PhpStorm.
+ * User: vasileios
+ * Date: 28/10/2016
+ * Time: 15:03
+
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+ */
+
+// namespace glsubs;
 defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
 require_once __DIR__.'/../../config.php' ;
 global $CFG ;
@@ -13,11 +37,13 @@ class block_glsubs extends block_base {
      * vasileios
      */
     public function init(){
+        // set the title of this plugin
         $this->title = get_string('pluginname', 'block_glsubs');
     }
 
     /**
      * Return the current page URL
+     * Used to associate the current page with the form action target, so it returns to the same page after submit
      * @return string
      */
     private function currentPageURL() {
@@ -85,7 +111,10 @@ class block_glsubs extends block_base {
         return $messages;
     }
 
-    private function show_messages( $glossaryid ){
+    /**
+     * @param $glossaryid
+     */
+    private function show_messages($glossaryid ){
         global $DB, $USER ;
         // get the block settings from its configuration
         $glsubs_settings = get_config('block_glsubs');
@@ -99,10 +128,14 @@ class block_glsubs extends block_base {
                 $sql .= ' WHERE l.userid = :userid AND l.timedelivered IS NULL ORDER BY l.id';
                 $cmessages = $DB->get_records_sql( $sql , array('userid' => (int) $USER->id , 'glossaryid' => $glossaryid ) , 0 , $messages_count );
                 $counter = count( $cmessages ) ;
+                // release memory now
+                $cmessages = null;
                 $unread = ( $counter > 0 );
             } catch (\Exception $exception){
                 $unread = false ;
             }
+
+            // Create a toggle mechanism for showing or hiding the recent messages
             if(count($messages)> 0){
                 $javascriptswitch  = chr(13).' <script>';
                 $javascriptswitch .= chr(13).' $( document ).ready(function(){ ';
@@ -141,13 +174,25 @@ class block_glsubs extends block_base {
                 $this->content->text .= '<th>' . get_string('view_on_concept','block_glsubs').'</th></tr></thead><tbody>';
                 foreach ($messages as $key => $message){
                     if( (int) $message->event->conceptid > 0 ){
-                        $record = $DB->get_record('glossary_entries', array('id' =>(int) $message->event->conceptid ) );
-                        $name = $record->concept ;
+                        try {
+                            $record = $DB->get_record('glossary_entries', array('id' =>(int) $message->event->conceptid ) );
+                            $name = $record->concept ;
+                        } catch (\Exception $exception) {
+                            $name = '';
+                        }
                     } else {
-                        $record = $DB->get_record('glossary_categories', array('id' => (int) $message->event->categoryid ));
-                        $name = $record->name ;
+                        try {
+                            $record = $DB->get_record('glossary_categories', array('id' => (int) $message->event->categoryid ));
+                            $name = $record->name ;
+                        } catch (\Exception $exception) {
+                            $name = '';
+                        }
                     }
-                    $link = html_writer::link(new moodle_url('/blocks/glsubs/view.php' , array('id' => $key  )), substr( $message->date ,0 ,10 ),array('title' => $message->date, 'font-size' => '90%;' ));
+                    try {
+                        $link = html_writer::link(new moodle_url('/blocks/glsubs/view.php' , array('id' => $key  )), substr( $message->date ,0 ,10 ),array('title' => $message->date, 'font-size' => '90%;' ));
+                    } catch (\Exception $exception){
+                        $link = '';
+                    }
                     $this->content->text .= '<tr><td>' . $link .'</td>';
                     $this->content->text .= '<td>&nbsp;</td>';
                     $this->content->text .= '<td> '.fullname($message->user).'</td>';
@@ -266,10 +311,7 @@ class block_glsubs extends block_base {
                         }
                     }
                 }
-            } /*else {
-                // $this->content->text .= '<br/><u>New form</u><br/>';
-                $subscriptions_form->glsub_state = 'New'; // not used, just to state the condition of the flow
-            }*/
+            }
 
             // add the contents of the form to the block
             $this->content->text .= $subscriptions_form->render();

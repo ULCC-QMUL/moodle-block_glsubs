@@ -4,7 +4,6 @@
  * User: vasileios
  * Date: 01/11/2016
  * Time: 15:59
- */
 
 // This file is part of Moodle - http://moodle.org/
 //
@@ -20,6 +19,8 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 
 /**
  * Defines message providers (types of messages being sent)
