@@ -29,6 +29,7 @@ require_once __DIR__.'/../../config.php' ;
 global $CFG ;
 include_once  $CFG->dirroot . '/blocks/glsubs/classes/block_glsubs_form.php' ;
 /** @noinspection PhpIllegalPsrClassPathInspection */
+
 class block_glsubs extends block_base {
     /**
      * Glossary Subscriptions Block Frontend Controller Presenter
@@ -36,9 +37,20 @@ class block_glsubs extends block_base {
      * QM+
      * vasileios
      */
+
+    public static $old_error_handler;
+
     public function init(){
         // set the title of this plugin
         $this->title = get_string('pluginname', 'block_glsubs');
+//        block_glsubs::$old_error_handler = set_error_handler("block_glsubs::exception_error_handler");
+//        error_reporting(E_ALL);
+    }
+
+    public static function exception_error_handler( $errno, $errstr, $errfile, $errline ) {
+//        debug_print_backtrace();
+        block_glsubs::$old_error_handler = set_error_handler( block_glsubs::$old_error_handler );
+        throw new ErrorException($errstr, $errno, 0, $errfile, $errline);
     }
 
     /**

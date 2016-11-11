@@ -30,7 +30,7 @@
 
 $plugin = new \stdClass();
 $plugin->version    = 2016110809;
-$plugin->requires   = 2015111604; // Moodle 3.0.4 is required.
+$plugin->requires   = 2014051202; // Moodle 3.0.4 is required.
 $plugin->component  = 'block_glsubs'; // Full name of the plugin (used for diagnostics)
 $plugin->maturity   = MATURITY_BETA;
 $plugin->cron = 0 ; // not using the old method, but the tasks new method

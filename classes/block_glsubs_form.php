@@ -101,7 +101,7 @@ class block_glsubs_form extends moodleform
         $label .= " (". $this->usersubscriptions->full->full->allglossaryentries .")";
 
         // add the full subscription option on the form
-        $mform->addElement('advcheckbox',$this->usersubscriptions->full->full->elementname,$label,'',array('group'=>1,'margin'=>'0'),array(0,1));
+        $mform->addElement( 'advcheckbox' , $this->usersubscriptions->full->full->elementname , $label , '' , array('group'=>1,'margin'=>'0') , array(0,1) );
         // add the default value to an array for the final stage of the form creation
         $this->usersubscriptions->defaults[$this->usersubscriptions->full->full->elementname] = $this->usersubscriptions->full->full->sub;
         $mform->setType($this->usersubscriptions->full->full->elementname,PARAM_INT);
@@ -112,7 +112,7 @@ class block_glsubs_form extends moodleform
         $label = '&emsp; &emsp;' . get_string('newcategoriessubscription','block_glsubs'). " (".$DB->count_records('glossary_categories',array('glossaryid'=>$glossaryid)).")";
         // add the new categories subscription option on the form
 
-        $mform->addElement('advcheckbox',$this->usersubscriptions->full->fullnewcat->elementname,$label,'',array('group'=>1),array(0,1));
+        $mform->addElement( 'advcheckbox' , $this->usersubscriptions->full->fullnewcat->elementname , $label , '' ,array('group'=>1),array(0,1));
         // add the default value to an array for the final stage of the form creation
         $this->usersubscriptions->defaults[$this->usersubscriptions->full->fullnewcat->elementname] = $this->usersubscriptions->full->fullnewcat->sub ;
         $mform->setType($this->usersubscriptions->full->fullnewcat->elementname,PARAM_INT);
