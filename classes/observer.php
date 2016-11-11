@@ -499,6 +499,18 @@ class block_glsubs_observer
         return $logid;
     }
 
+    /**
+     * @param $event_type
+     * @param \core\event\base $event
+     * @param \stdClass $item
+     * @param \stdClass $course
+     * @param $module_name
+     * @param null $comment_content
+     * @param null $categories
+     * @param $authorid
+     *
+     * @return string
+     */
     protected static function get_event_text($event_type , \core\event\base $event , \stdClass $item , \stdClass $course , $module_name , $comment_content = null , $categories = null , $authorid ){
         // get event data
         $eventdata = $event->get_data();
@@ -523,39 +535,51 @@ class block_glsubs_observer
         }
 
         // build the event text
+        // show User @ Course / Module
         $event_text  = get_string('glossary_user','block_glsubs') . $user_link . ' @ ' . $course->fullname . ' / ' . $module_name;
+
+        // show Author
         $event_text .= PHP_EOL . get_string('glossary_author','block_glsubs') . ' ' . $author_link ;
-        if($event_type === 'category'){
+
+        // if there is information about the category then show it
+        if( $event_type === 'category' || $event_type === 'entry' || $event_type === 'comment' ){
             $event_text .= PHP_EOL . get_string('glossary_category','block_glsubs') . ' [' . $item->name .'] ';
-        } elseif ($event_type === 'comment'){
-            $event_text .= PHP_EOL . get_string('glossary_concept','block_glsubs') . '[ '. $item->concept .' ] ';
-            $event_text .= PHP_EOL . get_string('glossary_comment','block_glsubs') .' [' . $comment_content .'] ' ;
-            $event_text .= PHP_EOL . get_string('glossary_category','block_glsubs') . $categories ;
-            $event_text .= PHP_EOL . get_string('glossary_concept_definition','block_glsubs').'[ '. $item->definition .' ]  ' ;
-        } elseif($event_type === 'entry'){
-            // $event_text  = PHP_EOL . get_string('glossary_user','block_glsubs') . fullname( \core_user::get_user( (int) $eventdata['userid'] ) ). ' @ ' . $course->fullname . ' / ' . $module_name;
-            $event_text .= PHP_EOL . get_string('glossary_concept','block_glsubs'). '[ '. $item->concept .' ]  ' . get_string('glossary_category','block_glsubs') . $categories . ' ';
-            $event_text .= PHP_EOL . str_replace(array("\\",'_','mod'),array(' ',' ','module'),$event->eventname) .' @ '. date('l d/F/Y G:i:s', time());
+        }
+
+        // if there is information about the concept then show it
+        if( $event_type === 'entry' || $event_type === 'comment'){
+            $event_text .= PHP_EOL . get_string('glossary_concept','block_glsubs'). '[ '. $item->concept .' ]  ';
             $event_text .= PHP_EOL . get_string('glossary_concept_definition','block_glsubs').'[ '. $item->definition .' ]  ' ;
         }
+
+        // if there information about the comment then show it
+        if ($event_type === 'comment'){
+            $event_text .= PHP_EOL . get_string('glossary_comment','block_glsubs') .' [' . $comment_content .'] ' ;
+        }
+
+        // show the Moodle event definition an a link to the generated page
         $event_text .= PHP_EOL . str_replace(array("\\",'_','mod'),array(' ',' ','module'),$event->eventname) .' @ '. date('l d/F/Y G:i:s', time());
         $event_text .= PHP_EOL .'URL: ' . html_writer::link( $event->get_url() , $event->get_description() ) ;
-        // $event_text .= PHP_EOL . $event->get_description();
+
+        // show activity of the event
         $event_text .= PHP_EOL ;
         if( 'created' === $eventdata['action']){
             // if there is an auto subscription choice , inform about it
             if( $auto_subscribe ){
                 $event_text .= get_string('glossarysubscriptionon','block_glsubs') ;
             }
-            $event_text .= $eventdata['target'];
+            // else state the subscribers will be informed
         } elseif( 'updated' === $eventdata['action'] || ( $event_type === 'comment' && 'deleted' === $eventdata['action'] ) ){
-            $event_text .= get_string('glossarysubscriptionsupdated','block_glsubs') . $eventdata['target'];
+            $event_text .= get_string('glossarysubscriptionsupdated','block_glsubs');
         } elseif ( 'deleted' === $eventdata['action']){
-            $event_text .= get_string('glossarysubscriptionsdeleted','block_glsubs') . $eventdata['target'];
+            $event_text .= get_string('glossarysubscriptionsdeleted','block_glsubs');
         }
+        $event_text .= $eventdata['target'];
 
         // add HTML line breaks
         $event_text = nl2br($event_text);
+
+        // send it back
         return $event_text ;
     }
 

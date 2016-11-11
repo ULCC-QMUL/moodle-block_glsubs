@@ -220,7 +220,12 @@ class find_subscribers extends \core\task\scheduled_task
         return false;
     }
 
-    protected function find_author_subscriptions( $timenow ){
+    /**
+     * @param $timenow
+     *
+     * @return bool
+     */
+    protected function find_author_subscriptions($timenow ){
         global $DB ;
         mtrace('Fetching log IDs for the Glossary Author subscriptions');
         // cater for a lot of user IDs to get unique query IDs
@@ -264,7 +269,13 @@ class find_subscribers extends \core\task\scheduled_task
             return false;
         }
     }
-    protected function find_category_subscriptions( $timenow ){
+
+    /**
+     * @param $timenow
+     *
+     * @return bool
+     */
+    protected function find_category_subscriptions($timenow ){
         global $DB ;
         mtrace('Fetching log IDs for the Glossary Category subscriptions');
         // cater for a lot of user IDs to get unique query IDs
@@ -308,7 +319,13 @@ class find_subscribers extends \core\task\scheduled_task
             return false;
         }
     }
-    protected function find_concept_subscriptions( $timenow ){
+
+    /**
+     * @param $timenow
+     *
+     * @return bool
+     */
+    protected function find_concept_subscriptions($timenow ){
         global $DB ;
         mtrace('Fetching log IDs for the Glossary Concepts subscriptions');
         // cater for a lot of user IDs to get unique query IDs
@@ -467,7 +484,13 @@ class find_subscribers extends \core\task\scheduled_task
         }
         return true;
     }
-    protected function remove_deleted_concept_subscriptions( $timenow ){
+
+    /**
+     * @param $timenow
+     *
+     * @return bool
+     */
+    protected function remove_deleted_concept_subscriptions($timenow ){
         global $DB ;
         mtrace('Removing deleted concept subscriptions');
         try {
