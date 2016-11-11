@@ -77,7 +77,7 @@ try {
     // check if the message was delivered, and if not mark it with the date time stamp
     if( ! (int) $message->timedelivered > 0 ){
         $message->timedelivered = time() ;
-        $DB->update_record('block_glsubs_messages_log', $message , false);
+        // $DB->update_record('block_glsubs_messages_log', $message , false); // let the message delivery system send it
     }
     // get the event
     $message->event = $DB->get_record('block_glsubs_event_subs_log', array('id' => (int) $message->eventlogid ));
