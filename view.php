@@ -25,7 +25,7 @@ require('../../config.php');
 require_once('../../lib/moodlelib.php');
 
 require_login();
-
+$error = false ;
 // define event types
 // each event may be split into more than one log entries as some activities have more aspects than one
 define('EVENT_GENERIC','G'); // New Category or New Concept without category

@@ -58,12 +58,13 @@ class block_glsubs extends block_base {
 
         $pageurlparts = explode('?',$pageURL);
         $pageurlparts['protocol'] = explode('://',$pageurlparts[0])[0];
-        // $pageurlparts['hostpath'] = explode('://',$pageurlparts[0])[1];
         $pageurlparts['host'] = explode('/',explode('://',$pageurlparts[0])[1])[0];
         $pageurlparts['pagepath'] = explode($pageurlparts['host'],explode('://',$pageurlparts[0])[1])[1];
-        // $pageurlparts['parametervalues'] = explode('&',$pageurlparts[1]);
         foreach(explode('&',$pageurlparts[1]) as $key =>$parameterset ){
-            $pageurlparts['parameters'][explode('=',$parameterset)[0]]= explode('=',$parameterset)[1] ;
+            $keyValueArray = explode('=',$parameterset);
+            if(array_key_exists(0,$keyValueArray)){  $param = $keyValueArray[0] ;} else { $param = ''; }
+            if(array_key_exists(1,$keyValueArray)){  $value = $keyValueArray[1] ;} else { $value = ''; }
+            $pageurlparts['parameters'][ $param ]= $value ;
         }
         $pageurlparts['fullurl'] = $pageURL;
 

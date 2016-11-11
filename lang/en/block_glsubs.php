@@ -97,7 +97,7 @@ $string['view_show_hide_2'] = '&#9660;&emsp;';
 
 $string['block_found'] = 'Your subscription has ';
 $string['block_unread_messages'] = ' unread messages';
-$string['block_read_messages'] = ' read messages';
+$string['block_read_messages'] = ' sent messages';
 $string['block_could_not_access'] = 'Could not access the ';
 $string['block_most_recent'] = ' most recent messages';
 
