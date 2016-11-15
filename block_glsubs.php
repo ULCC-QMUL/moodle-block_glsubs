@@ -40,6 +40,9 @@ class block_glsubs extends block_base {
 
     public static $old_error_handler;
 
+    /**
+     *
+     */
     public function init(){
         // set the title of this plugin
         $this->title = get_string('pluginname', 'block_glsubs');
@@ -47,12 +50,28 @@ class block_glsubs extends block_base {
 //        error_reporting(E_ALL);
     }
 
-    public static function exception_error_handler( $errno, $errstr, $errfile, $errline ) {
+    /**
+     * @param $errno
+     * @param $errstr
+     * @param $errfile
+     * @param $errline
+     *
+     * @throws \ErrorException
+     */
+    public static function exception_error_handler($errno, $errstr, $errfile, $errline ) {
 //        debug_print_backtrace();
         block_glsubs::$old_error_handler = set_error_handler( block_glsubs::$old_error_handler );
         throw new ErrorException($errstr, $errno, 0, $errfile, $errline);
     }
 
+    /**
+     * @return array
+     * make this plugin available to all pages
+     * avoid the configuration step of making it available to all glossary view pages manually
+     */
+    public function applicable_formats() {
+        return array('all' => true);
+    }
     /**
      * Return the current page URL
      * Used to associate the current page with the form action target, so it returns to the same page after submit
