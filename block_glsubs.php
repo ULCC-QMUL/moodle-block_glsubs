@@ -231,6 +231,12 @@ class block_glsubs extends block_base {
         // define usage of global variables
         global $PAGE , $COURSE ;// , $DB , $CFG ; // $USER, $SITE , $OUTPUT, $THEME, $OUTPUT ;
 
+        // Check if the page is referring to a glossary module view activity
+        if('mod-glossary-view' !== $PAGE->pagetype){
+            return $this->content ;
+        }
+
+
         if ( null !== $this->title) {
             $this->title = get_string('blockheader','block_glsubs');
         }
@@ -254,23 +260,20 @@ class block_glsubs extends block_base {
         // get the module information
         $courseinfo = get_fast_modinfo($COURSE);
 
+        // add a footer for the block
+        $this->content->footer = '<hr style="display: block!important;"/><div style="text-align:center;">'.get_string('blockfooter','block_glsubs').'</div>';
+
         // prapare for contents
         $this->content = new stdClass;
         $this->content->text = '';
         $this->content->text .= '<strong>'.$PAGE->title . '</strong>';
 
-        // add a footer for the block
-        $this->content->footer = '<hr style="display: block!important;"/><div style="text-align:center;">'.get_string('blockfooter','block_glsubs').'</div>';
 
         // get the id parameter if exists
         $cmid = optional_param('id', 0, PARAM_INT);
 
         // check if there is a valid glossary view page
         if( $cmid > 0 ) {
-            // Check if the page is referring to a glossary module view activity
-            if('mod-glossary-view' !== $PAGE->pagetype){
-                return $this->content ;
-            }
             // set page context
             $PAGE->set_context(context_module::instance($cmid));
             try {
