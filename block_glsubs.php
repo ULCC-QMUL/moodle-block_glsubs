@@ -183,7 +183,7 @@ class block_glsubs extends block_base {
                 $javascriptswitch .= chr(13).'            //output the script (load it from google api)';
                 $javascriptswitch .= chr(13).'            document.write("<scr" + "ipt type=\"text/javascript\" src=\"http://ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.min.js\"></scr" + "ipt>");';
                 $javascriptswitch .= chr(13).'        }';
-                $javascriptswitch .= chr(13).'        setTimeout("initJQuery()", 50);';
+                $javascriptswitch .= chr(13).'        setTimeout("initJQuery()", 150);';
                 $javascriptswitch .= chr(13).'    } else {';
                 $javascriptswitch .= chr(13).'        $(function() {';
                 $javascriptswitch .= chr(13).'            // do anything that needs to be done on document.ready';
@@ -220,11 +220,13 @@ class block_glsubs extends block_base {
                 $this->content->text .= get_string('view_show_hide','block_glsubs');
                 $this->content->text .= '</span>'; // id="glossarymessagesshowhide"
                 $this->content->text .= '<span id="glossarymessagesshowhide_2" style="display: none ;">';
+
                 $this->content->text .= get_string('view_show_hide_2','block_glsubs');
                 $this->content->text .= '</span>'; // id="glossarymessagesshowhide"
 
                 $this->content->text .= get_string('block_found','block_glsubs') . count($messages);
-                $this->content->text .= $unread ? get_string('block_unread_messages','block_glsubs') : get_string('block_read_messages','block_glsubs');
+                $link = html_writer::link(new moodle_url('/message/index.php' , array()),$unread ? get_string('block_unread_messages','block_glsubs') : get_string('block_read_messages','block_glsubs') );
+                $this->content->text .= $link ;
                 $this->content->text .= '<br/>';
                 $this->content->text .= '<div id="glossarymessagesblocktable" style="display: none ;">';
 
