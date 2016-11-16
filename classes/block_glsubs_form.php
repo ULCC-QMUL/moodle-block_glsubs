@@ -97,7 +97,7 @@ class block_glsubs_form extends moodleform
         $label = $elementLink . '&emsp;' . $this->usersubscriptions->full->full->desc;
 
         // add # of concepts for the glossary
-        $this->usersubscriptions->full->full->allglossaryentries = $DB->count_records('glossary_entries',array('glossaryid'=>$glossaryid));
+        $this->usersubscriptions->full->full->allglossaryentries = $DB->count_records('glossary_entries',array( 'glossaryid' => $glossaryid , 'approved' => 1 ));
         $label .= " (". $this->usersubscriptions->full->full->allglossaryentries .")";
 
         // add the full subscription option on the form
@@ -109,7 +109,7 @@ class block_glsubs_form extends moodleform
 
         // Add Glossary Subscription on New Categories
         // add # of current categories
-        $label = '&emsp; &emsp;' . get_string('newcategoriessubscription','block_glsubs'). " (".$DB->count_records('glossary_categories',array('glossaryid'=>$glossaryid)).")";
+        $label = '&emsp; &emsp;' . get_string('newcategoriessubscription','block_glsubs'). " (".$DB->count_records( 'glossary_categories' , array( 'glossaryid' => $glossaryid ) ) .")";
         // add the new categories subscription option on the form
 
         $mform->addElement( 'advcheckbox' , $this->usersubscriptions->full->fullnewcat->elementname , $label , '' ,array('group'=>1),array(0,1));
@@ -120,7 +120,7 @@ class block_glsubs_form extends moodleform
 
         // Add Glossary Subscription on New Entries without Categories
         // count the uncategorised entries of this glossary
-        $counter_record = $DB->get_record_sql('SELECT count( DISTINCT id ) entries  FROM {glossary_entries} WHERE glossaryid = :glossaryid  AND id NOT IN (SELECT entryid FROM {glossary_entries_categories} ) ',array('glossaryid' => $glossaryid));
+        $counter_record = $DB->get_record_sql('SELECT count( DISTINCT id ) entries  FROM {glossary_entries} WHERE glossaryid = :glossaryid AND approved = 1 AND id NOT IN (SELECT entryid FROM {glossary_entries_categories} ) ',array('glossaryid' => $glossaryid));
         $this->usersubscriptions->full->full->categorisedentries = $this->usersubscriptions->full->full->allglossaryentries - (int) $counter_record->entries ;
         $elementUrl = new moodle_url('/mod/glossary/view.php',array('id'=>$cmid,'mode'=>'cat','hook'=>'-1'));
         $elementLink = html_writer::link($elementUrl,'&#9658; ');
