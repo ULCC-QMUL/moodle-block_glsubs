@@ -254,15 +254,15 @@ class block_glsubs extends block_base {
                         }
                     }
                     try {
-                        $link = html_writer::link(new moodle_url('/blocks/glsubs/view.php' , array('id' => $key  )), substr( $message->date ,0 ,10 ),array('title' => $message->date, 'font-size' => '90%;' ));
+                        $link = html_writer::link(new moodle_url('/blocks/glsubs/view.php' , array('id' => $key  )), substr( $message->date ,0 ,10 ),array('title' => $message->date . chr(13) . strip_tags( $message->event->eventtext ) , 'font-size' => '90%;' ));
                     } catch (\Exception $exception){
                         $link = '';
                     }
                     $this->content->text .= '<tr><td>' . $link .'</td>';
                     $this->content->text .= '<td>&nbsp;</td>';
-                    $this->content->text .= '<td> '.fullname($message->user).'</td>';
+                    $this->content->text .= '<td title="' . fullname($message->user) . '"> ' . $this->ellipsisString( fullname($message->user) , 20 ) .'</td>';
                     $this->content->text .= '<td>&nbsp;</td>';
-                    $this->content->text .= '<td>' . $name . '</td></tr>';
+                    $this->content->text .= '<td title="' . $name . '">' . $this->ellipsisString( $name , 18 ) . '</td></tr>';
                 }
                 $this->content->text .= '</tbody></table><hr style="visibility: visible !important; display: inline !important;"/>';
 
@@ -584,4 +584,34 @@ class block_glsubs extends block_base {
     {
         return parent::has_config() || true;
     }
+    /**
+     * Reduce text to the maximum parameterised length
+     * @param $text
+     * @param $size
+     *
+     * @return string
+     */
+    protected function ellipsisString( $text , $size){
+        $retstr = $text ;
+        if($size < 1) {
+            $size = 3;
+        }
+        if ($this->is_multibyte( $text )){
+            if( mb_strlen( $text ) > $size ) {
+                $retstr = mb_substr( $retstr , 0 , $size - 3 ) . '...';
+            }
+        } else {
+            if(strlen( $text ) > $size) {
+                $retstr = substr( $retstr , 0 , $size - 3 ) . '...';
+            }
+        }
+        return $retstr;
+    }
+    /**
+     * check for multibyte strings
+     */
+    protected function is_multibyte($s) {
+        return mb_strlen($s,'utf-8') < strlen($s);
+    }
+
 }
