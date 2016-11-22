@@ -242,6 +242,10 @@ class block_glsubs extends block_base {
                         try {
                             $record = $DB->get_record('glossary_entries', array('id' =>(int) $message->event->conceptid ) );
                             $name = $record->concept ;
+                            // in case of deleted concept attempt to get it from the message
+                            if(is_null($name)){
+                                $name = $this->get_entry($message->event->eventtext);
+                            }
                         } catch (\Exception $exception) {
                             $name = '';
                         }
@@ -249,7 +253,7 @@ class block_glsubs extends block_base {
                         try {
                             $record = $DB->get_record('glossary_categories', array('id' => (int) $message->event->categoryid ));
                             $name = $record->name ;
-                        } catch (\Exception $exception) {
+                         } catch (\Exception $exception) {
                             $name = '';
                         }
                     }
@@ -272,6 +276,25 @@ class block_glsubs extends block_base {
                 $this->content->text .= $javascriptswitch ;
             }
         }
+    }
+
+    /**
+     * @param $message_text
+     *
+     * @return mixed|string
+     */
+    private function get_entry($message_text){
+        $ret = '';
+        $msg_parts = explode('<br />',$message_text);
+        foreach ($msg_parts as $key => & $msg_part){
+            $msg_part = strip_tags($msg_part);
+            if(stripos($msg_part,'Concept [') !== false ){
+                $ret = str_ireplace('Concept [','',$msg_part);
+                $ret = str_ireplace(']','',$ret);
+                $ret = str_ireplace("\n",'',$ret);
+            }
+        }
+        return $ret;
     }
     /**
      * Subscriptions Block Contents creation function

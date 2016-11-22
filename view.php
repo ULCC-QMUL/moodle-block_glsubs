@@ -93,6 +93,7 @@ try {
 }
 
 if(! $error){
+/*
     echo '<p/><p/><p/>';
 
     // show user
@@ -136,14 +137,14 @@ if(! $error){
         $elementLink = html_writer::link($elementUrl,$userpicture);
         echo ' '. fullname($message->author) . ' ' .$elementLink;
     }
-
+*/
     if($message->event){
         $messageHtml = preg_replace('#<script(.*?)>(.*?)</script>#is', '', $message->event->eventtext);
         echo '<p/>' . $messageHtml;
     }
 
     // show message view date time
-    echo '<p/><p/><p/><p/>'.get_string( 'view_message_at' , 'block_glsubs' ). ' '. date( 'Y-m-d H:i:s' , $message->timedelivered ) ;
+    echo '<p/><p/><p/><p/>'.get_string( 'view_message_at' , 'block_glsubs' ). ' '. date( 'd-M-Y H:i:s' , $message->timedelivered ) ;
 }
 echo '<p><p><p><strong><a href="'.$_SERVER['HTTP_REFERER'] . '">Go back</a></strong>' ;
 
