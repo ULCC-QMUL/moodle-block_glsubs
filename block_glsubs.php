@@ -238,18 +238,26 @@ class block_glsubs extends block_base {
                 $this->content->text .= '<th>&nbsp;</th>';
                 $this->content->text .= '<th>' . get_string('view_on_concept','block_glsubs').'</th></tr></thead><tbody>';
                 foreach ($messages as $key => $message){
+                    // if there is a concept asociated with this et its name
                     if( (int) $message->event->conceptid > 0 ){
                         try {
                             $record = $DB->get_record('glossary_entries', array('id' =>(int) $message->event->conceptid ) );
                             $name = $record->concept ;
+                            // in case of deleted concept attempt to get it from the message
+                            if(is_null($name)){
+                                $name = $this->get_entry($message->event->eventtext);
+                            }
                         } catch (\Exception $exception) {
                             $name = '';
                         }
-                    } else {
+                    } else { // else if there is a category associated with it get its name
                         try {
                             $record = $DB->get_record('glossary_categories', array('id' => (int) $message->event->categoryid ));
                             $name = $record->name ;
-                        } catch (\Exception $exception) {
+                            if(is_null($name)){
+                                $name = $this->get_category($message->event->eventtext);
+                            }
+                         } catch (\Exception $exception) {
                             $name = '';
                         }
                     }
@@ -272,6 +280,39 @@ class block_glsubs extends block_base {
                 $this->content->text .= $javascriptswitch ;
             }
         }
+    }
+
+    private function get_category($message_text){
+        $ret = '';
+        $msg_parts = explode('<br />',$message_text);
+        foreach ($msg_parts as $key => & $msg_part){
+            $msg_part = strip_tags($msg_part);
+            if(stripos($msg_part,'Category(ies)  ') !== false ){
+                $ret = str_ireplace('Category(ies)  ','',$msg_part);
+                // $ret = str_ireplace(']','',$ret);
+                $ret = str_ireplace("\n",'',$ret);
+            }
+        }
+        return $ret;
+
+    }
+    /**
+     * @param $message_text
+     *
+     * @return mixed|string
+     */
+    private function get_entry($message_text){
+        $ret = '';
+        $msg_parts = explode('<br />',$message_text);
+        foreach ($msg_parts as $key => & $msg_part){
+            $msg_part = strip_tags($msg_part);
+            if(stripos($msg_part,'Concept [') !== false ){
+                $ret = str_ireplace('Concept [','',$msg_part);
+                $ret = str_ireplace(']','',$ret);
+                $ret = str_ireplace("\n",'',$ret);
+            }
+        }
+        return $ret;
     }
     /**
      * Subscriptions Block Contents creation function
