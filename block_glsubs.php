@@ -254,18 +254,9 @@ class block_glsubs extends block_base {
                         try {
                             $record = $DB->get_record('glossary_categories', array('id' => (int) $message->event->categoryid ));
                             $name = $record->name ;
-<<<<<<< HEAD
                             if(is_null($name)){
                                 $name = $this->get_category($message->event->eventtext);
                             }
-=======
-<<<<<<< HEAD
-                            if(is_null($name)){
-                                $name = $this->get_category($message->event->eventtext);
-                            }
-=======
->>>>>>> 9093bd99a7d61ef96a58f74a26521055308f5767
->>>>>>> 807315c3944ab2db8b61f8be890b5254815a2ca2
                          } catch (\Exception $exception) {
                             $name = '';
                         }
@@ -291,10 +282,6 @@ class block_glsubs extends block_base {
         }
     }
 
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> 807315c3944ab2db8b61f8be890b5254815a2ca2
     private function get_category($message_text){
         $ret = '';
         $msg_parts = explode('<br />',$message_text);
@@ -309,11 +296,6 @@ class block_glsubs extends block_base {
         return $ret;
 
     }
-<<<<<<< HEAD
-=======
-=======
->>>>>>> 9093bd99a7d61ef96a58f74a26521055308f5767
->>>>>>> 807315c3944ab2db8b61f8be890b5254815a2ca2
     /**
      * @param $message_text
      *
