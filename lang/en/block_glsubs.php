@@ -33,13 +33,13 @@ $string['glsubs:myaddinstance'] = 'Add a new Glossary Subscriptions block to the
 $string['fullsubscription'] = 'Full Glossary Subscription';
 $string['newcategoriessubscription'] = 'New Glossary Categories';
 $string['newuncategorisedconceptssubscription'] = 'Uncategorised Concepts';
-$string['formheader'] = 'Current Subscriptions for <br/>';
-$string['glossaryauthors'] = 'Glossary Authors';
-$string['glossarycategories'] = 'Glossary Categories';
-$string['glossaryconcepts'] = 'Glossary Concepts';
+$string['formheader'] = 'Subscription options';
+$string['glossaryauthors'] = 'Authors';
+$string['glossarycategories'] = 'Categories';
+$string['glossaryconcepts'] = 'Concepts';
 $string['glossaryallauthors'] = 'All Authors';
 $string['glossaryuncategorisedconcepts'] = 'Uncategorised Concepts';
-$string['glossarycommentson'] = 'Comments on ';
+$string['glossarycommentson'] = '&emsp;Comments ';
 
 $string['glossaryformfullelementname'] = 'glossary_full_subscription';
 $string['glossaryformcategorieselementname'] = 'glossary_full_newcat_subscription';
@@ -52,12 +52,12 @@ $string['glossarysubscriptionsupdated'] = 'All subscribers will automatically be
 $string['findsubscribers'] = 'Find Glossary Event Subscribers Task';
 $string['messagesubscribers'] = 'Messaging Glossary Event Subscribers Task';
 
-$string['glossary_user'] = 'Glossary User ';
-$string['glossary_author'] = 'Glossary Author ';
-$string['glossary_concept'] = 'Glossary Concept ';
-$string['glossary_concept_definition'] = 'Glossary Concept Definition ';
-$string['glossary_comment'] = 'Glossary Comment ';
-$string['glossary_category'] = 'Glossary Category ';
+$string['glossary_user'] = ' User ';
+$string['glossary_author'] = ' Author ';
+$string['glossary_concept'] = ' Concept ';
+$string['glossary_concept_definition'] = ' Concept Definition ';
+$string['glossary_comment'] = ' Comment ';
+$string['glossary_category'] = ' Category ';
 
 $string['CATEGORY_GENERIC'] = '[--generic--] ';
 
@@ -118,3 +118,5 @@ $string['message_updated'] = ' updated ';
 $string['message_for'] = ' for ';
 $string['message_definition'] = 'Definition ';
 $string['message_author'] = 'Author ';
+
+$string['goto_messages'] = 'Go to your messages';

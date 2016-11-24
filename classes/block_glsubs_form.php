@@ -76,14 +76,14 @@ class block_glsubs_form extends moodleform
         $mform->setType('glossary_glossaryid',PARAM_INT);
 
         // make a link to the user profile over a picture link
-        $elementUrl = new moodle_url('/user/view.php',array('id'=>$USER->id,'course'=>$COURSE->id));
-        $elementLink = html_writer::link($elementUrl, $OUTPUT->user_picture($USER, array('size'=>35) ) );
-        $text = $elementLink ;
+        // $elementUrl = new moodle_url('/user/view.php',array('id'=>$USER->id,'course'=>$COURSE->id));
+        // $elementLink = html_writer::link($elementUrl, $OUTPUT->user_picture($USER, array('size'=>35) ) );
+        // $text = $elementLink ;
 
         // make a link to user profile over the user full name
-        $elementLink = html_writer::link($elementUrl,(fullname($USER,true)));
-        $text .= ' '.$elementLink;
-        $mform->addElement('link','currentuserlink',get_string('formheader','block_glsubs') . ' ' . $elementLink,$elementLink);
+        // $elementLink = html_writer::link($elementUrl,(fullname($USER,true)));
+        // $text .= ' '.$elementLink;
+        // $mform->addElement('link','currentuserlink',get_string('formheader','block_glsubs') . ' ' . $elementLink , $elementLink);
         // $text .= get_string('formheader','block_glsubs');
         $mform->addElement('header','glossaryuserlinks', get_string('formheader','block_glsubs'),array());
         $mform->setType('glossaryuserlinks',PARAM_TEXT);
@@ -238,7 +238,7 @@ class block_glsubs_form extends moodleform
                 $mform->disabledIf($concept_entry->elementname,$this->usersubscriptions->full->full->elementname,'checked');
 
                 // Add comments checkbox
-                $mform->addElement('advcheckbox',$concept_entry->comment_elementname , $commentslabel .  $this->ellipsisString( $concept_entry->concept , 20 ) . " (". $concept_entry->commentscounter . ")",array('group'=>10),array(0,1));
+                $mform->addElement('advcheckbox',$concept_entry->comment_elementname , $commentslabel . /* $this->ellipsisString( $concept_entry->concept , 20 ) . */ " (". $concept_entry->commentscounter . ")",array('group'=>10),array(0,1));
 
                 // add the default value to an array for the final stage of the form creation
                 $this->usersubscriptions->defaults[$concept_entry->comment_elementname] = $concept_entry->commentsactive ;
@@ -251,13 +251,15 @@ class block_glsubs_form extends moodleform
                         $cat_name = $this->usersubscriptions->categories[$categoryrecord]->name ;
                         $elementUrl = new moodle_url('/mod/glossary/view.php',array('id'=>$cmid,'mode'=>'cat','hook'=>$categoryrecord));
                         $categorylink = html_writer::link($elementUrl,$cat_name);
-                        $linkstext .= '&emsp;<i>'. $categorylink .'</i>';
+                        $linkstext .= '&ensp;<i>'. $categorylink .'</i>,';
                     }
+                    $linkstext = rtrim($linkstext,',');
 
                     // add links to categories if they exist
                     $linkstext = "(" . count($concept_entry->categories) . ")" . $linkstext;
                     $mform->addElement('link', 'concept_' . $key . '_categories', $linkstext);
                 }
+                $mform->addElement('html','<hr style="display:block !important; visibility: visible!important;">');
             } else {
                 $concept_entry = null ;
             }

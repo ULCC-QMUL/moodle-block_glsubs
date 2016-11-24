@@ -151,6 +151,13 @@ class block_glsubs extends block_base {
         // get the block settings from its configuration
         $glsubs_settings = get_config('block_glsubs');
         $messages_count = (int) $glsubs_settings->messagestoshow ;
+        // $msg_link = '';
+        try {
+            $msg_link = html_writer::link(new moodle_url('/message/index.php',array('user1'=>$USER->id,'viewing'=>'recentnotifications')) , get_string('goto_messages','block_glsubs'));
+        } catch (\Exception $exception){
+            $msg_link = '';
+        }
+        $this->content->text .= '<br/>' . $msg_link . '<br/>' ;
         if( (int) $glsubs_settings->messagestoshow > 0 ){
             $messages = $this->get_latest_messages( $glossaryid );
             try {
