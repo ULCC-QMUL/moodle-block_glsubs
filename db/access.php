@@ -4,6 +4,16 @@
  * User: vasileios
  * Date: 26/07/2016
  * Time: 10:35
+ * File:     blocks/glsubs/db/access.php
+ *
+ * Purpose:  definitions of capabilities for the glossary subscriptions
+ *
+ * Input:    N/A
+ *
+ * Output:   N/A
+ *
+ * Notes:    Any user can add/see the block
+
 
 // This file is part of Moodle - http://moodle.org/
 //

@@ -1,4 +1,24 @@
 <?php
+/****************************************************************
+ *
+ * File:  blocks/glsubs/classes/block_glsubs.php
+ *
+ * Purpose:  A class handling the subscriptions web form for a
+ * glossary for a specific user
+ *
+ * Input:    N/A
+ *
+ *
+ *
+ * Output:   N/A
+ *
+ *
+ *
+ * Notes:   The block should be installed, added to the course
+ *          and configured to be available for all course pages
+ *
+ ****************************************************************/
+
 /**
  * Created by PhpStorm.
  * User: vasileios
@@ -32,6 +52,17 @@ class block_glsubs_form extends moodleform
 {
     private $usersubscriptions;
 
+    /****************************************************************
+
+    Method:       definition
+
+    Purpose:      Form definition
+
+    Parameters:   N/A
+
+    Returns:      N/A
+
+     ****************************************************************/
     /**
      * Defining the Glossary Subscriptions Form
      * @throws \HTML_QuickForm_Error
@@ -398,6 +429,18 @@ class block_glsubs_form extends moodleform
         $this->usersubscriptions->conceptsSubs = NULL ;
     }
 
+    /****************************************************************
+     *
+     * Method:       validation
+     *
+     * Purpose:      Make some default form data vaildation
+     *               As there are only advanced check boxes there is
+     *              only a need for the basic validation
+     *
+     * Parameters:   the list of the form check boxes
+     *
+     * Returns:      true if all check boxes are valid values (0 or 1)
+     ****************************************************************/
     /**
      * This method is called after definition(), data submission and set_data().
      * @param array $data
@@ -413,38 +456,60 @@ class block_glsubs_form extends moodleform
         return $errors;
     }
 
-    /**
+    /****************************************************************
      *
+     * Method:       validate_after_data
+     *
+     * Purpose:      Not Used
+     *
+     *
+     *
+     * Parameters:   N/A
+     *
+     * Returns:      N/A
+     ****************************************************************/
+    /**
+     * Not used
      */
     public function validate_after_data(){
         $mform = & $this->_form;
     }
 
+    /****************************************************************
+     *
+     * Method:       definition_after_data
+     *
+     * Purpose:      Not Used
+     *
+     *
+     *
+     * Parameters:   N/A
+     *
+     * Returns:      N/A
+     ****************************************************************/
     /**
      * This function is called only after a cancel or a submit event, never on new forms presented on screen
      */
     public function definition_after_data() {
-        global $glsub_state ;
+/*        global $glsub_state ;
         $mform = $this->_form;
-/*        if( $mform->is_cancelled() ){
-            $someElement = $mform->getElement($this->usersubscriptions->full->full->elementname);
-            $value = $someElement->getValue();
-            // Do whatever checking you need
-            $someOtherValue = 0 ;
-            $someElement->setValue( $someOtherValue );
-        } else */
          if ( $mform->isSubmitted()) {
              $e = method_exists ( $mform , 'isSubmitted') ;
-//             $someElement = $mform->getElement($this->usersubscriptions->full->full->elementname);
-//             $value = $someElement->getValue();
-             // Do whatever checking you need
-//             $someOtherValue = 1 ;
-//             $someElement->setValue( $someOtherValue );
-             // etc.
-             //  add some new elements...
         }
-
+*/
     }
+    /****************************************************************
+     *
+     * Method:       ellipsisString
+     *
+     * Purpose:      Create short form of a string including ellipsis (...)
+     *              if required. Used for making use in narrow elements of
+     *              the web screens
+     *
+     * Parameters:   the text (any bytes form), the legnth to cut off
+     *
+     * Returns:      the shortened text version plus optional ellipsis
+     ****************************************************************/
     /**
      * Reduce text to the maximum parameterised length
      * @param $text
@@ -469,6 +534,18 @@ class block_glsubs_form extends moodleform
         return $retstr;
     }
 
+    /****************************************************************
+     *
+     * Method:       is_multibyte
+     *
+     * Purpose:     checks if the text contains mutli byte characters
+     *
+     *
+     *
+     * Parameters:   the text (any bytes form)
+     *
+     * Returns:      true if at least one character is multi byte
+     ****************************************************************/
     /**
      * check for multibyte strings
      *

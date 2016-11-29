@@ -4,26 +4,36 @@
  * Date: 19/09/2016
  * Time: 10:28
  *
+ * File:     blocks/glsubs/styles.css
+ *
+ * Purpose:  Setting the block plugin CSS styles to be used on the visual parts of the plugin
+ *
+ * Input:    N/A
+ *
+ * Output:   N/A
+ *
+ * Notes:    Use these defined classes of CSS wherever you like to alter the web formatting of the plugin web elements
+  *
  * Class block_glsubs styles.css
  * @package     block
  * @copywrite   qmul
  * @author      Vasileios Sotiras
  * @license     GNU GPL v3
-  // This file is part of Moodle - http://moodle.org/
-  //
-  // Moodle is free software: you can redistribute it and/or modify
-  // it under the terms of the GNU General Public License as published by
-  // the Free Software Foundation, either version 3 of the License, or
-  // (at your option) any later version.
-  //
-  // Moodle is distributed in the hope that it will be useful,
-  // but WITHOUT ANY WARRANTY; without even the implied warranty of
-  // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  // GNU General Public License for more details.
-  //
-  // You should have received a copy of the GNU General Public License
-  // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ * This file is part of Moodle - http://moodle.org/
+ *
+ * Moodle is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Moodle is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 .block_glsubs .fsubmit  {
     margin-left:0 !important;

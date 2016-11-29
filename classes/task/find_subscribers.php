@@ -4,22 +4,40 @@
  * User: vasileios
  * Date: 24/10/2016
  * Time: 16:51
-
-// This file is part of Moodle - http://moodle.org/
-//
-// Moodle is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Moodle is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
-
+ *
+ * File         blocks/glsubs/classes/task/find_subscribers.php
+ *
+ * Purpose         This plugin manages glossary subscriptions on full scale, new categories and new uncategorised concepts
+ *                 monitoring, new categorised concepts and their associated comments activities. The subscriptions panel
+ *                 is only visible while you are in the view mode of the glossary. In all other pages there only an
+ *                 informing part of the plugin showing its presence in the course or the course module.
+ *                 The next development step is to add settings to this plugin to keep universal configuration values which
+ *                 will be integrated into the plugin logic.
+ *                 Another stp is to create a visual part for some of the user messages, and possibly a page to be able to see
+ *                 the individual messages.
+ *
+ *                 The messaging system tries to avoid the creation of duplicate messages for the users, by checking the
+ *                 existence of previous event log id being served for the specific user id, so even if the user is qualifying
+ *                 for multiple conditions for the same event (category, author, concept or full subscription), only one
+ *                 message is created for the event. The message content is always the same for the same event, so there is
+ *                 no risk of failure to deliver all relevant information for the event to the subscribing user.
+ *
+ *
+ *
+ * This file is part of Moodle - http://moodle.org/
+ *
+ * Moodle is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Moodle is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 // for tasks the namespace is based on the frankenstyle of plugin type plus underscore plus the plugin name plus backslash plus task
@@ -54,13 +72,30 @@ define('MAX_USERS',1000000000);
  */
 class find_subscribers extends \core\task\scheduled_task
 {
+    /**
+     * Method           get_name
+     *
+     * Purpose          returns the name of the task to be used in the administration pages
+     *
+     * Parameters       N/A
+     *
+     * @return          string defined in the language locale
+     *
+     */
     public function get_name()
     {
         return get_string('findsubscribers','block_glsubs');
     }
 
     /**
-     * delete entries with 0 as glossaryid as they are not valid to process
+     * Method           delete_invalid_glossary_entries
+     *
+     * Purpose          We must clean up subscriptions pointing to invalid entries
+     *                  delete entries with 0 as glossaryid as they are not valid to process
+     *
+     * Parameters       N/A
+     *
+     * @return         true in case of success, false in case of error
      */
     protected function delete_invalid_glossary_entries(){
         global $DB;
@@ -69,7 +104,7 @@ class find_subscribers extends \core\task\scheduled_task
             $DB->delete_records('block_glsubs_event_subs_log',array('glossaryid' => 0 ));
             // mtrace('Invalid glossary subscriptions deletion process is finished');
             return true;
-        } catch (\Exception $exception) {
+        } catch ( \Exception $exception) {
             mtrace('ERROR: There was a database access error while deleting invalid glossary subscriptions '.$exception->getMessage());
         }
         return false;
@@ -77,9 +112,18 @@ class find_subscribers extends \core\task\scheduled_task
 
 
     /**
-     * @param $timenow
      *
-     * @return bool
+     * Method           find_full_subscriptions
+     *
+     * Purpose          find full glossary subscriber users to these glossaries
+     *                  and register the user id , log entry id pairs
+     *                  to be used for message deliveries
+     *
+     * @param           $timenow   current time stamp, used to restrict processing up to the records
+     *                  inserted just up to the initiation of the execution of this script
+     *
+     * @return          bool true in case of success, false in case of error
+     *
      */
     protected function find_full_subscriptions( $timenow ){
         global $DB;
@@ -131,6 +175,20 @@ class find_subscribers extends \core\task\scheduled_task
         return false;
     }
 
+    /**
+     *
+     * Method           find_new_uncategorised_subscriptions
+     *
+     * Purpose          find new uncategorised concept subscriber users to these glossaries
+     *                  and register the user id , log entry id pairs
+     *                  to be used for message deliveries
+     *
+     * @param           $timenow   current time stamp, used to restrict processing up to the records
+     *                  inserted just up to the initiation of the execution of this script
+     *
+     * @return          bool true in case of success, false in case of error
+     *
+     */
     protected function find_new_uncategorised_subscriptions( $timenow ){
         global $DB;
         mtrace('Fetching log IDs for the New Glossary Uncategorised Concept subscriptions');
@@ -174,9 +232,18 @@ class find_subscribers extends \core\task\scheduled_task
         return false;
     }
     /**
-     * @param $timenow
      *
-     * @return bool
+     * Method           find_new_categories_subscriptions
+     *
+     * Purpose          find new categories subscriber users to these glossaries
+     *                  and register the user id , log entry id pairs
+     *                  to be used for message deliveries
+     *
+     * @param           $timenow   current time stamp, used to restrict processing up to the records
+     *                  inserted just up to the initiation of the execution of this script
+     *
+     * @return          bool true in case of success, false in case of error
+     *
      */
     protected function find_new_categories_subscriptions( $timenow ){
         global $DB;
@@ -221,9 +288,18 @@ class find_subscribers extends \core\task\scheduled_task
     }
 
     /**
-     * @param $timenow
      *
-     * @return bool
+     * Method           find_author_subscriptions
+     *
+     * Purpose          find author subscriber users to these glossaries
+     *                  and register the user id , log entry id pairs
+     *                  to be used for message deliveries
+     *
+     * @param           $timenow   current time stamp, used to restrict processing up to the records
+     *                  inserted just up to the initiation of the execution of this script
+     *
+     * @return          bool true in case of success, false in case of error
+     *
      */
     protected function find_author_subscriptions($timenow ){
         global $DB ;
@@ -271,9 +347,18 @@ class find_subscribers extends \core\task\scheduled_task
     }
 
     /**
-     * @param $timenow
      *
-     * @return bool
+     * Method           find_category_subscriptions
+     *
+     * Purpose          find category subscriber users to these glossaries
+     *                  and register the user id , log entry id pairs
+     *                  to be used for message deliveries
+     *
+     * @param           $timenow   current time stamp, used to restrict processing up to the records
+     *                  inserted just up to the initiation of the execution of this script
+     *
+     * @return          bool true in case of success, false in case of error
+     *
      */
     protected function find_category_subscriptions($timenow ){
         global $DB ;
@@ -321,9 +406,18 @@ class find_subscribers extends \core\task\scheduled_task
     }
 
     /**
-     * @param $timenow
      *
-     * @return bool
+     * Method           find_concept_subscriptions
+     *
+     * Purpose          find concept subscriber users to these glossaries
+     *                  and register the user id , log entry id pairs
+     *                  to be used for message deliveries
+     *
+     * @param           $timenow   current time stamp, used to restrict processing up to the records
+     *                  inserted just up to the initiation of the execution of this script
+     *
+     * @return          bool true in case of success, false in case of error
+     *
      */
     protected function find_concept_subscriptions($timenow ){
         global $DB ;
@@ -375,9 +469,16 @@ class find_subscribers extends \core\task\scheduled_task
     }
 
     /**
-     * @param $timenow
      *
-     * @return bool
+     * Method           remove_deleted_concepts_subscriptions
+     *
+     * Purpose          find and remove deleted concept subscriber users to these glossaries
+     *
+     * @param           $timenow   current time stamp, used to restrict processing up to the records
+     *                  inserted just up to the initiation of the execution of this script
+     *
+     * @return          bool true in case of success, false in case of error
+     *
      */
     protected function remove_deleted_concepts_subscriptions( $timenow ){
         global $DB ;
@@ -412,9 +513,16 @@ class find_subscribers extends \core\task\scheduled_task
     }
 
     /**
-     * @param $timenow
      *
-     * @return bool
+     * Method           remove_deleted_category_subscriptions
+     *
+     * Purpose          find and remove deleted categories subscriber users to these glossaries
+     *
+     * @param           $timenow   current time stamp, used to restrict processing up to the records
+     *                  inserted just up to the initiation of the execution of this script
+     *
+     * @return          bool true in case of success, false in case of error
+     *
      */
     protected function remove_deleted_category_subscriptions( $timenow ){
         global $DB ;
@@ -449,9 +557,16 @@ class find_subscribers extends \core\task\scheduled_task
     }
 
     /**
-     * @param $timenow
      *
-     * @return bool
+     * Method           remove_deleted_author_subscriptions
+     *
+     * Purpose          find and remove deleted authors subscriber users to these glossaries
+     *
+     * @param           $timenow   current time stamp, used to restrict processing up to the records
+     *                  inserted just up to the initiation of the execution of this script
+     *
+     * @return          bool true in case of success, false in case of error
+     *
      */
     protected function remove_deleted_author_subscriptions( $timenow ){
         global $DB ;
@@ -486,9 +601,16 @@ class find_subscribers extends \core\task\scheduled_task
     }
 
     /**
-     * @param $timenow
      *
-     * @return bool
+     * Method           remove_deleted_concept_subscriptions
+     *
+     * Purpose          find and remove deleted concepts subscriber users to these glossaries
+     *
+     * @param           $timenow   current time stamp, used to restrict processing up to the records
+     *                  inserted just up to the initiation of the execution of this script
+     *
+     * @return          bool true in case of success, false in case of error
+     *
      */
     protected function remove_deleted_concept_subscriptions($timenow ){
         global $DB ;
@@ -523,8 +645,15 @@ class find_subscribers extends \core\task\scheduled_task
 
         return true;
     }
+
     /**
-     * Main entry point for the task to find subscribers for the glossary events
+     * Method           execute
+     *
+     * Purpose          Main entry point for the task to find subscribers for the glossary events
+     *
+     * @param           N/A
+     *
+     * @return          bool true in case of success, false in case of error
      */
     public function execute()
     {
@@ -614,14 +743,28 @@ class find_subscribers extends \core\task\scheduled_task
     }
 
     /**
-     * @return bool
+     *
+     * Method           execute_condition
+     *
+     * Purpose          Control the execution mode of this task, set it to false to stop it
+     *
+     * @param           N/A
+     *
+     * @return          bool true for enabled execution, false for disabled execution
+     *
      */
     public function execute_condition(){
         return true;
     }
 
     /**
-     * @return bool
+     * Method           send_messages
+     *
+     * Purpose          not used, as another task is set to send the messages
+     *
+     * @param           N/A
+     *
+     * @return          bool true
      */
     public function send_messages(){
         return true;

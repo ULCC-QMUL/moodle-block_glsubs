@@ -5,22 +5,31 @@
  * User: vasileios
  * Date: 28/10/2016
  * Time: 15:03
-
-// This file is part of Moodle - http://moodle.org/
-//
-// Moodle is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Moodle is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
-
+ *
+ * File:     blocks/glsubs/block_glsubs.php
+ *
+ * Purpose:  A glossary subscriptions block plugin for Moodle
+ *
+ * Input:    N/A
+ *
+ * Output:   N/A
+ *
+ * Notes:    This is developed for the QM+ Moodle site of the Queen Mary university of London
+ *
+ * This file is part of Moodle - http://moodle.org/
+ *
+ * Moodle is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Moodle is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 // namespace glsubs;
@@ -41,7 +50,16 @@ class block_glsubs extends block_base {
     public static $old_error_handler;
 
     /**
+     * Method           init
      *
+     * Purpose          initalise the class, set its title
+     *
+     * Parameters            N/A
+     *
+     * Returns           N/A
+     *
+     * Notes            Method must be declared, as it is defined abstract
+     *                  title should be defined as it used by the Moodle system for the administration pages
      */
     public function init(){
         // set the title of this plugin
@@ -51,12 +69,24 @@ class block_glsubs extends block_base {
     }
 
     /**
-     * @param $errno
-     * @param $errstr
-     * @param $errfile
-     * @param $errline
+     * Method               exception_error_handler
      *
-     * @throws \ErrorException
+     * Purpose              Used for debugging, capturing exceptions and throwing errors
+     *                      It might not be compatible for the PHP 7 version, as it uses a Throwable parameter
+     *
+     * Parameters
+     * @param               $errno ,  error number
+     * @param               $errstr , error message
+     * @param               $errfile , error file
+     * @param               $errline , error code line
+     *
+     * Returns              N/A
+     *
+     * Notes                Method must be declared, as it is defined abstract
+     *                      title should be defined as it used by the Moodle system for the administration pages
+     *
+     *
+     * @throws              ErrorException
      */
     public static function exception_error_handler($errno, $errstr, $errfile, $errline ) {
 //        debug_print_backtrace();
@@ -65,17 +95,35 @@ class block_glsubs extends block_base {
     }
 
     /**
+     * Method               applicable_formats
+     *
+     * Purpose              Set the default block configuration of on which type of pages to be viewable
+     *
+     * Parameters           N/A
+     *
+     * Returns             array('all' => true)
      * @return array
-     * make this plugin available to all pages
-     * avoid the configuration step of making it available to all glossary view pages manually
+     * Notes                make this plugin available to all pages
+     *                      avoid the configuration step of making it available to all glossary view pages manually
      */
     public function applicable_formats() {
         return array('all' => true);
     }
     /**
-     * Return the current page URL
-     * Used to associate the current page with the form action target, so it returns to the same page after submit
-     * @return string
+     * Method               currentPageURL
+     *
+     * Purpose              Get the glossary view page URL with its parameters, to use it as the form action target
+     *                      Used to associate the current page with the form action target,
+     *                      so it returns to the same page after submit
+     *
+     * Parameters           N/A
+     *
+     * Returns              Return the current page URL
+     * @return              string Get URL of the glossary view page
+     *
+     * Notes                It is the safest method to set the plugin form action target ,
+     *                      so after submission, it will return to the same page
+     *
      */
     private function currentPageURL() {
         $pageURL = 'http';
@@ -103,9 +151,15 @@ class block_glsubs extends block_base {
     }
 
     /**
-     * @param $glossaryid
+     * Method               get_latest_messages
      *
-     * @return array
+     * Purpose              Get a batch of the latest messages for the user, to show at the top of the block
+     *
+     * Parameters
+     * @param               $glossaryid, the glossary id to identify the relevant messages for the user
+     *
+     * Returns
+     * @return              array , of message objects
      */
     protected function get_latest_messages( $glossaryid ){
         global $DB , $USER ;
@@ -144,7 +198,14 @@ class block_glsubs extends block_base {
     }
 
     /**
-     * @param $glossaryid
+     * Method               show_messages
+     *
+     * Purpose              if enabled show the relevant glossary event messages for the user of the current glossary
+     *
+     * Parameters
+     * @param               $glossaryid, the glossary id to identify the relevant messages for the user
+     *
+     * Returns              outputs the message links directly to the block
      */
     private function show_messages($glossaryid ){
         global $DB, $USER ;
@@ -289,6 +350,20 @@ class block_glsubs extends block_base {
         }
     }
 
+
+    /**
+     * Method               get_category
+     *
+     * Purpose              Identify and return the message category(ies) in the message text
+     *
+     * Parameters
+     * @param               $message_text, the message text
+     *
+     * Returns
+     *
+     * @return              mixed|string, either an empty string , either the category(ies) identified as text
+     *
+     */
     private function get_category($message_text){
         $ret = '';
         $msg_parts = explode('<br />',$message_text);
@@ -303,10 +378,17 @@ class block_glsubs extends block_base {
         return $ret;
 
     }
+
     /**
-     * @param $message_text
+     * Method               get_entry
      *
-     * @return mixed|string
+     * Purpose              Identify and return the message concept in the message text
+     *
+     * Parameters
+     * @param               $message_text, the message text
+     *
+     * Returns
+     * @return              mixed|string, either an empty string , either the concept as text
      */
     private function get_entry($message_text){
         $ret = '';
@@ -321,9 +403,18 @@ class block_glsubs extends block_base {
         }
         return $ret;
     }
+
     /**
-     * Subscriptions Block Contents creation function
-     * @return string
+     * Method               get_content
+     *
+     * Purpose              create all the block contents and present it
+     *                      Subscriptions Block Contents creation function
+     *
+     * Parameters           N/A
+     *
+     * Returns
+     * @return              string, as HTML content for the block
+     *
      */
     public function get_content()
     {
@@ -437,9 +528,15 @@ class block_glsubs extends block_base {
     }
 
     /**
-     * @param $dataset
+     * Method               store_data
      *
-     * @return null|\stdClass
+     * Purpose              Store the subscription preferences for the user on the current glossary
+     *
+     * Parameters
+     * @param               $dataset, the data of the Moodle plugin form
+     *
+     * Returns
+     * @return              null in case of success or stdClass of errors in case of errors
      */
     private function store_data( $dataset ){
         global $DB;
@@ -615,24 +712,50 @@ class block_glsubs extends block_base {
     }
 
     /**
-     * @return bool
+     * Method               instance_allow_multiple
+     *
+     * Purpose              enable only one instance per page to associate with the viewable glossary
+     *
+     * Parameters           N/A
+     *
+     * Returns
+     * @return              bool , false to disable multiple instances of the block on one page
+     *
      */
     public function instance_allow_multiple() {
         return FALSE;
     }
 
     /**
-     * This function is required by Moodle to overide the default inherited function and to return true
-     * in order to be able to store and use relevant universal plugin settings.
-     * If you need more fine grained settings such as user or role or other classification
-     * you must provide a set of database structures and their associated business logic
-     * @return bool
+     * Method               has_config
+     *
+     * Purpose              This function is required by Moodle to overide the default inherited function and to
+     *                      return true in order to be able to store and use relevant universal plugin settings.
+     *                      If you need more fine grained settings such as user or role or other classification
+     *                      you must provide a set of database structures and their associated business logic
+     *
+     * Parameters           N/A
+     *
+     * Returns
+     * @return              bool, true as this block has an administration settings functionality
      */
     public function has_config()
     {
         return parent::has_config() || true;
     }
-    /**
+
+    /****************************************************************
+     *
+     * Method:       ellipsisString
+     *
+     * Purpose:      Create short form of a string including ellipsis (...)
+     *              if required. Used for making use in narrow elements of
+     *              the web screens
+     *
+     * Parameters:   $text , the text (any bytes form), $size , the legnth to cut off
+     *
+     * Returns:      the shortened text version plus optional ellipsis
+     ****************************************************************
      * Reduce text to the maximum parameterised length
      * @param $text
      * @param $size
@@ -655,7 +778,19 @@ class block_glsubs extends block_base {
         }
         return $retstr;
     }
-    /**
+
+    /****************************************************************
+     *
+     * Method:       is_multibyte
+     *
+     * Purpose:     checks if the text contains mutli byte characters
+     *
+     *
+     *
+     * Parameters:   $s , the text (any bytes form)
+     *
+     * Returns:      true if at least one character is multi byte
+     ****************************************************************
      * check for multibyte strings
      */
     protected function is_multibyte($s) {

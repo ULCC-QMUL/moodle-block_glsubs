@@ -1,4 +1,27 @@
 <?php
+/****************************************************************
+ *
+ * File:  blocks/glsubs/classes/observer.php
+ *
+ * Purpose:  A class handling the subscription events for all the
+ * glossaries and their subscriptions, storing the event and its
+ * associated data in a database table log
+ *
+ * Input:    N/A
+ *
+ *
+ *
+ * Output:   N/A
+ *
+ *
+ *
+ * Notes:   The block should be installed, added to the course
+ *          and configured to be available for all course pages
+ *          It does not matter if the moodle event subscriptions
+ *          are configured to work for the general events
+ *
+ ****************************************************************/
+
 /**
  * Created by PhpStorm.
  * User: vasileios
@@ -33,6 +56,20 @@ define('CATEGORY_GENERIC',get_string('CATEGORY_GENERIC','block_glsubs')); // Use
 
 class block_glsubs_observer
 {
+    /****************************************************************
+     *
+     * Method:       static observe_all
+     *
+     * Purpose:      the entry point of all glossary subscription events
+     *              as it is defined in the blocks/glsubs/db/events.php
+     *              for every event type. The reason is to create a single
+     *              entry point to classify and reduce duplicate code
+     *
+     *
+     * Parameters:   a core event object
+     *
+     * Returns:      true on succesful execution
+     ****************************************************************/
     /**
      * @param \core\event\base $event
      *
@@ -78,6 +115,16 @@ class block_glsubs_observer
         // save the event in the glossary events log
     }
 
+    /****************************************************************
+     *
+     * Method:       static entry_event
+     *
+     * Purpose:      the entry point of glossary concept events
+     *
+     * Parameters:   a core event object
+     *
+     * Returns:      the new log entry id or false/null in case of error
+     ****************************************************************/
     /**
      * @param \core\event\base $event
      *
@@ -240,6 +287,16 @@ class block_glsubs_observer
         return $logid;
     }
 
+    /****************************************************************
+     *
+     * Method:       static comment_event
+     *
+     * Purpose:      the entry point of glossary comment events
+     *
+     * Parameters:   a core event object
+     *
+     * Returns:      the new log entry id or false/null in case of error
+     ****************************************************************/
     /**
      * @param \core\event\base $event
      *
@@ -410,6 +467,16 @@ class block_glsubs_observer
         return $logid;
     }
 
+    /****************************************************************
+     *
+     * Method:       static category_event
+     *
+     * Purpose:      the entry point of glossary category events
+     *
+     * Parameters:   a core event object
+     *
+     * Returns:      the new log entry id or false/null in case of error
+     ****************************************************************/
     /**
      * @param \core\event\base $event
      *
@@ -529,6 +596,17 @@ class block_glsubs_observer
         return $logid;
     }
 
+    /****************************************************************
+     *
+     * Method:       static get_event_text
+     *
+     * Purpose:      Create an event related message in HTML format
+     *
+     * Parameters:   an event object based on the event type
+     * (category, entry, comment)
+     *
+     * Returns:      the HTML text for the event
+     ****************************************************************/
     /**
      * @param array $text_event
      * $text_event['event_type']
@@ -539,8 +617,8 @@ class block_glsubs_observer
      * $text_event['event_comment']
      * $text_event['event_categories']
      * $text_event['event_author']
- *
-*@return string
+     *
+     * @return string
      */
     protected static function get_event_text(array $text_event )
     {
@@ -668,34 +746,7 @@ class block_glsubs_observer
             $event_text .= PHP_EOL . get_string('message_author','block_glsubs');
             $event_text .= $author_link;
         }
-/*
-        // build the event text
-        // show User @ Course / Module
-        // $event_text .= get_string('glossary_user','block_glsubs') . $user_link . ' @ ' . $text_event['event_course']->fullname . ' / ' . $text_event['event_module'];
 
-        // show Author
-        // $event_text .= PHP_EOL . get_string('glossary_author','block_glsubs') . ' ' . $author_link ;
-
-        // if there is information about the category then show it
-        if( $text_event['event_type'] === 'category' || $text_event['event_type'] === 'entry' || $text_event['event_type'] === 'comment' ){
-            $event_text .= PHP_EOL . get_string('glossary_category','block_glsubs') . ' [' . $text_event['event_categories'] .'] ';
-        }
-
-        // if there is information about the concept then show it
-        if( $text_event['event_type'] === 'entry' || $text_event['event_type'] === 'comment'){
-            $event_text .= PHP_EOL . get_string('glossary_concept','block_glsubs'). '[ '. $text_event['event_item']->concept .' ]  ';
-            $event_text .= PHP_EOL . get_string('glossary_concept_definition','block_glsubs').'[ '. $text_event['event_item']->definition .' ]  ' ;
-        }
-
-        // if there information about the comment then show it
-        if ($text_event['event_type'] === 'comment'){
-            $event_text .= PHP_EOL . get_string('glossary_comment','block_glsubs') .' [' . $text_event['event_comment'] .'] ' ;
-        }
-
-        // show the Moodle event definition an a link to the generated page
-        $event_text .= PHP_EOL . str_replace(array("\\",'_','mod'),array(' ',' ','module'),$text_event['event']->eventname) .' @ '. date('l d/F/Y G:i:s', time());
-        $event_text .= PHP_EOL .'URL: ' . html_writer::link( $text_event['event']->get_url() , $text_event['event']->get_description() ) ;
-*/
         // show activity of the event
         $event_text .= PHP_EOL ;
         if( 'created' === $eventdata['action']){
@@ -718,7 +769,22 @@ class block_glsubs_observer
         return $event_text ;
     }
 
-    /**
+
+    /****************************************************************
+     *
+     * Method:       static check_user_subscription
+     *
+     * Purpose:      Create a main subscription record for the event user
+     *               based on the block settings for
+     *               automated subscriptions
+     *               The default is to create user subscription records
+     *
+     * Parameters:   autosubscribe setting, user id , glossary id
+     * (category, entry, comment)
+     *
+     * Returns:      the HTML text for the event
+     ****************************************************************/
+/**
      * @param $auto_subscribe
      * @param $userid
      * @param $glossaryid

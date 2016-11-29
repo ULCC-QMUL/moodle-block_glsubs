@@ -4,22 +4,33 @@
  * User: vasileios
  * Date: 28/10/2016
  * Time: 15:03
-
-// This file is part of Moodle - http://moodle.org/
-//
-// Moodle is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Moodle is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
-
+ *
+ * File:     blocks/glsubs/lang/en/block_glsubs.php
+ *
+ * Purpose:  Define the locale language strings used in the plugin code
+ *
+ * Input:    N/A
+ *
+ * Output:   N/A
+ *
+ * Notes:    Any language message for any type of output should be defined here
+ *          So it will be easy to be translated in other languages
+ *
+ *
+ * This file is part of Moodle - http://moodle.org/
+ *
+ * Moodle is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Moodle is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 defined('MOODLE_INTERNAL') || die('Direct access to this script is forbidden.');
@@ -33,7 +44,7 @@ $string['glsubs:myaddinstance'] = 'Add a new Glossary Subscriptions block to the
 $string['fullsubscription'] = 'Full Glossary Subscription';
 $string['newcategoriessubscription'] = 'New Glossary Categories';
 $string['newuncategorisedconceptssubscription'] = 'Uncategorised Concepts';
-$string['formheader'] = 'Subscription options';
+$string[' *'] = 'Subscription options';
 $string['glossaryauthors'] = 'Authors';
 $string['glossarycategories'] = 'Categories';
 $string['glossaryconcepts'] = 'Concepts';

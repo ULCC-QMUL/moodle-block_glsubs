@@ -4,6 +4,18 @@
  * User: vasileios
  * Date: 28/10/2016
  * Time: 14:58
+ *
+ * File:     blocks/glsubs/view.php
+ *
+ * Purpose:  A glossary subscriptions message viewer
+ *
+ * Input:    required_param('id',PARAM_INT)
+ *
+ * Output:   A page showing the specified message ID to the associated user
+ *
+ * Notes:    This is developed for the QM+ Moodle site of the Queen Mary university of London
+ *
+
  */
 
 // This file is part of Moodle - http://moodle.org/
@@ -91,7 +103,11 @@ try {
     echo 'There was an error while attempting to read from the glossary event log';
     $error = true ;
 }
-
+// check if the logged in user is the user this message is intended to be seen by, otherwise set an error condition
+if( (int) $message->userid !== (int) $USER->id ){
+    $error = true;
+}
+// if there is no error then show the message
 if(! $error){
     if($message->event){
         $messageHtml = preg_replace('#<script(.*?)>(.*?)</script>#is', '', $message->event->eventtext);

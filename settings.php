@@ -1,34 +1,45 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: vasileios
- * Date: 28/10/2016
- * Time: 15:03
-
-// This file is part of Moodle - http://moodle.org/
-//
-// Moodle is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Moodle is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
-
-*/
-
-/**
- * glsubs block caps.
- *
- * @package    block_glsubs
- * @copyright  Daniel Neis <danielneis@gmail.com>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
+ /**
+  * Created by PhpStorm.
+  * User: vasileios
+  * Date: 28/10/2016
+  * Time: 15:03
+  *
+  * This file is part of Moodle - http://moodle.org/
+  *
+  * Moodle is free software: you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+  * the Free Software Foundation, either version 3 of the License, or
+  * (at your option) any later version.
+  *
+  * Moodle is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+  * You should have received a copy of the GNU General Public License
+  * along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+  *
+  * File:     blocks/glsubs/settings.php
+  *
+  * Purpose:  Define the plugin settings to be used in the administration pages
+  *          and to set their default values
+  *
+  * Input:    N/A
+  *
+  * Output:   N/A
+  *
+  * Notes:   By default the latest user messages are not shown,
+  *          there is a cap of messages to send per run ,
+  *          to avoid overloading of the cron/scheduler subsystem
+  *          of the Moodle installation
+  *
+  * glsubs block caps.
+  *
+  * @package    block_glsubs
+  * @copyright  Daniel Neis <danielneis@gmail.com>
+  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+  */
 
 defined('MOODLE_INTERNAL') || die();
 // do not forget !!!
@@ -84,4 +95,3 @@ $settings->add(new admin_setting_configselect('block_glsubs/messagenotifocation'
     get_string('settings_deliveriesnotification_desc', 'block_glsubs'),
     $delivery_messages_default_option ,
     $delivery_messages_options ) );
-

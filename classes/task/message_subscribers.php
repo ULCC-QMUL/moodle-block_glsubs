@@ -3,23 +3,34 @@
  * Created by PhpStorm.
  * User: vasileios
  * Date: 08/11/2016
- * Time: 09:19
-
-// This file is part of Moodle - http://moodle.org/
-//
-// Moodle is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Moodle is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
-
+ * Time: 09:19#
+ *
+ * File:     blocks/glsubs/classes/task/message_subscribers.php
+ *
+ * Purpose:  Identify undelivered messages for glossary subscribers
+ *           and deliver the messages using the Moodle messaging API
+ *
+ * Input:    N/A
+ *
+ * Output:   N/A
+ *
+ * Notes:    Another task for moodle based on the cron/scheduler subsystem
+ *
+ *
+ * // This file is part of Moodle - http://moodle.org/
+ * //
+ * // Moodle is free software: you can redistribute it and/or modify
+ * // it under the terms of the GNU General Public License as published by
+ * // the Free Software Foundation, either version 3 of the License, or
+ * // (at your option) any later version.
+ * //
+ * // Moodle is distributed in the hope that it will be useful,
+ * // but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * // GNU General Public License for more details.
+ * //
+ * // You should have received a copy of the GNU General Public License
+ * // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 
@@ -30,7 +41,14 @@ namespace block_glsubs\task;
 class message_subscribers extends \core\task\scheduled_task
 {
     /**
-     * @return string
+     * Method           get_name
+     *
+     * Purpose          returns the name of the task to be used in the administration pages
+     *
+     * Parameters       N/A
+     *
+     * @return          string defined in the language locale
+     *
      */
     public function get_name()
     {
@@ -38,7 +56,13 @@ class message_subscribers extends \core\task\scheduled_task
     }
 
     /**
-     * the entry point of execution of the task
+     * Method           execute
+     *
+     * Purpose          Main entry point for the task to message subscribers for the glossary events
+     *
+     * @param           N/A
+     *
+     * @return          bool true in case of success, false in case of error
      */
     public function execute()
     {
@@ -58,9 +82,14 @@ class message_subscribers extends \core\task\scheduled_task
     }
 
     /**
-     * @param $message_id
+     * Method           update_message_log
      *
-     * @return bool
+     * Purpose          update the message log entry record to the current status of time delivered
+     *
+     * @param           $message_id , as the message log record id
+     *
+     * @return          bool true if sucessful, false in case of an error
+     *
      */
     private function update_message_log( $message_id ){
         global $DB;
@@ -76,11 +105,16 @@ class message_subscribers extends \core\task\scheduled_task
     }
 
     /**
-     * @param $system_user
-     * @param $log_message
+     * Method           send_message
      *
-     * @return int|mixed
-     * @internal param $message
+     * Purpose          Create and deliver an HTML Moodle message
+     *
+     * @param           $system_user, as the sender
+     * @param           $log_message , as the event log message object
+     *                               containing the recipient and all relevant data
+     *
+     * @return          the message id in case of success or 0 in case of error
+     * @internal param $moodle_message as the structure of setting up the new moodle message
      *
      */
     private function send_message($system_user , $log_message){
@@ -122,9 +156,19 @@ class message_subscribers extends \core\task\scheduled_task
         return $messageid;
     }
     /**
-     * @return array
+     * Method          get_undelivered_log
+     *
+     * Purpose          get the next batch of the undelivered messages in the message log table
+     *
+     * @param           N/A
+     *
+     * @return          array of message objects to be processed, limited to the amount set in the
+     *                        block settings, to avoid overloading of the cron/scheduler subsystem
+     *                        of Moodle, taking batche rounds until all messages are delivered
+     *
      * Sends the unprocessed message log entries
      * Should put a limit to records retrieved in order to avoid large memory usage and processor overloads
+     *
      */
     private function get_undelivered_log(){
         global $DB;
@@ -142,8 +186,17 @@ class message_subscribers extends \core\task\scheduled_task
     }
 
     /**
-     * this function should return an object of the CRON user modified to reflect the current activity
-     * @return \stdClass
+     * Method           system_user
+     *
+     * Purpose          The moodle messaging system requires a sender and a recipient of each message
+     *                  This method sets the cron/scheduler subsustem user as the sender.
+     *                  This function should return an object of the CRON user modified to
+     *                  reflect the current activity
+     *
+     * @param           N/A
+     *
+     * @return          \stdClass with minimum attributes of a User object
+     *
      */
     private function system_user(){
         global $USER;
