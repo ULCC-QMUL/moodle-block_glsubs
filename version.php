@@ -40,7 +40,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 $plugin = new \stdClass();
-$plugin->version    = 2016112900;
+$plugin->version    = 2016112901;
 $plugin->requires   = 2015111604; // Moodle 3.0.4 is required.
 $plugin->component  = 'block_glsubs'; // Full name of the plugin (used for diagnostics)
 $plugin->maturity   = MATURITY_BETA;
