@@ -242,6 +242,7 @@ class block_glsubs_form extends moodleform
         // Show uncategorised category of entries
         $elementUrl = new moodle_url('/mod/glossary/view.php',array('id'=>$cmid,'mode'=>'cat','hook'=>'-1'));
         $elementLink = html_writer::link($elementUrl,'&#9658;&emsp;'. get_string('glossaryuncategorisedconcepts','block_glsubs')." (".($this->usersubscriptions->full->full->allglossaryentries - $this->usersubscriptions->full->full->categorisedentries).")");
+        if(! isset($text)){ $text = '';}
         $text .= $elementLink  ;
 
         // create a link for all authors
