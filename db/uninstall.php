@@ -47,11 +47,28 @@ Parameters:   N/A
 Returns:      true in case of success, false in case of error
 
  ****************************************************************/
+require_once(dirname(__FILE__).'/../../../config.php');
+
+defined('MOODLE_INTERNAL') || die();
+
+
 function xmldb_block_glsubs_uninstall() {
-    // global $DB;
+   global $CFG, $DB;
 
-    // Switch the normal glsubs block back on
-    // $DB->set_field('block', 'visible', '1', array('name' => 'glsubs'));
+   $dbman = $DB->get_manager();
+	
+   $xmlds = $dbman->get_install_xml_schema();
 
-    return true;
+   $xmlds->deleteTable('block_glsubs_authors_subs');
+   $xmlds->deleteTable('block_glsubs_categories_subs');
+   $xmlds->deleteTable('block_glsubs_concept_subs');
+   $xmlds->deleteTable('block_glsubs_event_subs_log');
+   $xmlds->deleteTable('block_glsubs_glossaries_subs');
+   $xmlds->deleteTable('block_glsubs_messages_log');
+
+   $DB->delete_records('events_handlers',array('component'=>'block_glsubs'));
+   $DB->delete_records('block',array('name'=>'glsubs'));
+   $DB->delete_records('config_plugins',array('plugin'=>'block_glsubs'));
+
+   return true;
 }

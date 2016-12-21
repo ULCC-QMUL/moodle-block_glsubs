@@ -41,8 +41,8 @@ $string['blockfooter'] = 'User Glossary Subscriptions Preferences Panel';
 $string['glsubs:addinstance'] = 'Add a new Glossary Subscriptions block';
 $string['glsubs:myaddinstance'] = 'Add a new Glossary Subscriptions block to the Course';
 
-$string['fullsubscription'] = 'Full Glossary Subscription';
-$string['newcategoriessubscription'] = 'New Glossary Categories';
+$string['fullsubscription'] = 'Full Subscription';
+$string['newcategoriessubscription'] = 'New Categories';
 $string['newuncategorisedconceptssubscription'] = 'Uncategorised Concepts';
 $string['formheader'] = 'Subscription options';
 $string['glossaryauthors'] = 'Authors';
