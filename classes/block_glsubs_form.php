@@ -132,7 +132,8 @@ class block_glsubs_form extends moodleform
         $label .= " (". $this->usersubscriptions->full->full->allglossaryentries .")";
 
         // add the full subscription option on the form
-        $mform->addElement( 'advcheckbox' , $this->usersubscriptions->full->full->elementname , $label , '' , array('group'=>1,'margin'=>'0') , array(0,1) );
+        // $mform->addElement( 'advcheckbox' , $this->usersubscriptions->full->full->elementname , $label , '' , array('group'=>1,'margin'=>'0') , array(0,1) );
+        $mform->addElement( 'advcheckbox' , $this->usersubscriptions->full->full->elementname , $label , '' , array('margin'=>'0') , array(0,1) );
         // add the default value to an array for the final stage of the form creation
         $this->usersubscriptions->defaults[$this->usersubscriptions->full->full->elementname] = $this->usersubscriptions->full->full->sub;
         $mform->setType($this->usersubscriptions->full->full->elementname,PARAM_INT);
@@ -143,7 +144,8 @@ class block_glsubs_form extends moodleform
         $label = '&emsp; &emsp;' . get_string('newcategoriessubscription','block_glsubs'). " (".$DB->count_records( 'glossary_categories' , array( 'glossaryid' => $glossaryid ) ) .")";
         // add the new categories subscription option on the form
 
-        $mform->addElement( 'advcheckbox' , $this->usersubscriptions->full->fullnewcat->elementname , $label , '' ,array('group'=>1),array(0,1));
+        // $mform->addElement( 'advcheckbox' , $this->usersubscriptions->full->fullnewcat->elementname , $label , '' ,array('group'=>1),array(0,1));
+        $mform->addElement( 'advcheckbox' , $this->usersubscriptions->full->fullnewcat->elementname, $label, '', null, array(0,1));
         // add the default value to an array for the final stage of the form creation
         $this->usersubscriptions->defaults[$this->usersubscriptions->full->fullnewcat->elementname] = $this->usersubscriptions->full->fullnewcat->sub ;
         $mform->setType($this->usersubscriptions->full->fullnewcat->elementname,PARAM_INT);
@@ -159,7 +161,8 @@ class block_glsubs_form extends moodleform
         $label .= get_string('newuncategorisedconceptssubscription','block_glsubs')." (". ($this->usersubscriptions->full->full->allglossaryentries - $this->usersubscriptions->full->full->categorisedentries).")";
 
         // add the new concepts without category option on the form
-        $mform->addElement('advcheckbox',$this->usersubscriptions->full->fullnewconcept->elementname,$label,'',array('group'=>1),array(0,1));
+        // $mform->addElement('advcheckbox',$this->usersubscriptions->full->fullnewconcept->elementname,$label,'',array('group'=>1),array(0,1));
+        $mform->addElement('advcheckbox',$this->usersubscriptions->full->fullnewconcept->elementname,$label,'',null ,array(0,1));
         // add the default value to an array for the final stage of the form creation
         $this->usersubscriptions->defaults[$this->usersubscriptions->full->fullnewconcept->elementname] = $this->usersubscriptions->full->fullnewconcept->sub;
         $mform->setType($this->usersubscriptions->full->fullnewconcept->elementname,PARAM_INT);
@@ -267,6 +270,8 @@ class block_glsubs_form extends moodleform
                 }
             } catch (Exception $exception){
                 $page_hook = 0;
+            } catch (Throwable $exception){
+                $page_hook = 0;
             }
         }
         foreach ($loop as $key => & $concept_entry) {
@@ -280,14 +285,16 @@ class block_glsubs_form extends moodleform
                 $entrylink = '<span title="'.$concept_entry->concept.'">'.$entrylink.'</span>';
 
                 // add concept checkbox
-                $mform->addElement('advcheckbox',$concept_entry->elementname , $entrylink ,array('group'=>10),array(0,1));
+                // $mform->addElement('advcheckbox',$concept_entry->elementname , $entrylink ,array('group'=>10),array(0,1));
+                $mform->addElement('advcheckbox',$concept_entry->elementname , $entrylink, null, array(0,1));
 
                 // add the default value to an array for the final stage of the form creation
                 $this->usersubscriptions->defaults[$concept_entry->elementname] = $concept_entry->conceptactive ;
                 $mform->disabledIf($concept_entry->elementname,$this->usersubscriptions->full->full->elementname,'checked');
 
                 // Add comments checkbox
-                $mform->addElement('advcheckbox',$concept_entry->comment_elementname , $commentslabel . " (". $concept_entry->commentscounter . ")",array('group'=>10),array(0,1));
+                // $mform->addElement('advcheckbox',$concept_entry->comment_elementname , $commentslabel . " (". $concept_entry->commentscounter . ")",array('group'=>10),array(0,1));
+                $mform->addElement('advcheckbox',$concept_entry->comment_elementname , $commentslabel . " (". $concept_entry->commentscounter . ")", null, array(0,1));
 
                 // add the default value to an array for the final stage of the form creation
                 $this->usersubscriptions->defaults[$concept_entry->comment_elementname] = $concept_entry->commentsactive ;

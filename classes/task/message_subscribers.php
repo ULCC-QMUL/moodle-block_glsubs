@@ -100,6 +100,9 @@ class message_subscribers extends \core\task\scheduled_task
         } catch (\Exception $exception){
             mtrace('Error while updating the time delivered for the log with record ID ' . (string) $message_id );
             return false;
+        } catch (\Throwable $exception){
+            mtrace('Error while updating the time delivered for the log with record ID ' . (string) $message_id );
+            return false;
         }
         return true;
     }
@@ -127,6 +130,8 @@ class message_subscribers extends \core\task\scheduled_task
             $user = $DB->get_record('user',array('id' => (int) $log_message->userid ) );
         } catch (\Exception $exception) {
             mtrace('Error while accessing the database ' . $exception->getMessage() );
+        } catch (\Throwable $exception) {
+            mtrace('Error while accessing the database ' . $exception->getMessage() );
         }
         if( $user ){
             // prepare the Moodle message
@@ -150,6 +155,8 @@ class message_subscribers extends \core\task\scheduled_task
             try {
                 $messageid = message_send( $moodle_message );
             } catch (\Exception $exception){
+                mtrace('Error while sending a message ' . $exception->getMessage() );
+            } catch (\Throwable $exception){
                 mtrace('Error while sending a message ' . $exception->getMessage() );
             }
         }
@@ -180,6 +187,8 @@ class message_subscribers extends \core\task\scheduled_task
         try {
             $message_logs = $DB->get_records_sql( $sql , array() , 0 , $def_config );
         } catch (\Exception $exception) {
+            mtrace('Error reading the glossary subscriptions log ' . $exception->getMessage() );
+        } catch (\Throwable $exception) {
             mtrace('Error reading the glossary subscriptions log ' . $exception->getMessage() );
         }
         return $message_logs ;

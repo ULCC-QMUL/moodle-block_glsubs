@@ -34,7 +34,9 @@
  * You should have received a copy of the GNU General Public License
  * along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
  */
-
+.block_glsubs div[class^="col-md-"] {
+    min-height: 0px !important;
+}
 .block_glsubs .fsubmit  {
     margin-left:0 !important;
 }

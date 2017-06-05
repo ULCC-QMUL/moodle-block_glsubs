@@ -281,6 +281,9 @@ class block_glsubs_observer
         } catch (\Exception $e) {
             // there was an error creating the event entry for this category in this glossary
             return false;
+        } catch (\Throwable $e) {
+            // there was an error creating the event entry for this category in this glossary
+            return false;
         }
 
         // return the log id
@@ -461,6 +464,9 @@ class block_glsubs_observer
         } catch (\Exception $e) {
             // there was an error creating the event entry for this category in this glossary
             return false;
+        } catch (\Throwable $e) {
+            // there was an error creating the event entry for this category in this glossary
+            return false;
         }
 
         // return the log id
@@ -591,6 +597,9 @@ class block_glsubs_observer
         } catch (\Exception $e) {
             // there was an error creating the event entry for this category in this glossary
             return false;
+        } catch (\Throwable $e) {
+            // there was an error creating the event entry for this category in this glossary
+            return false;
         }
         // return the log id
         return $logid;
@@ -637,6 +646,8 @@ class block_glsubs_observer
                 $user_link = html_writer::link($user_url, fullname(\core_user::get_user((int)$eventdata['userid'])));
             } catch (Exception $exception) {
                 $user_link = '';
+            } catch (Throwable $exception) {
+                $user_link = '';
             }
         } else {
             $user_link = '';
@@ -648,6 +659,8 @@ class block_glsubs_observer
                 $author_url = new moodle_url('/user/view.php', array('id' => (int)$text_event['event_author']));
                 $author_link = html_writer::link($author_url, fullname(\core_user::get_user((int)$text_event['event_author'])));
             } catch (Exception $exception) {
+                $author_link = '';
+            } catch (Throwable $exception) {
                 $author_link = '';
             }
         } else {
@@ -794,6 +807,8 @@ class block_glsubs_observer
         try {
             $rec_exists = $DB->record_exists('block_glsubs_glossaries_subs',array('userid' => (int) $userid , 'glossaryid' => $glossaryid ) ) ;
         } catch (Exception $exception){
+            $rec_exists = true; // trigger an error condition to disable creation of a record while the database is not responding
+        } catch (Throwable $exception){
             $rec_exists = true; // trigger an error condition to disable creation of a record while the database is not responding
         }
         // check if the user is registered into the glossary subscriptions main table
