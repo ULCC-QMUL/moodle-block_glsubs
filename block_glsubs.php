@@ -533,7 +533,7 @@ class block_glsubs extends block_base {
                     }
 
                     // if there were any errors, display them
-                    if(is_array($errors->messages)){
+                    if(isset($errors->messages) && is_array($errors->messages)){
                         foreach ($errors->messages as $key => $errmsg ){
                             $this->content->text .= '<p>Error: '.$errmsg .'</p>';
                         }
