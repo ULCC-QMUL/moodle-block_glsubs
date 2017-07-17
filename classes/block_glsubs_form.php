@@ -76,7 +76,7 @@ class block_glsubs_form extends moodleform
         // get course module id
         $cmid = optional_param('id',0, PARAM_INT);
         $cm = $course_info->get_cm($cmid);
-
+        $text = '';
         // get the glossaryid for the database entries queries
         $glossaryid = $cm->instance;
 
