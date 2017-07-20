@@ -139,13 +139,11 @@ class block_glsubs extends block_base {
         $pageurlparts['protocol'] = explode('://',$pageurlparts[0])[0];
         $pageurlparts['host'] = explode('/',explode('://',$pageurlparts[0])[1])[0];
         $pageurlparts['pagepath'] = explode($pageurlparts['host'],explode('://',$pageurlparts[0])[1])[1];
-        if(isset($pageurlparts[1])){
-            foreach(explode('&',$pageurlparts[1]) as $key =>$parameterset ){
-                $keyValueArray = explode('=',$parameterset);
-                if(array_key_exists(0,$keyValueArray)){  $param = $keyValueArray[0] ;} else { $param = ''; }
-                if(array_key_exists(1,$keyValueArray)){  $value = $keyValueArray[1] ;} else { $value = ''; }
-                $pageurlparts['parameters'][ $param ]= $value ;
-            }
+        foreach(explode('&',$pageurlparts[1]) as $key =>$parameterset ){
+            $keyValueArray = explode('=',$parameterset);
+            if(array_key_exists(0,$keyValueArray)){  $param = $keyValueArray[0] ;} else { $param = ''; }
+            if(array_key_exists(1,$keyValueArray)){  $value = $keyValueArray[1] ;} else { $value = ''; }
+            $pageurlparts['parameters'][ $param ]= $value ;
         }
         $pageurlparts['fullurl'] = $pageURL;
 
@@ -182,8 +180,6 @@ class block_glsubs extends block_base {
             }
         } catch (\Exception $exception){
             return $messages;
-        } catch (\Throwable $exception){
-            return $messages;
         }
 
         if( count($messages) > 0 ){
@@ -194,8 +190,6 @@ class block_glsubs extends block_base {
                     $message->user = $DB->get_record('user', array('id' => (int) $message->event->userid));
                     $message->author = $DB->get_record('user', array('id' => (int) $message->event->authorid));
                 } catch (\Exception $exception){
-                    $this->content->text .= '<strong>'.get_string('block_could_not_access','block_glsubs').$glsubs_settings->messagestoshow.get_string('block_most_recent','block_glsubs').'</strong>';
-                } catch (\Throwable $exception){
                     $this->content->text .= '<strong>'.get_string('block_could_not_access','block_glsubs').$glsubs_settings->messagestoshow.get_string('block_most_recent','block_glsubs').'</strong>';
                 }
             }
@@ -223,8 +217,6 @@ class block_glsubs extends block_base {
             $msg_link = html_writer::link(new moodle_url('/message/index.php',array('user1'=>$USER->id,'viewing'=>'recentnotifications')) , get_string('goto_messages','block_glsubs'));
         } catch (\Exception $exception){
             $msg_link = '';
-        } catch (\Throwable $exception){
-            $msg_link = '';
         }
         $this->content->text .= '<br/>' . $msg_link . '<br/>' ;
         if( (int) $glsubs_settings->messagestoshow > 0 ){
@@ -240,8 +232,6 @@ class block_glsubs extends block_base {
                 $cmessages = null;
                 $unread = ( $counter > 0 );
             } catch (\Exception $exception){
-                $unread = false ;
-            } catch (\Throwable $exception){
                 $unread = false ;
             }
 
@@ -327,8 +317,6 @@ class block_glsubs extends block_base {
                             }
                         } catch (\Exception $exception) {
                             $name = '';
-                        } catch (\Throwable $exception) {
-                            $name = '';
                         }
                     } else { // else if there is a category associated with it get its name
                         try {
@@ -337,17 +325,13 @@ class block_glsubs extends block_base {
                             if(is_null($name)){
                                 $name = $this->get_category($message->event->eventtext);
                             }
-                        } catch (\Exception $exception) {
-                            $name = '';
-                        } catch (\Throwable $exception) {
+                         } catch (\Exception $exception) {
                             $name = '';
                         }
                     }
                     try {
                         $link = html_writer::link(new moodle_url('/blocks/glsubs/view.php' , array('id' => $key  )), substr( $message->date ,0 ,10 ),array('title' => $message->date . chr(13) . strip_tags( $message->event->eventtext ) , 'font-size' => '90%;' ));
                     } catch (\Exception $exception){
-                        $link = '';
-                    } catch (\Throwable $exception){
                         $link = '';
                     }
                     $this->content->text .= '<tr><td>' . $link .'</td>';
@@ -467,13 +451,13 @@ class block_glsubs extends block_base {
         // get the module information
         $courseinfo = get_fast_modinfo($COURSE);
 
+        // add a footer for the block
+        $this->content->footer = '<hr style="display: block!important;"/><div style="text-align:center;">'.get_string('blockfooter','block_glsubs').'</div>';
+
         // prapare for contents
         $this->content = new stdClass;
         $this->content->text = '';
         $this->content->text .= '<strong>'.$PAGE->title . '</strong>';
-
-        // add a footer for the block
-        $this->content->footer = '<hr style="display: block!important;"/><div style="text-align:center;">'.get_string('blockfooter','block_glsubs').'</div>';
 
 
         // get the id parameter if exists
@@ -491,8 +475,6 @@ class block_glsubs extends block_base {
                 }
             } catch (Exception $e) {
                 return $this->content;
-            } catch (Throwable $e) {
-                return $this->content;
             }
 
             // Check if the course module is available and it is visible and it is visible to the user and it is a glossary module
@@ -504,7 +486,7 @@ class block_glsubs extends block_base {
             $glossaryid = (int) $cm->instance ;
 
             // show unread messages
-            $this->show_messages( $glossaryid );
+            // $this->show_messages( $glossaryid );
 
             // create a glossary subscriptions block form and assign its action to the original page
             $subscriptions_form = new block_glsubs_form($this->currentPageURL()['fullurl']);
@@ -515,8 +497,6 @@ class block_glsubs extends block_base {
                     $url = new moodle_url($_SERVER['HTTP_REFERER'], array());
                     redirect($url);
                 } catch (Exception $e) {
-                    header( 'Location: '. $_SERVER['HTTP_REFERER'] ) ;
-                } catch (Throwable $e) {
                     header( 'Location: '. $_SERVER['HTTP_REFERER'] ) ;
                 }
             } elseif ($subscriptions_form->is_submitted()) {
@@ -529,13 +509,10 @@ class block_glsubs extends block_base {
                     } catch (\Exception $exception){
                         $errors = new \stdClass();
                         $errors->messages[] = 'Error while attempting to save data '. $exception->getMessage();
-                    } catch (\Throwable $exception){
-                        $errors = new \stdClass();
-                        $errors->messages[] = 'Error while attempting to save data '. $exception->getMessage();
                     }
 
                     // if there were any errors, display them
-                    if(isset($errors->messages) && is_array($errors->messages)){
+                    if(is_array($errors->messages)){
                         foreach ($errors->messages as $key => $errmsg ){
                             $this->content->text .= '<p>Error: '.$errmsg .'</p>';
                         }
@@ -723,8 +700,6 @@ class block_glsubs extends block_base {
                             }*/
             }
         } catch (\Exception $exception) {
-            $error->messages[] = 'Error while attempting to store data '.$exception->getMessage();
-        } catch (\Throwable $exception) {
             $error->messages[] = 'Error while attempting to store data '.$exception->getMessage();
         }
 

@@ -76,7 +76,7 @@ class block_glsubs_form extends moodleform
         // get course module id
         $cmid = optional_param('id',0, PARAM_INT);
         $cm = $course_info->get_cm($cmid);
-        $text = '';
+
         // get the glossaryid for the database entries queries
         $glossaryid = $cm->instance;
 
@@ -132,8 +132,7 @@ class block_glsubs_form extends moodleform
         $label .= " (". $this->usersubscriptions->full->full->allglossaryentries .")";
 
         // add the full subscription option on the form
-        // $mform->addElement( 'advcheckbox' , $this->usersubscriptions->full->full->elementname , $label , '' , array('group'=>1,'margin'=>'0') , array(0,1) );
-        $mform->addElement( 'advcheckbox' , $this->usersubscriptions->full->full->elementname , $label , '' , array('margin'=>'0') , array(0,1) );
+        $mform->addElement( 'advcheckbox' , $this->usersubscriptions->full->full->elementname , $label , '' , array('group'=>1,'margin'=>'0') , array(0,1) );
         // add the default value to an array for the final stage of the form creation
         $this->usersubscriptions->defaults[$this->usersubscriptions->full->full->elementname] = $this->usersubscriptions->full->full->sub;
         $mform->setType($this->usersubscriptions->full->full->elementname,PARAM_INT);
@@ -144,8 +143,7 @@ class block_glsubs_form extends moodleform
         $label = '&emsp; &emsp;' . get_string('newcategoriessubscription','block_glsubs'). " (".$DB->count_records( 'glossary_categories' , array( 'glossaryid' => $glossaryid ) ) .")";
         // add the new categories subscription option on the form
 
-        // $mform->addElement( 'advcheckbox' , $this->usersubscriptions->full->fullnewcat->elementname , $label , '' ,array('group'=>1),array(0,1));
-        $mform->addElement( 'advcheckbox' , $this->usersubscriptions->full->fullnewcat->elementname, $label, '', null, array(0,1));
+        $mform->addElement( 'advcheckbox' , $this->usersubscriptions->full->fullnewcat->elementname , $label , '' ,array('group'=>1),array(0,1));
         // add the default value to an array for the final stage of the form creation
         $this->usersubscriptions->defaults[$this->usersubscriptions->full->fullnewcat->elementname] = $this->usersubscriptions->full->fullnewcat->sub ;
         $mform->setType($this->usersubscriptions->full->fullnewcat->elementname,PARAM_INT);
@@ -161,8 +159,7 @@ class block_glsubs_form extends moodleform
         $label .= get_string('newuncategorisedconceptssubscription','block_glsubs')." (". ($this->usersubscriptions->full->full->allglossaryentries - $this->usersubscriptions->full->full->categorisedentries).")";
 
         // add the new concepts without category option on the form
-        // $mform->addElement('advcheckbox',$this->usersubscriptions->full->fullnewconcept->elementname,$label,'',array('group'=>1),array(0,1));
-        $mform->addElement('advcheckbox',$this->usersubscriptions->full->fullnewconcept->elementname,$label,'',null ,array(0,1));
+        $mform->addElement('advcheckbox',$this->usersubscriptions->full->fullnewconcept->elementname,$label,'',array('group'=>1),array(0,1));
         // add the default value to an array for the final stage of the form creation
         $this->usersubscriptions->defaults[$this->usersubscriptions->full->fullnewconcept->elementname] = $this->usersubscriptions->full->fullnewconcept->sub;
         $mform->setType($this->usersubscriptions->full->fullnewconcept->elementname,PARAM_INT);
@@ -261,22 +258,29 @@ class block_glsubs_form extends moodleform
         $commentslabel = get_string('glossarycommentson','block_glsubs');
 
         $page_mode = optional_param('mode','',PARAM_ALPHANUM);
-        $page_hook = (optional_param('hook','',PARAM_RAW));
+        $page_hook = optional_param('hook','',PARAM_RAW);
+        $author_ids = array();
         if($page_mode === 'author' && (int) $page_hook === 0 ) {
             try{
-                $page_hook_1 = $DB->get_records_sql('SELECT id FROM {user} WHERE concat(firstname , \' \' , lastname) = :fullname ',array('fullname'=>$page_hook),0,1);
-                foreach ($page_hook_1 as $key => $value){
+                $author_records = $DB->get_records_sql('SELECT id FROM {user} WHERE concat(firstname , \' \' , lastname) = :fullname ',array('fullname'=>$page_hook) );
+                foreach ($author_records as $key => $value){
                     $page_hook = (int) $key;
+                    $author_ids[] = $key;
                 }
             } catch (Exception $exception){
-                $page_hook = 0;
-            } catch (Throwable $exception){
                 $page_hook = 0;
             }
         }
         foreach ($loop as $key => & $concept_entry) {
             $concept_entry->elementname = 'glossary_concept_' . $key ;
-            if( isset( $concept_entry->id ) /* && ( $page_mode === '' || ( $page_mode === 'author' && ( (int) $page_hook === 0 || (int) $concept_entry->userid === $page_hook ) ) || ( (int) $page_hook === 0 || $page_mode === 'cat' && isset($concept_entry->categories) && array_search( $page_hook, $concept_entry->categories )  )  ) */ ){
+            if( isset( $concept_entry->id )
+                && ( $page_mode == ''
+                    || ($page_mode == 'author' && ( (int) $page_hook == 0 || $page_hook === 'All'))
+                    || ($page_mode == 'author' && in_array( (int) $concept_entry->userid , $author_ids ))
+                    || ($page_mode == 'cat' && (int) $page_hook == -1)
+                    || ($page_mode == 'cat' && in_array( (int) $page_hook , $concept_entry->categories ))
+                    )    /* && ( $page_mode === '' || ( $page_mode === 'author' && ( (int) $page_hook === 0 || (int) $concept_entry->userid === $page_hook ) ) || ( (int) $page_hook === 0 || $page_mode === 'cat' && isset($concept_entry->categories) && array_search( $page_hook, $concept_entry->categories )  )  ) */
+                ){
                 // only existing concepts will be shown , all marked for deleteion will not
                 $concept_entry->comment_elementname = 'glossary_comment_' . $key ;
                 $entryurl = new moodle_url("/mod/glossary/view.php",array('id'=>$cmid,'mode'=>'entry','hook'=>$key));
@@ -285,16 +289,14 @@ class block_glsubs_form extends moodleform
                 $entrylink = '<span title="'.$concept_entry->concept.'">'.$entrylink.'</span>';
 
                 // add concept checkbox
-                // $mform->addElement('advcheckbox',$concept_entry->elementname , $entrylink ,array('group'=>10),array(0,1));
-                $mform->addElement('advcheckbox',$concept_entry->elementname , $entrylink, null, array(0,1));
+                $mform->addElement('advcheckbox',$concept_entry->elementname , $entrylink ,'',array('group'=>10),array(0,1));
 
                 // add the default value to an array for the final stage of the form creation
                 $this->usersubscriptions->defaults[$concept_entry->elementname] = $concept_entry->conceptactive ;
                 $mform->disabledIf($concept_entry->elementname,$this->usersubscriptions->full->full->elementname,'checked');
 
                 // Add comments checkbox
-                // $mform->addElement('advcheckbox',$concept_entry->comment_elementname , $commentslabel . " (". $concept_entry->commentscounter . ")",array('group'=>10),array(0,1));
-                $mform->addElement('advcheckbox',$concept_entry->comment_elementname , $commentslabel . " (". $concept_entry->commentscounter . ")", null, array(0,1));
+                $mform->addElement('advcheckbox',$concept_entry->comment_elementname , $commentslabel . " (". $concept_entry->commentscounter . ")",'',array('group'=>10),array(0,1));
 
                 // add the default value to an array for the final stage of the form creation
                 $this->usersubscriptions->defaults[$concept_entry->comment_elementname] = $concept_entry->commentsactive ;
@@ -315,7 +317,7 @@ class block_glsubs_form extends moodleform
                     $linkstext = "(" . count($concept_entry->categories) . ")" . $linkstext;
                     $mform->addElement('link', 'concept_' . $key . '_categories', $linkstext);
                 }
-                $mform->addElement('html','<hr style="display:block !important; visibility: visible!important;">');
+                $mform->addElement('html','<hr style="height:1px!important;border-color:inherit!important;display:block !important; visibility: visible!important;">');
             } else {
                 $concept_entry = null ;
             }

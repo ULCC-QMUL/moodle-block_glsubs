@@ -53,29 +53,22 @@ defined('MOODLE_INTERNAL') || die();
 
 
 function xmldb_block_glsubs_uninstall() {
-    global $CFG, $DB;
+   global $CFG, $DB;
 
-    $dbman = $DB->get_manager();
+   $dbman = $DB->get_manager();
+	
+   $xmlds = $dbman->get_install_xml_schema();
 
-    $xmlds = $dbman->get_install_xml_schema();
-    $xmlds->deleteTable('block_glsubs_authors_subs');
-    $xmlds->deleteTable('block_glsubs_categories_subs');
-    $xmlds->deleteTable('block_glsubs_concept_subs');
-    $xmlds->deleteTable('block_glsubs_event_subs_log');
-    $xmlds->deleteTable('block_glsubs_glossaries_subs');
-    $xmlds->deleteTable('block_glsubs_messages_log');
+   $xmlds->deleteTable('block_glsubs_authors_subs');
+   $xmlds->deleteTable('block_glsubs_categories_subs');
+   $xmlds->deleteTable('block_glsubs_concept_subs');
+   $xmlds->deleteTable('block_glsubs_event_subs_log');
+   $xmlds->deleteTable('block_glsubs_glossaries_subs');
+   $xmlds->deleteTable('block_glsubs_messages_log');
 
-    $DB->delete_records('events_handlers',array('component'=>'block_glsubs'));
-    $DB->delete_records('block',array('name'=>'glsubs'));
-    $DB->delete_records('block_instances',array('blockname'=>'glsubs'));
-    $DB->delete_records('config_plugins',array('plugin'=>'block_glsubs'));
-
-    $DB->delete_records_select('config_plugins',"name like '%block\_glsubs%'");
-    $DB->delete_records_select('user_preferences', " name like '%block\_glsubs%' ");
-    $DB->delete_records_select('task_scheduled', " classname like '%block\_glsubs%' ");
-    $DB->delete_records_select("role_capabilities"," capability like '%block/glsubs%' ");
-    $DB->delete_records_select("capabilities"," name like '%block/glsubs%' ");
-    $DB->delete_records_select("message_providers"," name like 'glsubs\_message' ");
+   $DB->delete_records('events_handlers',array('component'=>'block_glsubs'));
+   $DB->delete_records('block',array('name'=>'glsubs'));
+   $DB->delete_records('config_plugins',array('plugin'=>'block_glsubs'));
 
    return true;
 }

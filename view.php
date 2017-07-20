@@ -102,9 +102,6 @@ try {
 } catch (\Exception $exception){
     echo 'There was an error while attempting to read from the glossary event log';
     $error = true ;
-} catch (\Throwable $exception){
-    echo 'There was an error while attempting to read from the glossary event log';
-    $error = true ;
 }
 // check if the logged in user is the user this message is intended to be seen by, otherwise set an error condition
 if( (int) $message->userid !== (int) $USER->id ){
