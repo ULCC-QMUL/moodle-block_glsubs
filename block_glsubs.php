@@ -237,9 +237,9 @@ class block_glsubs extends block_base {
 
             // Create a toggle mechanism for showing or hiding the recent messages
             if(count($messages)> 0){
-
+                $this->page->requires->jquery();
                 $javascriptswitch  = '';
-
+/*
                 $javascriptswitch .= chr(13).'<script>';
                 $javascriptswitch .= chr(13).'var jQueryScriptOutputted = false;';
                 $javascriptswitch .= chr(13).'function initJQuery() {';
@@ -261,7 +261,7 @@ class block_glsubs extends block_base {
                 $javascriptswitch .= chr(13).'}';
                 $javascriptswitch .= chr(13).'initJQuery();';
                 $javascriptswitch .= chr(13).'</script>';
-
+*/
                     // JQuery is available via $
 
                 $javascriptswitch .= chr(13).'<script>';
@@ -451,13 +451,13 @@ class block_glsubs extends block_base {
         // get the module information
         $courseinfo = get_fast_modinfo($COURSE);
 
-        // add a footer for the block
-        $this->content->footer = '<hr style="display: block!important;"/><div style="text-align:center;">'.get_string('blockfooter','block_glsubs').'</div>';
-
         // prapare for contents
         $this->content = new stdClass;
         $this->content->text = '';
         $this->content->text .= '<strong>'.$PAGE->title . '</strong>';
+
+        // add a footer for the block
+        $this->content->footer = '<hr style="display: block!important;"/><div style="text-align:center;">'.get_string('blockfooter','block_glsubs').'</div>';
 
 
         // get the id parameter if exists
@@ -486,7 +486,7 @@ class block_glsubs extends block_base {
             $glossaryid = (int) $cm->instance ;
 
             // show unread messages
-            // $this->show_messages( $glossaryid );
+            $this->show_messages( $glossaryid );
 
             // create a glossary subscriptions block form and assign its action to the original page
             $subscriptions_form = new block_glsubs_form($this->currentPageURL()['fullurl']);
