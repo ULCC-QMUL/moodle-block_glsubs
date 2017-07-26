@@ -277,8 +277,9 @@ class block_glsubs_form extends moodleform
                 && ( $page_mode == ''
                     || ($page_mode == 'author' && ( (int) $page_hook == 0 || $page_hook === 'All'))
                     || ($page_mode == 'author' && in_array( (int) $concept_entry->userid , $author_ids ))
-                    || ($page_mode == 'cat' && (int) $page_hook == -1)
+                    || ($page_mode == 'cat' && (int) $page_hook == -1 && count($concept_entry->categories) == 0 )
                     || ($page_mode == 'cat' && in_array( (int) $page_hook , $concept_entry->categories ))
+                    || ($page_mode == 'entry' && $concept_entry->id == $page_hook)
                     )    /* && ( $page_mode === '' || ( $page_mode === 'author' && ( (int) $page_hook === 0 || (int) $concept_entry->userid === $page_hook ) ) || ( (int) $page_hook === 0 || $page_mode === 'cat' && isset($concept_entry->categories) && array_search( $page_hook, $concept_entry->categories )  )  ) */
                 ){
                 // only existing concepts will be shown , all marked for deleteion will not

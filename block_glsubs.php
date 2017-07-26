@@ -218,7 +218,7 @@ class block_glsubs extends block_base {
         } catch (\Exception $exception){
             $msg_link = '';
         }
-        $this->content->text .= '<br/>' . $msg_link . '<br/>' ;
+        // $this->content->text .= '<br/>' . $msg_link . '<br/>' ;
         if( (int) $glsubs_settings->messagestoshow > 0 ){
             $messages = $this->get_latest_messages( $glossaryid );
             try {
@@ -296,6 +296,7 @@ class block_glsubs extends block_base {
                 $link = html_writer::link(new moodle_url('/message/index.php' , array()),$unread ? get_string('block_unread_messages','block_glsubs') : get_string('block_read_messages','block_glsubs') );
                 $this->content->text .= $link ;
                 $this->content->text .= '<br/>';
+
                 $this->content->text .= '<div id="glossarymessagesblocktable" style="display: none ;">';
 
 
