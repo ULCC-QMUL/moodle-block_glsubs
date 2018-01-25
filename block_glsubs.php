@@ -139,12 +139,20 @@ class block_glsubs extends block_base {
         $pageurlparts['protocol'] = explode('://',$pageurlparts[0])[0];
         $pageurlparts['host'] = explode('/',explode('://',$pageurlparts[0])[1])[0];
         $pageurlparts['pagepath'] = explode($pageurlparts['host'],explode('://',$pageurlparts[0])[1])[1];
-        foreach(explode('&',$pageurlparts[1]) as $key =>$parameterset ){
-            $keyValueArray = explode('=',$parameterset);
-            if(array_key_exists(0,$keyValueArray)){  $param = $keyValueArray[0] ;} else { $param = ''; }
-            if(array_key_exists(1,$keyValueArray)){  $value = $keyValueArray[1] ;} else { $value = ''; }
-            $pageurlparts['parameters'][ $param ]= $value ;
+        if(isset($pageurlparts[1])){
+            foreach(explode('&',$pageurlparts[1]) as $key =>$parameterset ){
+                $keyValueArray = explode('=',$parameterset);
+                if(array_key_exists(0,$keyValueArray)){  $param = $keyValueArray[0] ;} else { $param = ''; }
+                if(array_key_exists(1,$keyValueArray)){  $value = $keyValueArray[1] ;} else { $value = ''; }
+                $pageurlparts['parameters'][ $param ]= $value ;
+            }
         }
+        if(count($_REQUEST)>0){
+            foreach ($_REQUEST as $param=>$value){
+                $pageurlparts['parameters'][ $param ]= $value ;
+            }
+        }
+
         $pageurlparts['fullurl'] = $pageURL;
 
         return $pageurlparts;
