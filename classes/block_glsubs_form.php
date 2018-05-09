@@ -267,7 +267,7 @@ class block_glsubs_form extends moodleform
                     $page_hook = (int) $key;
                     $author_ids[] = $key;
                 }
-            } catch (Exception $exception){
+            } catch (Throwable $exception){
                 $page_hook = 0;
             }
         }

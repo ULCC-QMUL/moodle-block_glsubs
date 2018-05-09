@@ -99,7 +99,7 @@ try {
         $message->user = $DB->get_record('user', array('id' => (int)$message->event->userid));
         $message->author = $DB->get_record('user', array('id' => (int)$message->event->authorid));
     }
-} catch (\Exception $exception){
+} catch (\Throwable $exception){
     echo 'There was an error while attempting to read from the glossary event log';
     $error = true ;
 }

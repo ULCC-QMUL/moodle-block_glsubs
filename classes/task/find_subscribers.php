@@ -104,7 +104,7 @@ class find_subscribers extends \core\task\scheduled_task
             $DB->delete_records('block_glsubs_event_subs_log',array('glossaryid' => 0 ));
             // mtrace('Invalid glossary subscriptions deletion process is finished');
             return true;
-        } catch ( \Exception $exception) {
+        } catch ( \Throwable $exception) {
             mtrace('ERROR: There was a database access error while deleting invalid glossary subscriptions '.$exception->getMessage());
         }
         return false;
@@ -169,7 +169,7 @@ class find_subscribers extends \core\task\scheduled_task
                 $full_log_glossary_id->full = 1;
             }
             return true;
-        } catch (\Exception $exception) {
+        } catch (\Throwable $exception) {
             mtrace('ERROR: There was a database access error while processing the new full glossary subscriptions '.$exception->getMessage());
         }
         return false;
@@ -226,7 +226,7 @@ class find_subscribers extends \core\task\scheduled_task
             // clear memory
             $records = null ;
             return true;
-        } catch (\Exception $exception) {
+        } catch (\Throwable $exception) {
             mtrace('ERROR: There was a database access error while processing the glossary new uncategorised concepts subscriptions '.$exception->getMessage());
         }
         return false;
@@ -281,7 +281,7 @@ class find_subscribers extends \core\task\scheduled_task
             // clear memory
             $records = null ;
             return true;
-        } catch (\Exception $exception) {
+        } catch (\Throwable $exception) {
             mtrace('ERROR: There was a database access error while processing the glossary new categories subscriptions '.$exception->getMessage());
         }
         return false;
@@ -340,7 +340,7 @@ class find_subscribers extends \core\task\scheduled_task
             $records = null ;
 
             return true;
-        } catch (\Exception $exception) {
+        } catch (\Throwable $exception) {
             mtrace('ERROR: There was a database access error while processing the glossary authors subscriptions '.$exception->getMessage());
             return false;
         }
@@ -399,7 +399,7 @@ class find_subscribers extends \core\task\scheduled_task
             $records = null ;
 
             return true;
-        } catch (\Exception $exception) {
+        } catch (\Throwable $exception) {
             mtrace('ERROR: There was a database access error while processing the glossary category subscriptions '.$exception->getMessage());
             return false;
         }
@@ -462,7 +462,7 @@ class find_subscribers extends \core\task\scheduled_task
             $records = null ;
 
             return true;
-        } catch (\Exception $exception) {
+        } catch (\Throwable $exception) {
             mtrace('ERROR: There was a database access error while processing the glossary concept subscriptions '.$exception->getMessage());
             return false;
         }
@@ -488,7 +488,7 @@ class find_subscribers extends \core\task\scheduled_task
             // delete records refering to a non existing concept ID like 0
             $DB->delete_records('block_glsubs_concept_subs',array('conceptid' => 0 ) );
             mtrace('Erased '. $counter . ' subscriptions with invalid concept ID');
-        } catch (\Exception $exception) {
+        } catch (\Throwable $exception) {
             mtrace('Error while erasing invalid concept subscriptions');
             return false;
         }
@@ -505,7 +505,7 @@ class find_subscribers extends \core\task\scheduled_task
                 $DB->delete_records( 'block_glsubs_concept_subs' , array('conceptid' => (int) $key ) );
             }
 
-        } catch (\Exception $exception) {
+        } catch (\Throwable $exception) {
             mtrace('ERROR: There was a database error while removing subscriptions on erased concept IDs '.$exception->getMessage() );
             return false;
         }
@@ -532,7 +532,7 @@ class find_subscribers extends \core\task\scheduled_task
             // delete records refering to a non existing category ID like 0
             $DB->delete_records('block_glsubs_categories_subs',array('categoryid' => 0 ) );
             mtrace('Erased '. $counter . ' subscriptions with invalid category ID');
-        } catch (\Exception $exception) {
+        } catch (\Throwable $exception) {
             mtrace('Error while erasing invalid category subscriptions');
             return false;
         }
@@ -549,7 +549,7 @@ class find_subscribers extends \core\task\scheduled_task
                 $DB->delete_records( 'block_glsubs_categories_subs' , array('categoryid' => (int) $key ) );
             }
 
-        } catch (\Exception $exception) {
+        } catch (\Throwable $exception) {
             mtrace('ERROR: There was a database error while removing subscriptions on erased category IDs '.$exception->getMessage() );
             return false;
         }
@@ -576,7 +576,7 @@ class find_subscribers extends \core\task\scheduled_task
             // delete records refering to a non existing author ID like 0
             $DB->delete_records('block_glsubs_authors_subs',array('authorid' => 0 ) );
             mtrace('Erased '. $counter . ' subscriptions with invalid author ID');
-        } catch (\Exception $exception) {
+        } catch (\Throwable $exception) {
             mtrace('Error while erasing invalid author subscriptions');
             return false;
         }
@@ -593,7 +593,7 @@ class find_subscribers extends \core\task\scheduled_task
                 $DB->delete_records( 'block_glsubs_authors_subs' , array('authorid' => (int) $key ) );
             }
 
-        } catch (\Exception $exception) {
+        } catch (\Throwable $exception) {
             mtrace('ERROR: There was a database error while removing subscriptions on erased author IDs '.$exception->getMessage() );
             return false;
         }
@@ -620,7 +620,7 @@ class find_subscribers extends \core\task\scheduled_task
             // delete records refering to a non existing concept ID like 0
             $DB->delete_records('block_glsubs_concept_subs',array('conceptid' => 0 ) );
             // mtrace('Erased '. $counter . ' subscriptions with invalid concept ID');
-        } catch (\Exception $exception) {
+        } catch (\Throwable $exception) {
             mtrace('Error while erasing invalid concept subscriptions');
             return false;
         }
@@ -638,7 +638,7 @@ class find_subscribers extends \core\task\scheduled_task
                 $DB->delete_records( 'block_glsubs_concept_subs' , array('conceptid' => (int) $key ) );
             }
 
-        } catch (\Exception $exception) {
+        } catch (\Throwable $exception) {
             mtrace('ERROR: There was a database error while removing subscriptions on erased concept IDs '.$exception->getMessage() );
             return false;
         }
@@ -671,7 +671,7 @@ class find_subscribers extends \core\task\scheduled_task
             try {
                 $new_events_counter = $DB->get_record_sql('SELECT COUNT(id) entries FROM {block_glsubs_event_subs_log} WHERE processed = 0 AND timecreated < :timenow ', array( 'timenow' => $timenow ) );
                 mtrace("There are $new_events_counter->entries unprocessed log entries " );
-            } catch (\Exception $exception) {
+            } catch (\Throwable $exception) {
                 mtrace('ERROR: There was a database access error while getting new glossary event log entries '.$exception->getMessage());
                 $error_status = true;
                 $new_events_counter = new \stdClass();
@@ -729,7 +729,7 @@ class find_subscribers extends \core\task\scheduled_task
                             $DB->set_field_select('block_glsubs_event_subs_log' , 'processed' , 1 , ' processed = 0 AND timecreated < :timenow ', array('timenow' => $timenow ) );
                         }
                         mtrace('Events up to '.date('c',$timenow).' are marked as processed');
-                    } catch (\Exception $exception) {
+                    } catch (\Throwable $exception) {
                         mtrace('ERROR: An error occured on updating the glossary event logs as processed, will try again next time');
                         return false;
                     }
