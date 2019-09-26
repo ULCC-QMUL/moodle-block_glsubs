@@ -174,9 +174,9 @@ class message_subscribers extends \core\task\scheduled_task
         global $DB;
         $def_config = (int) get_config('block_glsubs','messagebatchsize');
         $message_logs = array();
-        $sql  = 'SELECT l.id , l.userid , l.eventlogid , l.timecreated , e.eventtext, e.eventlink elink FROM {block_glsubs_messages_log} l ';
-        $sql .= 'JOIN {block_glsubs_event_subs_log} e ON e.id = l.eventlogid ';
-        $sql .= 'WHERE l.timedelivered IS NULL';
+        $sql = 'SELECT l.id , l.userid , l.eventlogid , l.timecreated , e.eventtext, e.eventlink elink FROM {block_glsubs_messages_log} AS l 
+JOIN {block_glsubs_event_subs_log} AS e ON e.id = l.eventlogid 
+WHERE l.timedelivered IS NULL';
         try {
             $message_logs = $DB->get_records_sql( $sql , array() , 0 , $def_config );
         } catch (\Throwable $exception) {
@@ -200,7 +200,7 @@ class message_subscribers extends \core\task\scheduled_task
      */
     private function system_user(){
         global $USER;
-        $user = new \stdClass();
+        $user = (object)new \stdClass();
         $user->email = $USER->email ; // : Email address
         $user->firstname = fullname( $USER ) ; // : You can put both first and last name in this field.
         $user->lastname = get_string('pluginname','block_glsubs'); //
