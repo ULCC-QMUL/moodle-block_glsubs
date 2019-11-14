@@ -279,6 +279,7 @@ class block_glsubs_observer
                 $logid = $DB->insert_record('block_glsubs_event_subs_log', $record, true);
             }
         } catch (\Throwable $e) {
+            error_log('ERROR: glsubs entry event messages ' . $e->getMessage());
             // there was an error creating the event entry for this category in this glossary
             return false;
         }
@@ -459,6 +460,7 @@ class block_glsubs_observer
             }
 
         } catch (\Throwable $e) {
+            error_log('ERROR: glsubs comment event messages ' . $e->getMessage());
             // there was an error creating the event entry for this category in this glossary
             return false;
         }
@@ -589,6 +591,7 @@ class block_glsubs_observer
             // save the log entry for this glossary event
             $logid = $DB->insert_record( 'block_glsubs_event_subs_log' , $record , true );
         } catch (\Throwable $e) {
+            error_log('ERROR: glsubs category event messages ' . $e->getMessage());
             // there was an error creating the event entry for this category in this glossary
             return false;
         }
@@ -636,6 +639,7 @@ class block_glsubs_observer
                 $user_url = new moodle_url('/user/view.php', array('id' => (int)$eventdata['userid']));
                 $user_link = html_writer::link($user_url, fullname(\core_user::get_user((int)$eventdata['userid'])));
             } catch (Throwable $exception) {
+                error_log('ERROR: glsubs get event text messages ' . $exception->getMessage());
                 $user_link = '';
             }
         } else {
@@ -648,6 +652,7 @@ class block_glsubs_observer
                 $author_url = new moodle_url('/user/view.php', array('id' => (int)$text_event['event_author']));
                 $author_link = html_writer::link($author_url, fullname(\core_user::get_user((int)$text_event['event_author'])));
             } catch (Throwable $exception) {
+                error_log('ERROR: glsubs get event text messages ' . $exception->getMessage());
                 $author_link = '';
             }
         } else {
@@ -794,6 +799,7 @@ class block_glsubs_observer
         try {
             $rec_exists = $DB->record_exists('block_glsubs_glossaries_subs',array('userid' => (int) $userid , 'glossaryid' => $glossaryid ) ) ;
         } catch (Throwable $exception){
+            error_log('ERROR: glsubs check user subscription record exists ' . $exception->getMessage());
             $rec_exists = true; // trigger an error condition to disable creation of a record while the database is not responding
         }
         // check if the user is registered into the glossary subscriptions main table
@@ -807,7 +813,11 @@ class block_glsubs_observer
             $record->newcategories = 0 ;        // specify new categories subscription
             $record->newentriesuncategorised = 0 ; // specify new concepts without categories subscription
             // insert the main record for th user on the specific glossary
-            $DB->insert_record('block_glsubs_glossaries_subs', $record) ;
+            try {
+                $DB->insert_record('block_glsubs_glossaries_subs', $record);
+            } catch (\Throwable $exception){
+                error_log('ERROR: glsubs check user subscription '. $exception->getMessage());
+            }
         }
     }
 }

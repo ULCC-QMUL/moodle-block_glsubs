@@ -100,7 +100,7 @@ try {
         $message->author = $DB->get_record('user', array('id' => (int)$message->event->authorid));
     }
 } catch (\Throwable $exception){
-    echo 'There was an error while attempting to read from the glossary event log';
+    error_log('ERROR: glsubs There was an error while attempting to read from the glossary event log '.$exception->getMessage());
     $error = true ;
 }
 // check if the logged in user is the user this message is intended to be seen by, otherwise set an error condition
