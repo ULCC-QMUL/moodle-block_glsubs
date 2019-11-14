@@ -271,51 +271,22 @@ ORDER BY l.id';
             // Create a toggle mechanism for showing or hiding the recent messages
             if (count($messages) > 0) {
                 $this->page->requires->jquery();
-                $javascriptswitch = '';
-                /*
-                                $javascriptswitch .= chr(13).'<script>';
-                                $javascriptswitch .= chr(13).'var jQueryScriptOutputted = false;';
-                                $javascriptswitch .= chr(13).'function initJQuery() {';
-                                // $javascriptswitch .= chr(13).'    //if the jQuery object isn\'t available';
-                                $javascriptswitch .= chr(13).'    if (typeof(jQuery) == \'undefined\') {';
-                                $javascriptswitch .= chr(13).'        if (! jQueryScriptOutputted) {';
-                                // $javascriptswitch .= chr(13).'            //only output the script once..';
-                                $javascriptswitch .= chr(13).'            jQueryScriptOutputted = true ;';
-                                // $javascriptswitch .= chr(13).'            //output the script (load it from google api)';
-                                $javascriptswitch .= chr(13).'            document.write("<scr" + "ipt type=\"text/javascript\" src=\"http://ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.min.js\"></scr" + "ipt>");';
-                                $javascriptswitch .= chr(13).'        }';
-                                $javascriptswitch .= chr(13).'        setTimeout("initJQuery()", 150);';
-                                $javascriptswitch .= chr(13).'    } else {';
-                                $javascriptswitch .= chr(13).'        $(function() {';
-                                // $javascriptswitch .= chr(13).'            // do anything that needs to be done on document.ready';
-                                // $javascriptswitch .= chr(13).'            // don\'t really need this dom ready thing if used in footer';
-                                $javascriptswitch .= chr(13).'        });';
-                                $javascriptswitch .= chr(13).'    }';
-                                $javascriptswitch .= chr(13).'}';
-                                $javascriptswitch .= chr(13).'initJQuery();';
-                                $javascriptswitch .= chr(13).'</script>';
-                */
-                // JQuery is available via $
-
-                $javascriptswitch .= chr(13) . '<script>';
-//                $javascriptswitch .= chr(13)."require(['jquery'], function($) {";
-                $javascriptswitch .= chr(13) . ' $( document ).ready(function(){ ';
-                $javascriptswitch .= chr(13) . '      $("#glossarymessagesshowhide").click(function(){ ';
-                $javascriptswitch .= chr(13) . '          $("#glossarymessagesblocktable").toggle();  ';
-                $javascriptswitch .= chr(13) . '          $("#glossarymessagesshowhide").toggle();  ';
-                $javascriptswitch .= chr(13) . '          $("#glossarymessagesshowhide_2").toggle();  ';
-                $javascriptswitch .= chr(13) . '      }); ';
-                $javascriptswitch .= chr(13) . '      $("#glossarymessagesshowhide_2").click(function(){ ';
-                $javascriptswitch .= chr(13) . '          $("#glossarymessagesblocktable").toggle();  ';
-                $javascriptswitch .= chr(13) . '          $("#glossarymessagesshowhide").toggle();  ';
-                $javascriptswitch .= chr(13) . '          $("#glossarymessagesshowhide_2").toggle();  ';
-                $javascriptswitch .= chr(13) . '      }); ';
-                $javascriptswitch .= chr(13) . ' }) ; ';
-//                $javascriptswitch .= chr(13).'});';
-                $javascriptswitch .= chr(13) . ' </script>';
-                $javascriptswitch .= chr(13);
-
-
+                $javascriptswitch = <<<JSC
+<script>
+    $( document ).ready(function(){
+          $("#glossarymessagesshowhide").click(function(){
+              $("#glossarymessagesblocktable").toggle();  
+              $("#glossarymessagesshowhide").toggle();  
+              $("#glossarymessagesshowhide_2").toggle();
+         });
+        $("#glossarymessagesshowhide_2").click(function(){
+            $("#glossarymessagesblocktable").toggle();
+            $("#glossarymessagesshowhide").toggle();
+            $("#glossarymessagesshowhide_2").toggle();
+        });
+     }) ; 
+</script>
+JSC;
                 $this->content->text .= '<div id="glossarymessagesblock">';
                 $this->content->text .= '<span id="glossarymessagesshowhide">';
                 $this->content->text .= get_string('view_show_hide', 'block_glsubs');
