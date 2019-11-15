@@ -151,15 +151,15 @@ class message_subscribers extends \core\task\scheduled_task
                 $moodle_message->replyto = $USER->email;
                 $content = array('*' => array('header' => ' ----- ', 'footer' => ' ---- ')); // Extra content for specific processor
                 $moodle_message->set_additional_content('email', $content);
-            } catch(\Throwable $exception) {
+            } catch (\Throwable $exception) {
                 error_log(implode("\r\n", $exception->getTrace()));
-                error_log('ERROR: glsubs message creation '.$exception->getMessage());
+                error_log('ERROR: glsubs message creation ' . $exception->getMessage());
             }
             try {
-                if($moodle_message){
+                if ($moodle_message) {
                     $messageid = message_send($moodle_message);
                 } else {
-                    error_log('ERROR: glsubs No message was created for '.implode("\r\n",(array)$log_message));
+                    error_log('ERROR: glsubs No message was created for ' . implode("\r\n", (array)$log_message));
                 }
             } catch (\Throwable $exception) {
                 error_log('ERROR: glsubs while sending a message ' . $exception->getMessage());
@@ -187,7 +187,7 @@ class message_subscribers extends \core\task\scheduled_task
     private function get_undelivered_log()
     {
         global $DB;
-        $def_config = (int)get_config('block_glsubs', 'messagebatchsize');
+        $def_config = max(50, (int)get_config('block_glsubs', 'messagebatchsize'));
         $message_logs = array();
         $sql = 'SELECT l.id , l.userid , l.eventlogid , l.timecreated , e.eventtext, e.eventlink elink 
 FROM {block_glsubs_messages_log} AS l 
