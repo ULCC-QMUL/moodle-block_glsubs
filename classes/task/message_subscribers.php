@@ -139,6 +139,16 @@ class message_subscribers extends \core\task\scheduled_task
                 $moodle_message->name = 'instantmessage';
                 $moodle_message->userfrom = $system_user;
                 $moodle_message->userto = $user;
+                $course_rec = $DB->get_records_sql("
+SELECT g.course 
+FROM {block_glsubs_messages_log} AS ml
+JOIN {block_glsubs_event_subs_log} AS sl ON sl.id = ml.eventlogid
+JOIN {glossary} AS g ON g.id = sl.glossaryid
+WHERE ml.eventlogid = :eventlogid
+", ['eventlogid' => (int)$log_message->eventlogid], 0, 1);
+                $course_rec = array_shift($course_rec);
+                $course_rec = (int)$course_rec['course'];
+                $moodle_message->courseid = 0;
                 $moodle_message->subject = get_string('pluginname', 'block_glsubs');
                 // ignore this $moodle_message->fullmessage = $messageText;
                 $moodle_message->fullmessageformat = FORMAT_HTML;
@@ -152,7 +162,7 @@ class message_subscribers extends \core\task\scheduled_task
                 $content = array('*' => array('header' => ' ----- ', 'footer' => ' ---- ')); // Extra content for specific processor
                 $moodle_message->set_additional_content('email', $content);
             } catch (\Throwable $exception) {
-                error_log(implode("\r\n", $exception->getTrace()));
+                error_log(implode("\r\n", (array)$exception->getTrace()));
                 error_log('ERROR: glsubs message creation ' . $exception->getMessage());
             }
             try {
@@ -163,7 +173,7 @@ class message_subscribers extends \core\task\scheduled_task
                 }
             } catch (\Throwable $exception) {
                 error_log('ERROR: glsubs while sending a message ' . $exception->getMessage());
-                error_log(implode('\r\n', $exception->getTrace()));
+                error_log(implode("\r\n", (array)$exception->getTrace()));
             }
         }
         return $messageid;
