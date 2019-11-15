@@ -74,7 +74,7 @@ class message_subscribers extends \core\task\scheduled_task
             if ($message_id > 0) {
                 if (!$this->update_message_log($id)) {
                     mtrace('Will try again next time to update the message log record with ID ' . (string)$id);
-                    error_log('ERROR: glsubs failure to update the message log with ID'.(string)$id);
+                    error_log('ERROR: glsubs failure to update the message log with ID' . (string)$id);
                 }
             } else {
                 error_log('ERROR: glsubs while sending message for the record with ID ' . (string)$id . ' of the glossary subscriptions log ');
@@ -132,28 +132,38 @@ class message_subscribers extends \core\task\scheduled_task
             error_log('ERROR: glsubs while accessing the database ' . $exception->getMessage());
         }
         if ($user) {
-            // prepare the Moodle message
-            $moodle_message = new \core\message\message();
-            $moodle_message->component = 'moodle';
-            $moodle_message->name = 'instantmessage';
-            $moodle_message->userfrom = $system_user;
-            $moodle_message->userto = $user;
-            $moodle_message->subject = get_string('pluginname', 'block_glsubs');
-            // ignore this $moodle_message->fullmessage = $messageText;
-            $moodle_message->fullmessageformat = FORMAT_HTML;
-            // set only this field to send HTML, ignore fullmessage , smallmessage , contexturl and contexturlname
-            $moodle_message->fullmessagehtml = $messageHtml;
-            // ignore this $moodle_message->smallmessage = get_string('messageprovider:glsubs_message','block_glsubs');
-            $moodle_message->notification = get_config('block_glsubs', 'messagenotification'); // get the setting for this block
-            // ignore this $moodle_message->contexturl = $log_message->elink ;
-            // ignore this $moodle_message->contexturlname = get_string('pluginname','block_glsubs');
-            $moodle_message->replyto = $USER->email;
-            $content = array('*' => array('header' => ' ----- ', 'footer' => ' ---- ')); // Extra content for specific processor
-            $moodle_message->set_additional_content('email', $content);
             try {
-                $messageid = message_send($moodle_message);
+                // prepare the Moodle message
+                $moodle_message = new \core\message\message();
+                $moodle_message->component = 'moodle';
+                $moodle_message->name = 'instantmessage';
+                $moodle_message->userfrom = $system_user;
+                $moodle_message->userto = $user;
+                $moodle_message->subject = get_string('pluginname', 'block_glsubs');
+                // ignore this $moodle_message->fullmessage = $messageText;
+                $moodle_message->fullmessageformat = FORMAT_HTML;
+                // set only this field to send HTML, ignore fullmessage , smallmessage , contexturl and contexturlname
+                $moodle_message->fullmessagehtml = $messageHtml;
+                // ignore this $moodle_message->smallmessage = get_string('messageprovider:glsubs_message','block_glsubs');
+                $moodle_message->notification = get_config('block_glsubs', 'messagenotification'); // get the setting for this block
+                // ignore this $moodle_message->contexturl = $log_message->elink ;
+                // ignore this $moodle_message->contexturlname = get_string('pluginname','block_glsubs');
+                $moodle_message->replyto = $USER->email;
+                $content = array('*' => array('header' => ' ----- ', 'footer' => ' ---- ')); // Extra content for specific processor
+                $moodle_message->set_additional_content('email', $content);
+            } catch(\Throwable $exception) {
+                error_log(implode("\r\n", $exception->getTrace()));
+                error_log('ERROR: glsubs message creation '.$exception->getMessage());
+            }
+            try {
+                if($moodle_message){
+                    $messageid = message_send($moodle_message);
+                } else {
+                    error_log('ERROR: glsubs No message was created for '.implode("\r\n",(array)$log_message));
+                }
             } catch (\Throwable $exception) {
                 error_log('ERROR: glsubs while sending a message ' . $exception->getMessage());
+                error_log(implode('\r\n', $exception->getTrace()));
             }
         }
         return $messageid;
