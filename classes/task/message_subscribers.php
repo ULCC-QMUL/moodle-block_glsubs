@@ -74,6 +74,7 @@ class message_subscribers extends \core\task\scheduled_task
             if ($message_id > 0) {
                 if (!$this->update_message_log($id)) {
                     mtrace('Will try again next time to update the message log record with ID ' . (string)$id);
+                    error_log('ERROR: glsubs failure to update the message log with ID'.(string)$id);
                 }
             } else {
                 error_log('ERROR: glsubs while sending message for the record with ID ' . (string)$id . ' of the glossary subscriptions log ');

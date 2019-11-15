@@ -553,6 +553,7 @@ JSC;
     {
         global $DB;
         $error = new stdClass();
+        $error->messages = [];
         $userid = $dataset->glossary_userid;
         $glossaryid = $dataset->glossary_glossaryid;
         $fullsubkey = get_string('glossaryformfullelementname', 'block_glsubs');
