@@ -146,9 +146,13 @@ JOIN {block_glsubs_event_subs_log} AS sl ON sl.id = ml.eventlogid
 JOIN {glossary} AS g ON g.id = sl.glossaryid
 WHERE ml.eventlogid = :eventlogid
 ", ['eventlogid' => (int)$log_message->eventlogid], 0, 1);
-                $course_rec = array_shift($course_rec);
-                $course_rec = (int)$course_rec['course'];
-                $moodle_message->courseid = 0;
+                if ($course_rec) {
+                    $course_rec = array_shift($course_rec);
+                    $course_rec = (int)$course_rec->course;
+                } else {
+                    $course_rec = 0;
+                }
+                $moodle_message->courseid = $course_rec;
                 $moodle_message->subject = get_string('pluginname', 'block_glsubs');
                 // ignore this $moodle_message->fullmessage = $messageText;
                 $moodle_message->fullmessageformat = FORMAT_HTML;
@@ -197,9 +201,11 @@ WHERE ml.eventlogid = :eventlogid
     private function get_undelivered_log()
     {
         global $DB;
-        $def_config = max(50, (int)get_config('block_glsubs', 'messagebatchsize'));
+        $def_config = (int)get_config('block_glsubs', 'messagebatchsize');
+        // Keep a minimum batch size of 50 messages
+        $def_config = ($def_config < 100) ? 100 : $def_config;
         $message_logs = array();
-        $sql = 'SELECT l.id , l.userid , l.eventlogid , l.timecreated , e.eventtext, e.eventlink elink 
+        $sql = 'SELECT l.id , l.userid , l.eventlogid , l.timecreated , e.eventtext, e.eventlink AS elink 
 FROM {block_glsubs_messages_log} AS l 
 JOIN {block_glsubs_event_subs_log} AS e ON e.id = l.eventlogid 
 WHERE l.timedelivered IS NULL';

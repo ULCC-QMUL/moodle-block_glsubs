@@ -82,6 +82,7 @@ $string['settings_pagelayout'] = 'Message Layout';
 $string['settings_pagelayout_details'] = 'Choose whether you like a course style page or a pop up window for the messages';
 $string['settings_messagebatchsize'] = 'Messaging Batch Size';
 $string['settings_messagebatchsize_details'] = 'Set the maximum Messaging Batch Size in records to send on every run';
+$string['settings_messagebatchsize_desc'] = 'This is the batch size of messages queue processing in order to keep the system processes under control';
 $string['settings_messagenotification'] = 'Message Notification';
 $string['settings_messagenotification_desc'] = 'Choose if you want to send a Message Notification';
 $string['settings_no_messages'] = 'No messages shown';

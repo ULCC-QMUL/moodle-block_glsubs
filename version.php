@@ -39,9 +39,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-$plugin = new \stdClass();
-$plugin->version    = 2018050900;
-$plugin->requires   = 2017111302; // Moodle 3.4.2 is required.
-$plugin->component  = 'block_glsubs'; // Full name of the plugin (used for diagnostics)
-$plugin->maturity   = MATURITY_STABLE;
-$plugin->cron = 0 ; // not using the old method, but the tasks new method
+$plugin = (object)new \stdClass();
+$plugin->version = 2019111800;
+$plugin->requires = 2017111302; // Moodle 3.4.2 is required.
+$plugin->component = 'block_glsubs'; // Full name of the plugin (used for diagnostics)
+$plugin->maturity = MATURITY_STABLE;
+$plugin->cron = 0; // not using the old method, but the tasks new method

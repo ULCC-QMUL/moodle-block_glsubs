@@ -75,7 +75,7 @@ $settings->add(new admin_setting_configselect('block_glsubs/messagestoshow',
 
 // add option to enable message notifications
 $settings_messagenotification = 1 ;
-$settings->add(new admin_setting_configcheckbox('block_glsubs/messagebatchsize',
+$settings->add(new admin_setting_configcheckbox('block_glsubs/messagenotifocation',
     get_string('settings_messagenotification', 'block_glsubs'),
     get_string('settings_messagenotification_desc', 'block_glsubs'),
     $settings_messagenotification ));
@@ -90,8 +90,8 @@ $delivery_messages_options[1000] = '1000' ;
 $delivery_messages_options[2000] = '2000' ;
 $delivery_messages_options[5000] = '5000' ;
 
-$settings->add(new admin_setting_configselect('block_glsubs/messagenotifocation',
-    get_string('settings_deliveriesnotification', 'block_glsubs'),
-    get_string('settings_deliveriesnotification_desc', 'block_glsubs'),
+$settings->add(new admin_setting_configselect('block_glsubs/messagebatchsize',
+    get_string('settings_messagebatchsize_details', 'block_glsubs'),
+    get_string('settings_messagebatchsize_desc', 'block_glsubs'),
     $delivery_messages_default_option ,
     $delivery_messages_options ) );
