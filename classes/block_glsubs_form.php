@@ -65,299 +65,308 @@ class block_glsubs_form extends moodleform
      * Defining the Glossary Subscriptions Form
      * @throws \HTML_QuickForm_Error
      */
-    public function definition()
+    public final function definition(): void
     {
-        global $DB, $COURSE, $USER, $OUTPUT, $_GET;
-        // get course information
-        $course_info = get_fast_modinfo($COURSE);
+        global $DB, $COURSE, $USER, $OUTPUT;
 
-        // get course module id
-        $cmid = optional_param('id', 0, PARAM_INT);
-        $cm = $course_info->get_cm($cmid);
+        try {
 
-        // get the glossaryid for the database entries queries
-        $glossaryid = $cm->instance;
+            // get course information
+            $course_info = get_fast_modinfo($COURSE);
 
-        // Define subscription structures
-        $this->usersubscriptions = new stdClass();
-        $this->user = new stdClass();
-        $this->usersubscriptions->full = new stdClass();
-        $this->usersubscriptions->full->full = new stdClass();
-        $this->usersubscriptions->full->fullnewcat = new stdClass();
-        $this->usersubscriptions->full->fullnewconcept = new stdClass();
-        $this->usersubscriptions->authors = new stdClass();
-        $this->usersubscriptions->categories = new stdClass();
-        $this->usersubscriptions->concepts = new stdClass();
+            // get course module id
+            $cmid = optional_param('id', 0, PARAM_INT);
+            if ($course_info !== NULL && $cmid > 0) {
+                $cm = $course_info->get_cm($cmid);
+            }
 
-        // store the user id and the glossary id
-        $this->usersubscriptions->userid = $USER->id;
-        $this->usersubscriptions->glossaryid = $glossaryid;
+            // get the glossaryid for the database entries queries
+            $glossaryid = $cm->instance;
 
-        // Initiate a Moodle QuickForm object
-        $mform = &$this->_form;
+            // Define subscription structures
+            $this->usersubscriptions = new stdClass();
+            $this->user = new stdClass();
+            $this->usersubscriptions->full = new stdClass();
+            $this->usersubscriptions->full->full = new stdClass();
+            $this->usersubscriptions->full->fullnewcat = new stdClass();
+            $this->usersubscriptions->full->fullnewconcept = new stdClass();
+            $this->usersubscriptions->authors = new stdClass();
+            $this->usersubscriptions->categories = new stdClass();
+            $this->usersubscriptions->concepts = new stdClass();
 
-        // add user id to the form
-        $mform->addElement('hidden', 'glossary_userid', (int)$this->usersubscriptions->userid);
-        $mform->setType('glossary_userid', PARAM_INT);
+            // store the user id and the glossary id
+            $this->usersubscriptions->userid = $USER->id;
+            $this->usersubscriptions->glossaryid = $glossaryid;
 
-        // add glossary id to the form
-        $mform->addElement('hidden', 'glossary_glossaryid', (int)$this->usersubscriptions->glossaryid);
-        $mform->setType('glossary_glossaryid', PARAM_INT);
+            // Initiate a Moodle QuickForm object
+            $mform = &$this->_form;
 
-        // make a link to the user profile over a picture link
-        // $elementUrl = new moodle_url('/user/view.php',array('id'=>$USER->id,'course'=>$COURSE->id));
-        // $elementLink = html_writer::link($elementUrl, $OUTPUT->user_picture($USER, array('size'=>35) ) );
-        // $text = $elementLink ;
+            // add user id to the form
+            $mform->addElement('hidden', 'glossary_userid', (int)$this->usersubscriptions->userid);
+            $mform->setType('glossary_userid', PARAM_INT);
 
-        // make a link to user profile over the user full name
-        // $elementLink = html_writer::link($elementUrl,(fullname($USER,true)));
-        // $text .= ' '.$elementLink;
-        // $mform->addElement('link','currentuserlink',get_string('formheader','block_glsubs') . ' ' . $elementLink , $elementLink);
-        // $text .= get_string('formheader','block_glsubs');
-        $mform->addElement('header', 'glossaryuserlinks', get_string('formheader', 'block_glsubs'), array('role' => 'menuitem'));
-        $mform->setType('glossaryuserlinks', PARAM_TEXT);
+            // add glossary id to the form
+            $mform->addElement('hidden', 'glossary_glossaryid', (int)$this->usersubscriptions->glossaryid);
+            $mform->setType('glossary_glossaryid', PARAM_INT);
 
-        // Get user active subscriptions // TBD
-        $this->get_user_subscriptions();
+            // make a link to the user profile over a picture link
+            // $elementUrl = new moodle_url('/user/view.php',array('id'=>$USER->id,'course'=>$COURSE->id));
+            // $elementLink = html_writer::link($elementUrl, $OUTPUT->user_picture($USER, array('size'=>35) ) );
+            // $text = $elementLink ;
 
-        // Add Full Glossary Subscription Choice and Pointer Link
-        $elementUrl = new moodle_url('/mod/glossary/view.php', array('id' => $cmid));
-        $elementLink = html_writer::link($elementUrl, '&#9658;');
-        $label = $elementLink . '&emsp;' . $this->usersubscriptions->full->full->desc;
+            // make a link to user profile over the user full name
+            // $elementLink = html_writer::link($elementUrl,(fullname($USER,true)));
+            // $text .= ' '.$elementLink;
+            // $mform->addElement('link','currentuserlink',get_string('formheader','block_glsubs') . ' ' . $elementLink , $elementLink);
+            // $text .= get_string('formheader','block_glsubs');
+            $mform->addElement('header', 'glossaryuserlinks', get_string('formheader', 'block_glsubs'), array('role' => 'menuitem'));
+            $mform->setType('glossaryuserlinks', PARAM_TEXT);
 
-        // add # of concepts for the glossary
-        $this->usersubscriptions->full->full->allglossaryentries = $DB->count_records('glossary_entries', array('glossaryid' => $glossaryid, 'approved' => 1));
-        $label .= " (" . $this->usersubscriptions->full->full->allglossaryentries . ")";
+            // Get user active subscriptions // TBD
+            $this->get_user_subscriptions();
 
-        // add the full subscription option on the form
-        $mform->addElement('advcheckbox', $this->usersubscriptions->full->full->elementname, $label, ''
-            , array('group' => 1, 'margin' => '0', 'aria-checked' => ($this->usersubscriptions->full->full->sub == 1 ? 'true' : 'false')
-            , 'title' => $this->usersubscriptions->full->full->desc), array(0, 1));
-        // add the default value to an array for the final stage of the form creation
-        $this->usersubscriptions->defaults[$this->usersubscriptions->full->full->elementname] = $this->usersubscriptions->full->full->sub;
-        $mform->setType($this->usersubscriptions->full->full->elementname, PARAM_INT);
+            // Add Full Glossary Subscription Choice and Pointer Link
+            $elementUrl = new moodle_url('/mod/glossary/view.php', array('id' => $cmid));
+            $elementLink = html_writer::link($elementUrl, '&#9658;');
+            $label = $elementLink . '&emsp;' . $this->usersubscriptions->full->full->desc;
+
+            // add # of concepts for the glossary
+            $this->usersubscriptions->full->full->allglossaryentries = $DB->count_records('glossary_entries', array('glossaryid' => $glossaryid, 'approved' => 1));
+            $label .= " (" . $this->usersubscriptions->full->full->allglossaryentries . ")";
+
+            // add the full subscription option on the form
+            $mform->addElement('advcheckbox', $this->usersubscriptions->full->full->elementname, $label, ''
+                , array('group' => 1, 'margin' => '0', 'role' => 'menuitemcheckbox', 'aria-checked' => ($this->usersubscriptions->full->full->sub == 1 ? 'true' : 'false')
+                , 'title' => $this->usersubscriptions->full->full->desc), array(0, 1));
+            // add the default value to an array for the final stage of the form creation
+            $this->usersubscriptions->defaults[$this->usersubscriptions->full->full->elementname] = $this->usersubscriptions->full->full->sub;
+            $mform->setType($this->usersubscriptions->full->full->elementname, PARAM_INT);
 
 
-        // Add Glossary Subscription on New Categories
-        // add # of current categories
-        $label = '&emsp; &emsp;' . get_string('newcategoriessubscription', 'block_glsubs') . " (" . $DB->count_records('glossary_categories', array('glossaryid' => $glossaryid)) . ")";
-        // add the new categories subscription option on the form
+            // Add Glossary Subscription on New Categories
+            // add # of current categories
+            $label = '&emsp; &emsp;' . get_string('newcategoriessubscription', 'block_glsubs') . " (" . $DB->count_records('glossary_categories', array('glossaryid' => $glossaryid)) . ")";
+            // add the new categories subscription option on the form
 
-        $mform->addElement('advcheckbox', $this->usersubscriptions->full->fullnewcat->elementname, $label, ''
-            , array('group' => 1, 'role' => 'menuitem', 'aria-checked' => ($this->usersubscriptions->full->fullnewcat->sub == 1 ? 'true' : 'false')
-            , 'title' => $this->usersubscriptions->full->fullnewcat->desc), array(0, 1));
-        // add the default value to an array for the final stage of the form creation
-        $this->usersubscriptions->defaults[$this->usersubscriptions->full->fullnewcat->elementname] = $this->usersubscriptions->full->fullnewcat->sub;
-        $mform->setType($this->usersubscriptions->full->fullnewcat->elementname, PARAM_INT);
-        $mform->disabledIf($this->usersubscriptions->full->fullnewcat->elementname, $this->usersubscriptions->full->full->elementname, 'checked');
+            $mform->addElement('advcheckbox', $this->usersubscriptions->full->fullnewcat->elementname, $label, ''
+                , array('group' => 1, 'role' => 'menuitemcheckbox', 'aria-checked' => ($this->usersubscriptions->full->fullnewcat->sub == 1 ? 'true' : 'false')
+                , 'title' => $this->usersubscriptions->full->fullnewcat->desc), array(0, 1));
+            // add the default value to an array for the final stage of the form creation
+            $this->usersubscriptions->defaults[$this->usersubscriptions->full->fullnewcat->elementname] = $this->usersubscriptions->full->fullnewcat->sub;
+            $mform->setType($this->usersubscriptions->full->fullnewcat->elementname, PARAM_INT);
+            $mform->disabledIf($this->usersubscriptions->full->fullnewcat->elementname, $this->usersubscriptions->full->full->elementname, 'checked');
 
-        // Add Glossary Subscription on New Entries without Categories
-        // count the uncategorised entries of this glossary
-        $counter_record = $DB->get_record_sql('SELECT count( DISTINCT id ) AS entries  
+            // Add Glossary Subscription on New Entries without Categories
+            // count the uncategorised entries of this glossary
+            $counter_record = $DB->get_record_sql(/** @lang text */ 'SELECT count( DISTINCT id ) AS entries  
 FROM {glossary_entries} 
 WHERE glossaryid = :glossaryid 
     AND approved = 1 
     AND id NOT IN (SELECT entryid FROM {glossary_entries_categories} ) ', array('glossaryid' => $glossaryid));
-        $this->usersubscriptions->full->full->categorisedentries = $this->usersubscriptions->full->full->allglossaryentries - (int)$counter_record->entries;
-        $elementUrl = new moodle_url('/mod/glossary/view.php', array('id' => $cmid, 'mode' => 'cat', 'hook' => '-1'));
-        $elementLink = html_writer::link($elementUrl, '&#9658; ');
-        $label = $elementLink . '&emsp;';
-        $label .= get_string('newuncategorisedconceptssubscription', 'block_glsubs') . " (" . ($this->usersubscriptions->full->full->allglossaryentries - $this->usersubscriptions->full->full->categorisedentries) . ")";
+            $this->usersubscriptions->full->full->categorisedentries = $this->usersubscriptions->full->full->allglossaryentries - (int)$counter_record->entries;
+            $elementUrl = new moodle_url('/mod/glossary/view.php', array('id' => $cmid, 'mode' => 'cat', 'hook' => '-1'));
+            $elementLink = html_writer::link($elementUrl, '&#9658; ');
+            $label = $elementLink . '&emsp;';
+            $label .= get_string('newuncategorisedconceptssubscription', 'block_glsubs') . " (" . ($this->usersubscriptions->full->full->allglossaryentries - $this->usersubscriptions->full->full->categorisedentries) . ")";
 
-        // add the new concepts without category option on the form
-        $mform->addElement('advcheckbox', $this->usersubscriptions->full->fullnewconcept->elementname, $label, ''
-            , array('group' => 1, 'role' => 'menuitemcheckbox', 'aria-checked' => ($this->usersubscriptions->full->fullnewconcept->sub == 1 ? 'true' : 'false')
-            , 'title' => $this->usersubscriptions->full->fullnewconcept->desc), array(0, 1));
-        // add the default value to an array for the final stage of the form creation
-        $this->usersubscriptions->defaults[$this->usersubscriptions->full->fullnewconcept->elementname] = $this->usersubscriptions->full->fullnewconcept->sub;
-        $mform->setType($this->usersubscriptions->full->fullnewconcept->elementname, PARAM_INT);
-        $mform->disabledIf($this->usersubscriptions->full->fullnewconcept->elementname, $this->usersubscriptions->full->full->elementname, 'checked');
+            // add the new concepts without category option on the form
+            $mform->addElement('advcheckbox', $this->usersubscriptions->full->fullnewconcept->elementname, $label, ''
+                , array('group' => 1, 'role' => 'menuitemcheckbox', 'aria-checked' => ($this->usersubscriptions->full->fullnewconcept->sub == 1 ? 'true' : 'false')
+                , 'title' => $this->usersubscriptions->full->fullnewconcept->desc), array(0, 1));
+            // add the default value to an array for the final stage of the form creation
+            $this->usersubscriptions->defaults[$this->usersubscriptions->full->fullnewconcept->elementname] = $this->usersubscriptions->full->fullnewconcept->sub;
+            $mform->setType($this->usersubscriptions->full->fullnewconcept->elementname, PARAM_INT);
+            $mform->disabledIf($this->usersubscriptions->full->fullnewconcept->elementname, $this->usersubscriptions->full->full->elementname, 'checked');
 
-        // Add Glossary Authors Subscriptions and links
-        foreach ($this->usersubscriptions->authors as $key => & $author_record) {
-            $author_record->fullname = fullname(\core_user::get_user($author_record->id));;//$authorfullname;
-            $author_record->user = \core_user::get_user($author_record->id);
-            $author_record->entries = $author_record->entries;
-            $author_record->elementname = 'glossary_author_' . $key;
-        }
-
-        // Add header for authors
-        $mform->addElement('header', 'glsubs_authors_header', get_string('glossaryauthors', 'block_glsubs'), array('font - weight' => 'bold'));
-
-        // Add authors
-        foreach ($this->usersubscriptions->authors as $key => $author) {
-            if (isset($author->id)) {
-                // show only non deleted authors, hide all deleted ones
-                // create a link with image to the author's profile
-                $text = '';
-                $userpicture = $OUTPUT->user_picture($author->user, array('size' => 35));
-                $elementUrl = new moodle_url('/user/view.php', array('id' => $key));
-                $elementLink = html_writer::link($elementUrl, $userpicture);
-                $text .= $elementLink . " ";
-
-                // create a link to the author's list of entries in this glossary
-                $elementUrl = new moodle_url('/mod/glossary/view.php', array('id' => $cmid, 'mode' => 'author', 'sortkey' => 'FIRSTNAME', 'hook' => ($author->fullname)));
-                $elementLink = html_writer::link($elementUrl, '&#9658;');
-                $elementLink = '<span title="' . $author->fullname . '">' . $elementLink . ' ' . $this->ellipsisString($author->fullname, 25) . '</span>';
-                $text .= $elementLink;
-
-                // create a checkbox for author subscription
-                $mform->addElement('advcheckbox', $author->elementname
-                    , $text . " (" . $DB->count_records('glossary_entries', array('userid' => $author->id, 'glossaryid' => $glossaryid)) . ")"
-                    , array('role' => 'menuitemcheckbox', 'aria-checked' => ($author->sub == 1 ? 'true' : 'false')
-                    , 'title' => $author->fullname));
-                $mform->setType($author->elementname, PARAM_INT);
-                // add the default value to an array for the final stage of the form creation
-                $this->usersubscriptions->defaults[$author->elementname] = $author->sub;
-                $mform->disabledIf($author->elementname, $this->usersubscriptions->full->full->elementname, 'checked');
-                $text = '';
+            // Add Glossary Authors Subscriptions and links
+            foreach ($this->usersubscriptions->authors as $key => & $author_record) {
+                $author_record->fullname = fullname(core_user::get_user($author_record->id));;//$authorfullname;
+                $author_record->user = core_user::get_user($author_record->id);
+                $author_record->elementname = 'glossary_author_' . $key;
             }
-        }
+            unset($author_record);
+
+            // Add header for authors
+            $mform->addElement('header', 'glsubs_authors_header', get_string('glossaryauthors', 'block_glsubs'), array('font - weight' => 'bold'));
+
+            // Add authors
+            foreach ($this->usersubscriptions->authors as $key => $author) {
+                if (isset($author->id)) {
+                    // show only non deleted authors, hide all deleted ones
+                    // create a link with image to the author's profile
+                    $text = '';
+                    $userpicture = $OUTPUT->user_picture($author->user, array('size' => 35));
+                    $elementUrl = new moodle_url('/user/view.php', array('id' => $key));
+                    $elementLink = html_writer::link($elementUrl, $userpicture);
+                    $text .= $elementLink . " ";
+
+                    // create a link to the author's list of entries in this glossary
+                    $elementUrl = new moodle_url('/mod/glossary/view.php', array('id' => $cmid, 'mode' => 'author', 'sortkey' => 'FIRSTNAME', 'hook' => ($author->fullname)));
+                    $elementLink = html_writer::link($elementUrl, '&#9658;');
+                    $elementLink = '<span title="' . $author->fullname . '">' . $elementLink . ' ' . $this->ellipsisString($author->fullname, 25) . '</span>';
+                    $text .= $elementLink;
+
+                    // create a checkbox for author subscription
+                    $mform->addElement('advcheckbox', $author->elementname
+                        , $text . " (" . $DB->count_records('glossary_entries', array('userid' => $author->id, 'glossaryid' => $glossaryid)) . ")"
+                        , array('role' => 'menuitemcheckbox', 'aria-checked' => ($author->sub == 1 ? 'true' : 'false')
+                        , 'title' => $author->fullname));
+                    $mform->setType($author->elementname, PARAM_INT);
+                    // add the default value to an array for the final stage of the form creation
+                    $this->usersubscriptions->defaults[$author->elementname] = $author->sub;
+                    $mform->disabledIf($author->elementname, $this->usersubscriptions->full->full->elementname, 'checked');
+                    $text = '';
+                }
+            }
 
 // add link to all authors
-        $elementUrl = new moodle_url('/mod/glossary/view.php', array('id' => $cmid, 'mode' => 'author', 'sortkey' => 'FIRSTNAME', 'hook' => 'ALL'));
-        $elementLink = html_writer::link($elementUrl, '&#9658; ' . get_string('glossaryallauthors', 'block_glsubs'));
-        $mform->addElement('link', 'allauthorslink', '&emsp;&emsp;' . $elementLink, $elementLink);
+            $elementUrl = new moodle_url('/mod/glossary/view.php', array('id' => $cmid, 'mode' => 'author', 'sortkey' => 'FIRSTNAME', 'hook' => 'ALL'));
+            $elementLink = html_writer::link($elementUrl, '&#9658; ' . get_string('glossaryallauthors', 'block_glsubs'));
+            $mform->addElement('link', 'allauthorslink', '&emsp;&emsp;' . $elementLink, $elementLink);
 
 // show glossary categories
 
 // Add Categories header
-        $mform->addElement('header', 'glsubs_categories_header', get_string('glossarycategories', 'block_glsubs'), array('font-weight' => 'bold'));
+            $mform->addElement('header', 'glsubs_categories_header', get_string('glossarycategories', 'block_glsubs'), array('font-weight' => 'bold'));
 
 // Add categories
-        foreach ($this->usersubscriptions->categories as $key => & $category_entry) {
-            if (isset($category_entry->id)) {
-                if (!isset($category_entry->entries)) {
-                    $category_entry->entries = 0;
+            foreach ($this->usersubscriptions->categories as $key => & $category_entry) {
+                if (isset($category_entry->id)) {
+                    if (!isset($category_entry->entries)) {
+                        $category_entry->entries = 0;
+                    }
+
+                    // create a link to the author's list of entries in this glossary
+                    $elementUrl = new moodle_url('/mod/glossary/view.php', array('id' => $cmid, 'mode' => 'cat', 'hook' => $key));
+                    $elementLink = html_writer::link($elementUrl, '&#9658;');
+                    $text .= $elementLink . '&emsp;' . $this->ellipsisString($category_entry->name, 25);
+                    $text = '<span title="' . $category_entry->name . '">' . $text . '</span>';
+
+                    // create a checkbox for author subscription
+                    $mform->addElement('advcheckbox'
+                        , $category_entry->elementname, $text . " (" . $DB->count_records("glossary_entries_categories", array('categoryid' => $key)) . ")"
+                        , array('role' => 'menuitemcheckbox', 'aria-checked' => ($category_entry->sub == 1 ? 'true' : 'false')
+                        , 'title' => $category_entry->name));
+                    $mform->setType($category_entry->elementname, PARAM_INT);
+                    // add the default value to an array for the final stage of the form creation
+                    $this->usersubscriptions->defaults[$category_entry->elementname] = $category_entry->sub;
+                    $mform->disabledIf($category_entry->elementname, $this->usersubscriptions->full->full->elementname, 'checked');
+                    $text = '';
+                } else {
+                    // deleted categories should not be shown
+                    $category_entry = NULL;
                 }
-
-                // create a link to the author's list of entries in this glossary
-                $elementUrl = new moodle_url('/mod/glossary/view.php', array('id' => $cmid, 'mode' => 'cat', 'hook' => $key));
-                $elementLink = html_writer::link($elementUrl, '&#9658;');
-                $text .= $elementLink . '&emsp;' . $this->ellipsisString($category_entry->name, 25);
-                $text = '<span title="' . $category_entry->name . '">' . $text . '</span>';
-
-                // create a checkbox for author subscription
-                $mform->addElement('advcheckbox'
-                    , $category_entry->elementname, $text . " (" . $DB->count_records("glossary_entries_categories", array('categoryid' => $key)) . ")"
-                    , array('role' => 'menuitemcheckbox', 'aria-checked' => ($category_entry->sub == 1 ? 'true' : 'false')
-                    , 'title' => $category_entry->name));
-                $mform->setType($category_entry->elementname, PARAM_INT);
-                // add the default value to an array for the final stage of the form creation
-                $this->usersubscriptions->defaults[$category_entry->elementname] = $category_entry->sub;
-                $mform->disabledIf($category_entry->elementname, $this->usersubscriptions->full->full->elementname, 'checked');
-                $text = '';
-            } else {
-                // deleted categories should not be shown
-                $category_entry = NULL;
             }
-        }
-
+            unset($category_entry);
 // Show uncategorised category of entries
-        $elementUrl = new moodle_url('/mod/glossary/view.php', array('id' => $cmid, 'mode' => 'cat', 'hook' => '-1'));
-        $elementLink = html_writer::link($elementUrl, '&#9658;&emsp;' . get_string('glossaryuncategorisedconcepts', 'block_glsubs') . " (" . ($this->usersubscriptions->full->full->allglossaryentries - $this->usersubscriptions->full->full->categorisedentries) . ")");
-        if (!isset($text)) {
-            $text = '';
-        }
-        $text .= $elementLink;
+            $elementUrl = new moodle_url('/mod/glossary/view.php', array('id' => $cmid, 'mode' => 'cat', 'hook' => '-1'));
+            $elementLink = html_writer::link($elementUrl, '&#9658;&emsp;' . get_string('glossaryuncategorisedconcepts', 'block_glsubs') . " (" . ($this->usersubscriptions->full->full->allglossaryentries - $this->usersubscriptions->full->full->categorisedentries) . ")");
+            if (!isset($text)) {
+                $text = '';
+            }
+            $text .= $elementLink;
 
 // create a link for all authors
-        $mform->addElement('link', 'category__none', $text, $elementLink);
-        $text = '';
+            $mform->addElement('link', 'category__none', $text, $elementLink);
 
 // Show  Glossary Entries header
-        $mform->addElement('header', 'glsubs_concepts_header', get_string('glossaryconcepts', 'block_glsubs'), array('font-weight' => 'bold'));
+            $mform->addElement('header', 'glsubs_concepts_header', get_string('glossaryconcepts', 'block_glsubs'), array('font-weight' => 'bold'));
 
 // Add concepts and comments checkboxes along with links to their associated categories
-        $loop = $this->usersubscriptions->concepts;
+            $loop = $this->usersubscriptions->concepts;
 // $timers[] = microtime(true);
-        $commentslabel = get_string('glossarycommentson', 'block_glsubs');
+            $commentslabel = get_string('glossarycommentson', 'block_glsubs');
 
-        $page_mode = optional_param('mode', '', PARAM_ALPHANUM);
-        $page_hook = optional_param('hook', '', PARAM_RAW);
-        $author_ids = array();
-        if ($page_mode === 'author' && (int)$page_hook === 0) {
-            try {
-                $author_records = $DB->get_records_sql('SELECT id FROM {user} WHERE concat(firstname , \' \' , lastname) = :fullname ', array('fullname' => $page_hook));
-                foreach ($author_records as $key => $value) {
-                    $page_hook = (int)$key;
-                    $author_ids[] = $key;
-                }
-            } catch (Throwable $exception) {
-                error_log('ERROR: glsubs definition author records messages ' . $exception->getMessage());
-                $page_hook = 0;
-            }
-        }
-        foreach ($loop as $key => & $concept_entry) {
-            $concept_entry->elementname = 'glossary_concept_' . $key;
-            if (isset($concept_entry->id)
-                && ($page_mode == ''
-                    || ($page_mode == 'author' && ((int)$page_hook == 0 || $page_hook === 'All'))
-                    || ($page_mode == 'author' && in_array((int)$concept_entry->userid, $author_ids))
-                    || ($page_mode == 'cat' && (int)$page_hook == -1 && !isset($concept_entry->categories))
-                    || ($page_mode == 'cat' && isset($concept_entry->categories) && in_array((int)$page_hook, $concept_entry->categories))
-                    || ($page_mode == 'entry' && $concept_entry->id == $page_hook)
-                )
-            ) {
-                // only existing concepts will be shown , all marked for deleteion will not
-                $concept_entry->comment_elementname = 'glossary_comment_' . $key;
-                $entryurl = new moodle_url("/mod/glossary/view.php", array('id' => $cmid, 'mode' => 'entry', 'hook' => $key));
-                $entrylink = html_writer::link($entryurl, '&#9658;');
-                $entrylink .= '&emsp;' . $this->ellipsisString($concept_entry->concept, 20);
-                $entrylink = '<span title="' . $concept_entry->concept . '">' . $entrylink . '</span>';
-
-                // add concept checkbox
-                $mform->addElement('advcheckbox', $concept_entry->elementname, $entrylink, ''
-                    , array('group' => 10, 'role' => 'menuitemcheckbox', 'aria-checked' => ($concept_entry->conceptactive == 1 ? 'true' : 'false')
-                    , 'title' => $concept_entry->concept), array(0, 1));
-
-                // add the default value to an array for the final stage of the form creation
-                $this->usersubscriptions->defaults[$concept_entry->elementname] = $concept_entry->conceptactive;
-                $mform->disabledIf($concept_entry->elementname, $this->usersubscriptions->full->full->elementname, 'checked');
-
-                // Add comments checkbox
-                $mform->addElement('advcheckbox', $concept_entry->comment_elementname, $commentslabel . " (" . $concept_entry->commentscounter . ")"
-                    , '', array('group' => 10, 'role' => 'menuitemcheckbox', 'aria-checked' => ($concept_entry->commentsactive == 1 ? 'true' : 'false')
-                    , 'title' => $concept_entry->comment_elementname), array(0, 1));
-
-                // add the default value to an array for the final stage of the form creation
-                $this->usersubscriptions->defaults[$concept_entry->comment_elementname] = $concept_entry->commentsactive;
-                $mform->disabledIf($concept_entry->comment_elementname, $this->usersubscriptions->full->full->elementname, 'checked');
-
-                // get concept's categories
-                if (isset($concept_entry->categories) && count($concept_entry->categories) > 0) {
-                    $linkstext = '';
-                    foreach ($concept_entry->categories as $categorykey => & $categoryrecord) {
-                        $cat_name = $this->usersubscriptions->categories[$categoryrecord]->name;
-                        $elementUrl = new moodle_url('/mod/glossary/view.php', array('id' => $cmid, 'mode' => 'cat', 'hook' => $categoryrecord));
-                        $categorylink = html_writer::link($elementUrl, $cat_name);
-                        $linkstext .= '&ensp;<i>' . $categorylink . '</i>,';
+            $page_mode = optional_param('mode', '', PARAM_ALPHANUM);
+            $page_hook = optional_param('hook', '', PARAM_RAW);
+            $author_ids = array();
+            if ($page_mode === 'author' && (int)$page_hook === 0) {
+                try {
+                    $author_records = $DB->get_records_sql(/** @lang text */ 'SELECT id FROM {user} WHERE concat(firstname , \' \' , lastname) = :fullname ', array('fullname' => $page_hook));
+                    foreach ($author_records as $key => $value) {
+                        $page_hook = (int)$key;
+                        $author_ids[] = $key;
                     }
-                    $linkstext = rtrim($linkstext, ',');
-
-                    // add links to categories if they exist
-                    $linkstext = "(" . count($concept_entry->categories) . ")" . $linkstext;
-                    $mform->addElement('link', 'concept_' . $key . '_categories', $linkstext);
+                } catch (Throwable $exception) {
+                    error_log('ERROR: glsubs definition author records messages ' . $exception->getMessage());
+                    $page_hook = 0;
                 }
-                $mform->addElement('html', '<hr style="height:1px!important;border-color:inherit!important;display:block !important; visibility: visible!important;">');
-            } else {
-                $concept_entry = NULL;
             }
-        }
+            foreach ($loop as $key => & $concept_entry) {
+                $concept_entry->elementname = 'glossary_concept_' . $key;
+                if (isset($concept_entry->id)
+                    && ($page_mode == ''
+                        || ($page_mode === 'author' && ((int)$page_hook == 0 || $page_hook === 'All'))
+                        || ($page_mode === 'author' && in_array((int)$concept_entry->userid, $author_ids))
+                        || ($page_mode === 'cat' && (int)$page_hook == -1 && !isset($concept_entry->categories))
+                        || ($page_mode === 'cat' && isset($concept_entry->categories) && in_array((int)$page_hook, $concept_entry->categories))
+                        || ($page_mode === 'entry' && $concept_entry->id == $page_hook)
+                    )
+                ) {
+                    // only existing concepts will be shown , all marked for deleteion will not
+                    $concept_entry->comment_elementname = 'glossary_comment_' . $key;
+                    $entryurl = new moodle_url("/mod/glossary/view.php", array('id' => $cmid, 'mode' => 'entry', 'hook' => $key));
+                    $entrylink = html_writer::link($entryurl, '&#9658;');
+                    $entrylink .= '&emsp;' . $this->ellipsisString($concept_entry->concept, 20);
+                    $entrylink = '<span title="' . $concept_entry->concept . '">' . $entrylink . '</span>';
+
+                    // add concept checkbox
+                    $mform->addElement('advcheckbox', $concept_entry->elementname, $entrylink, ''
+                        , array('group' => 10, 'role' => 'menuitemcheckbox', 'aria-checked' => ($concept_entry->conceptactive == 1 ? 'true' : 'false')
+                        , 'title' => $concept_entry->concept), array(0, 1));
+
+                    // add the default value to an array for the final stage of the form creation
+                    $this->usersubscriptions->defaults[$concept_entry->elementname] = $concept_entry->conceptactive;
+                    $mform->disabledIf($concept_entry->elementname, $this->usersubscriptions->full->full->elementname, 'checked');
+
+                    // Add comments checkbox
+                    $mform->addElement('advcheckbox', $concept_entry->comment_elementname, $commentslabel . " (" . $concept_entry->commentscounter . ")"
+                        , '', array('group' => 10, 'role' => 'menuitemcheckbox', 'aria-checked' => ($concept_entry->commentsactive == 1 ? 'true' : 'false')
+                        , 'title' => $concept_entry->comment_elementname), array(0, 1));
+
+                    // add the default value to an array for the final stage of the form creation
+                    $this->usersubscriptions->defaults[$concept_entry->comment_elementname] = $concept_entry->commentsactive;
+                    $mform->disabledIf($concept_entry->comment_elementname, $this->usersubscriptions->full->full->elementname, 'checked');
+
+                    // get concept's categories
+                    if (isset($concept_entry->categories) && count($concept_entry->categories) > 0) {
+                        $linkstext = '';
+                        foreach ($concept_entry->categories as $categorykey => & $categoryrecord) {
+                            $cat_name = $this->usersubscriptions->categories[$categoryrecord]->name;
+                            $elementUrl = new moodle_url('/mod/glossary/view.php', array('id' => $cmid, 'mode' => 'cat', 'hook' => $categoryrecord));
+                            $categorylink = html_writer::link($elementUrl, $cat_name);
+                            $linkstext .= '&ensp;<i>' . $categorylink . '</i>,';
+                        }
+                        unset($categoryrecord);
+                        $linkstext = rtrim($linkstext, ',');
+
+                        // add links to categories if they exist
+                        $linkstext = "(" . count($concept_entry->categories) . ")" . $linkstext;
+                        $mform->addElement('link', 'concept_' . $key . '_categories', $linkstext);
+                    }
+                    $mform->addElement('html', '<hr style="height:1px!important;border-color:inherit!important;display:block !important; visibility: visible!important;">');
+                } else {
+                    $concept_entry = NULL;
+                }
+            }
+            unset($concept_entry);
 
 // set the defaults in bulk step to avoid time waste
-        $mform->setDefaults($this->usersubscriptions->defaults);
+            $mform->setDefaults($this->usersubscriptions->defaults);
 
 // add form control buttons reference: https://tracker.moodle.org/browse/MDL-68547
-        $this->add_action_buttons(TRUE, 'Save');
+            $this->add_action_buttons(TRUE, 'Save');
+        } catch (Exception $exception) {
+            error_log(print_r($exception, TRUE));
+        }
     }
 
     /**
      * Get database recorded subscriptions for the current user
      * @return array
      */
-    protected
-    function get_user_subscriptions()
+    protected final
+    function get_user_subscriptions(): void
     {
         global $DB;
         // full subscription defaults
@@ -384,7 +393,7 @@ WHERE glossaryid = :glossaryid
         }
 
         // get Authors
-        $this->usersubscriptions->authors = $DB->get_records_sql('SELECT userid id, count(userid) AS entries FROM {glossary_entries} WHERE glossaryid = ? GROUP BY userid', array($glossaryid));
+        $this->usersubscriptions->authors = $DB->get_records_sql(/** @lang text */ 'SELECT userid id, count(userid) AS entries FROM {glossary_entries} WHERE glossaryid = ? GROUP BY userid', array($glossaryid));
 
         // get user subscriptions to the glossary authors
         $this->usersubscriptions->authorsSubs = $DB->get_records('block_glsubs_authors_subs', array('userid' => $userid, 'glossaryid' => $glossaryid), 'authorid', 'authorid,active');
@@ -396,6 +405,7 @@ WHERE glossaryid = :glossaryid
                 $author_record->sub = 0;
             }
         }
+        unset($author_record);
         // clean up used authors subscription data
         $this->usersubscriptions->authorsSubs = NULL;
 
@@ -414,6 +424,8 @@ WHERE glossaryid = :glossaryid
                 $category_entry->sub = 0;
             }
         }
+        unset($category_entry);
+
         // remove used data
         $this->usersubscriptions->categoriesSubs = NULL;
 
@@ -434,7 +446,8 @@ WHERE glossaryid = :glossaryid
         $this->usersubscriptions->conceptsSubs = $DB->get_records('block_glsubs_concept_subs', array('userid' => $userid, 'glossaryid' => $glossaryid), 'conceptid', 'conceptid,conceptactive,commentsactive');
 
         // get concept comments counters
-        $sqlstmt = 'SELECT itemid, count(itemid) AS counter FROM {comments} AS c JOIN {glossary_entries} AS ge ON c.itemid = ge.id AND ge.glossaryid = :glossaryid WHERE commentarea = "glossary_entry" GROUP BY itemid ORDER BY itemid';
+        $sqlstmt = /** @lang text */
+            'SELECT itemid, count(itemid) AS counter FROM {comments} AS c JOIN {glossary_entries} AS ge ON c.itemid = ge.id AND ge.glossaryid = :glossaryid WHERE commentarea = "glossary_entry" GROUP BY itemid ORDER BY itemid';
         $this->usersubscriptions->conceptCounters = $DB->get_records_sql($sqlstmt, array('glossaryid' => $glossaryid));
 
         // add comment counters to relevant concepts
@@ -446,6 +459,7 @@ WHERE glossaryid = :glossaryid
                 $concept->commentscounter = 0;
             }
         }
+        unset($concept);
         // release memory of counters
         $this->usersubscriptions->conceptCounters = NULL;
 
@@ -460,6 +474,7 @@ WHERE glossaryid = :glossaryid
                 $concept_entry->commentsactive = 0;
             }
         }
+        unset($concept_entry);
         $this->usersubscriptions->conceptsSubs = NULL;
     }
 
@@ -482,14 +497,10 @@ WHERE glossaryid = :glossaryid
      *
      * @return array
      */
-    public
+    public final
     function validation($data, $files)
     {
-        global $USER;
-        $usercontext = context_user::instance($USER->id);
-        $errors = parent::validation($data, $files);
-
-        return $errors;
+        return parent::validation($data, $files);
     }
 
     /****************************************************************
@@ -507,10 +518,10 @@ WHERE glossaryid = :glossaryid
     /**
      * Not used
      */
-    public
+    public final
     function validate_after_data()
     {
-        $mform = &$this->_form;
+        # $mform = &$this->_form;
     }
 
     /****************************************************************
@@ -528,8 +539,8 @@ WHERE glossaryid = :glossaryid
     /**
      * This function is called only after a cancel or a submit event, never on new forms presented on screen
      */
-    public
-    function definition_after_data()
+    public final
+    function definition_after_data(): void
     {
         /*        global $glsub_state ;
                 $mform = $this->_form;
@@ -558,8 +569,8 @@ WHERE glossaryid = :glossaryid
      *
      * @return string
      */
-    protected
-    function ellipsisString($text, $size)
+    protected final
+    function ellipsisString(string $text, int $size): string
     {
         $retstr = $text;
         if ($size < 1) {
@@ -596,8 +607,8 @@ WHERE glossaryid = :glossaryid
      *
      * @return bool
      */
-    protected
-    function is_multibyte($s)
+    protected final
+    function is_multibyte(string $s): bool
     {
         return mb_strlen($s, 'utf-8') < strlen($s);
     }
