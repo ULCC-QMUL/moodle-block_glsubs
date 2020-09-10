@@ -1,4 +1,19 @@
 <?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
 /**
  * Created by PhpStorm.
  * User: vasileios
@@ -11,31 +26,15 @@
  *
  * Input
  *
-*@param       $oldversion , as the cut off plugin version check point of the current installation
+ * @param       $oldversion , as the cut off plugin version check point of the current installation
  *
  * Output
  *
-*@return      bool true in case of success and false in case of error
+ * @return      bool true in case of success and false in case of error
  *
  * Notes        As the business requirements increase, there are more database tables
  *              and fileds to use for data, so newer versions may have to add tables
  *                   and or fields
- *
- *
- * This file is part of Moodle - http://moodle.org/
- *
- * Moodle is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Moodle is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 
@@ -87,7 +86,6 @@ function xmldb_block_glsubs_upgrade($oldversion) {
             $dbman->add_field($table, $field);
         }
 
-
         // Define field eventtype to be added to block_glsubs_event_subs_log.
         $table = new xmldb_table('block_glsubs_event_subs_log');
         $field = new xmldb_field('eventtype', XMLDB_TYPE_CHAR, '1', null, XMLDB_NOTNULL, null, null, 'timeprocessed');
@@ -124,19 +122,18 @@ function xmldb_block_glsubs_upgrade($oldversion) {
             $dbman->add_field($table, $field);
         }
 
-
-        // redefine index drop old format
+        // Redefine index drop old format.
 
         // Define index glossaryeventglossaryid (not unique) to be dropped form block_glsubs_event_subs_log.
         $table = new xmldb_table('block_glsubs_event_subs_log');
-        $index = new xmldb_index('glossaryeventglossaryid', XMLDB_INDEX_NOTUNIQUE, array('glossaryid', 'processed' ));
+        $index = new xmldb_index('glossaryeventglossaryid', XMLDB_INDEX_NOTUNIQUE, array('glossaryid', 'processed'));
 
         // Conditionally launch drop index glossaryeventglossaryid.
         if ($dbman->index_exists($table, $index)) {
             $dbman->drop_index($table, $index);
         }
 
-        // and add new format of the index
+        // And add new format of the index.
         // Define index glossaryeventglossaryid (not unique) to be added to block_glsubs_event_subs_log.
 
         // Define index glossaryeventglossaryid (not unique) to be added to block_glsubs_event_subs_log.
@@ -175,7 +172,6 @@ function xmldb_block_glsubs_upgrade($oldversion) {
             $dbman->add_field($table, $field);
         }
 
-
         // Define table block_glsubs_messages_log to be created.
         $table = new xmldb_table('block_glsubs_messages_log');
 
@@ -208,7 +204,8 @@ function xmldb_block_glsubs_upgrade($oldversion) {
 
         // Define index glossarymessages (not unique) to be added to block_glsubs_messages_log.
         $table = new xmldb_table('block_glsubs_messages_log');
-        $index = new xmldb_index('glossarymessages', XMLDB_INDEX_NOTUNIQUE, array('userid', 'eventlogid', 'timecreated', 'timedelivered'));
+        $index = new xmldb_index('glossarymessages', XMLDB_INDEX_NOTUNIQUE,
+                                 array('userid', 'eventlogid', 'timecreated', 'timedelivered'));
 
         // Conditionally launch add index glossarymessages.
         if (!$dbman->index_exists($table, $index)) {
@@ -216,7 +213,7 @@ function xmldb_block_glsubs_upgrade($oldversion) {
         }
 
         // Glsubs savepoint reached.
-        upgrade_block_savepoint(true, 2016102600 , 'glsubs');
+        upgrade_block_savepoint(true, 2016102600, 'glsubs');
     }
 
     return true;

@@ -1,4 +1,19 @@
 <?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by.
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
 /**
  * Created by PhpStorm.
  * User: vasileios
@@ -7,51 +22,39 @@
  *
  * File         blocks/glsubs/classes/task/find_subscribers.php
  *
- * Purpose         This plugin manages glossary subscriptions on full scale, new categories and new uncategorised concepts
- *                 monitoring, new categorised concepts and their associated comments activities. The subscriptions panel
- *                 is only visible while you are in the view mode of the glossary. In all other pages there only an
- *                 informing part of the plugin showing its presence in the course or the course module.
- *                 The next development step is to add settings to this plugin to keep universal configuration values which
- *                 will be integrated into the plugin logic.
- *                 Another stp is to create a visual part for some of the user messages, and possibly a page to be able to see
- *                 the individual messages.
+ * Purpose         This plugin manages glossary subscriptions on full scale, new categories and new uncategorised
+ * concepts monitoring, new categorised concepts and their associated comments activities. The subscriptions panel is
+ * only visible while you are in the view mode of the glossary. In all other pages there only an informing part of the
+ * plugin showing its presence in the course or the course module. The next development step is to add settings to this
+ * plugin to keep universal configuration values which will be integrated into the plugin logic. Another stp is to
+ * create a visual part for some of the user messages, and possibly a page to be able to see the individual messages.
  *
- *                 The messaging system tries to avoid the creation of duplicate messages for the users, by checking the
- *                 existence of previous event log id being served for the specific user id, so even if the user is qualifying
- *                 for multiple conditions for the same event (category, author, concept or full subscription), only one
- *                 message is created for the event. The message content is always the same for the same event, so there is
- *                 no risk of failure to deliver all relevant information for the event to the subscribing user.
- *
- *
- *
- * This file is part of Moodle - http://moodle.org/
- *
- * Moodle is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * Moodle is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+ *                 The messaging system tries to avoid the creation of duplicate messages for the users, by checking
+ *                 the
+ *                 existence of previous event log id being served for the specific user id, so even if the user is
+ *                 qualifying for multiple conditions for the same event (category, author, concept or full
+ *                 subscription), only one message is created for the event. The message content is always the same for
+ *                 the same event, so there is no risk of failure to deliver all relevant information for the event to
+ *                 the subscribing user.
  */
 
-// for tasks the namespace is based on the frankenstyle of plugin type plus underscore plus the plugin name plus backslash plus task
-// use this namespace also in the ./db/tasks.php
+// For tasks the namespace is based on the frankenstyle of plugin type.
+// Plus underscore plus the plugin name plus backslash plus task.
+// Use this namespace also in the ./db/tasks.php.
 namespace block_glsubs\task;
 
-// Use this when the category of the event is generic
+// Use this when the category of the event is generic.
+use stdClass;
+use Throwable;
+
 define('CATEGORY_GENERIC', get_string('CATEGORY_GENERIC', 'block_glsubs'));
-// define the catered limit of user IDs in the system for assisting in creating unique query ids, one billion I think is fine
+// Define the catered limit of user IDs in the system for assisting in creating unique query ids, one billion I think is fine.
 define('MAX_USERS', 1000000000);
 
 /**
  * Class find_subscribers
- * @usage This plugin manages glossary subscriptions on full scale, new categories and new uncategorised concepts
+ *
+ * @usage   This plugin manages glossary subscriptions on full scale, new categories and new uncategorised concepts
  *        monitoring, new categorised concepts and their associated comments activities. The subscriptions panel
  *        is only visible while you are in the view mode of the glossary. In all other pages there only an
  *        informing part of the plugin showing its presence in the course or the course module.
@@ -66,12 +69,11 @@ define('MAX_USERS', 1000000000);
  *        message is created for the event. The message content is always the same for the same event, so there is
  *        no risk of failure to deliver all relevant information for the event to the subscribing user.
  *
- * @author vasileios
+ * @author  vasileios
  *
  * @package block_glsubs\task
  */
-class find_subscribers extends \core\task\scheduled_task
-{
+class find_subscribers extends \core\task\scheduled_task {
     /**
      * Method           get_name
      *
@@ -82,8 +84,7 @@ class find_subscribers extends \core\task\scheduled_task
      * @return          string defined in the language locale
      *
      */
-    public function get_name()
-    {
+    public function get_name() {
         return get_string('findsubscribers', 'block_glsubs');
     }
 
@@ -97,17 +98,16 @@ class find_subscribers extends \core\task\scheduled_task
      *
      * @return         true in case of success, false in case of error
      */
-    protected function delete_invalid_glossary_entries()
-    {
+    protected function delete_invalid_glossary_entries() {
         global $DB;
-        $return = FALSE;
-        // delete entries with 0 as glossaryid as they are not valid to process
+        $return = false;
+        // Delete entries with 0 as glossaryid as they are not valid to process.
         try {
             $DB->delete_records('block_glsubs_event_subs_log', array('glossaryid' => 0));
-            // mtrace('Invalid glossary subscriptions deletion process is finished');
-            $return = TRUE;
-        } catch (\Throwable $exception) {
-            error_log('ERROR: glsubs There was a database access error while deleting invalid glossary subscriptions ' . $exception->getMessage());
+            $return = true;
+        } catch (Throwable $exception) {
+            debugging('ERROR: glsubs There was a database access error while deleting invalid glossary subscriptions '
+                      . $exception->getMessage(), DEBUG_DEVELOPER);
         }
         return $return;
     }
@@ -122,61 +122,65 @@ class find_subscribers extends \core\task\scheduled_task
      *                  to be used for message deliveries
      *
      * @param           $timenow   current time stamp, used to restrict processing up to the records
-     *                  inserted just up to the initiation of the execution of this script
+     *                             inserted just up to the initiation of the execution of this script
      *
      * @return          bool true in case of success, false in case of error
      *
      */
-    protected function find_full_subscriptions($timenow)
-    {
+    protected function find_full_subscriptions($timenow) {
         global $DB;
-        // get the list of the glossary IDs in these log entries for the full subscribers
-        // find full glossary subscriber users to these glossaries and register the user id , log entry id pairs to be used for message deliveries
+        // Get the list of the glossary IDs in these log entries for the full subscribers.
+        // Find full glossary subscriber users to these glossaries and register the.
+        // User id , log entry id pairs to be used for message deliveries.
         mtrace('Fetching log IDs for the Full Glossary event subscriptions');
-        $sql = ' SELECT min(id) AS logid, glossaryid, timecreated, 0 AS full 
-FROM {block_glsubs_event_subs_log} 
-WHERE glossaryid > 0 AND processed = 0 AND timecreated < :timenow 
+        $sql = ' SELECT min(id) AS logid, glossaryid, timecreated, 0 AS full
+FROM {block_glsubs_event_subs_log}
+WHERE glossaryid > 0 AND processed = 0 AND timecreated < :timenow
 GROUP BY userid,glossaryid,eventlink, timecreated ORDER BY timecreated,glossaryid';
 
         try {
-            $full_log_glossary_ids = $DB->get_records_sql($sql, array('timenow' => $timenow));
-            foreach ($full_log_glossary_ids as $log_id => & $full_log_glossary_id) {
+            $fulllogglossaryids = $DB->get_records_sql($sql, array('timenow' => $timenow));
+            foreach ($fulllogglossaryids as $logid => & $fulllogglossaryid) {
 
-                $full_glossary_subscriber_IDs = $DB->get_records('block_glsubs_glossaries_subs', array('glossaryid' => (int)$full_log_glossary_id->glossaryid, 'active' => 1), 'userid', 'userid');
+                $fullglossarysubscriberids =
+                    $DB->get_records('block_glsubs_glossaries_subs',
+                                     array('glossaryid' => (int)$fulllogglossaryid->glossaryid, 'active' => 1),
+                                     'userid', 'userid');
                 $records = array();
-                foreach ($full_glossary_subscriber_IDs as $key => $glossary_subscriber_ID) {
-                    $filters = array('userid' => (int)$glossary_subscriber_ID->userid, 'eventlogid' => $log_id);
+                foreach ($fullglossarysubscriberids as $key => $glossarysubscriberid) {
+                    $filters = array('userid' => (int)$glossarysubscriberid->userid, 'eventlogid' => $logid);
 
-                    // avoid duplicate messages logged in the system
+                    // Avoid duplicate messages logged in the system.
                     if (!$DB->record_exists('block_glsubs_messages_log', $filters)) {
-                        $record = new \stdClass();
-                        $record->userid = (int)$glossary_subscriber_ID->userid;
-                        $record->eventlogid = (int)$log_id;
+                        $record = new stdClass();
+                        $record->userid = (int)$glossarysubscriberid->userid;
+                        $record->eventlogid = (int)$logid;
                         $record->timecreated = time();
-                        $record->timedelivered = NULL;
-                        // check if we have valid IDs in order to avoid faulty records
+                        $record->timedelivered = null;
+                        // Check if we have valid IDs in order to avoid faulty records.
                         if ($record->userid * $record->eventlogid > 0) {
                             $records[] = $record;
                         }
                     }
                 }
                 if (count($records) > 0) {
-                    // store the new records into the messages log
+                    // Store the new records into the messages log.
                     $DB->insert_records('block_glsubs_messages_log', $records);
                     mtrace('Added ' . count($records) . ' new full subscription messages');
                 }
 
-                // release the memory of the records
-                $records = NULL;
+                // Release the memory of the records.
+                $records = null;
 
-                // mark this event as processed for full subscriptions
-                $full_log_glossary_id->full = 1;
+                // Mark this event as processed for full subscriptions.
+                $fulllogglossaryid->full = 1;
             }
-            return TRUE;
-        } catch (\Throwable $exception) {
-            error_log('ERROR: glsubs There was a database access error while processing the new full glossary subscriptions ' . $exception->getMessage());
+            return true;
+        } catch (Throwable $exception) {
+            debugging('ERROR: glsubs There was a database access error while processing the new full glossary subscriptions '
+                      . $exception->getMessage(), DEBUG_DEVELOPER);
         }
-        return FALSE;
+        return false;
     }
 
     /**
@@ -188,60 +192,62 @@ GROUP BY userid,glossaryid,eventlink, timecreated ORDER BY timecreated,glossaryi
      *                  to be used for message deliveries
      *
      * @param           $timenow   current time stamp, used to restrict processing up to the records
-     *                  inserted just up to the initiation of the execution of this script
+     *                             inserted just up to the initiation of the execution of this script
      *
      * @return          bool true in case of success, false in case of error
      *
      */
-    protected function find_new_uncategorised_subscriptions($timenow)
-    {
+    protected function find_new_uncategorised_subscriptions($timenow) {
         global $DB;
         mtrace('Fetching log IDs for the New Glossary Uncategorised Concept subscriptions');
-        $row_id = $DB->sql_concat_join("'_'", ['l.id', 'f.userid']);
-        // cater for one billion user IDs , to get unique query IDs, make sure all subscribers have an entry for the glossary in the main subscriptions table
-        $sql = " SELECT $row_id AS i , l.id AS logid , f.userid 
-FROM {block_glsubs_event_subs_log} AS l
-JOIN {block_glsubs_glossaries_subs} AS f ON f.glossaryid = l.glossaryid
-WHERE l.processed = 0 
-    AND l.timecreated < :timenow  
-    AND f.active = 0 
-    AND f.newentriesuncategorised = 1 
-    AND l.eventtype = :eventtype  
-    AND ( l.conceptid IS NOT NULL ) 
+        $rowid = $DB->sql_concat_join("'_'", ['l.id', 'f.userid']);
+        // Cater for one billion user IDs , to get unique query IDs.
+        // Make sure all subscribers have an entry for the glossary in the main subscriptions table.
+        $sql = " SELECT $rowid i, l.id logid , f.userid
+FROM {block_glsubs_event_subs_log} l
+JOIN {block_glsubs_glossaries_subs} f ON f.glossaryid = l.glossaryid
+WHERE l.processed = 0
+    AND l.timecreated < :timenow
+    AND f.active = 0
+    AND f.newentriesuncategorised = 1
+    AND l.eventtype = :eventtype
+    AND ( l.conceptid IS NOT NULL )
 ORDER BY l.id, l.glossaryid, l.conceptid , f.userid";
 
         try {
-            $new_uncategorised_concept_log_ids = $DB->get_records_sql($sql, array('timenow' => $timenow, 'eventtype' => 'G'));
+            $newuncategorisedconceptlogids = $DB->get_records_sql($sql, array('timenow' => $timenow, 'eventtype' => 'G'));
             $records = array();
-            foreach ($new_uncategorised_concept_log_ids as $log_id => $new_uncategorised_concept_log_id) {
+            foreach ($newuncategorisedconceptlogids as $logid => $newuncategorisedconceptlogid) {
 
-                $filter = array('userid' => (int)$new_uncategorised_concept_log_id->userid, 'eventlogid' => (int)$new_uncategorised_concept_log_id->logid);
-                // avoid duplicate messages logged in the system
+                $filter = array('userid' => (int)$newuncategorisedconceptlogid->userid,
+                    'eventlogid' => (int)$newuncategorisedconceptlogid->logid);
+                // Avoid duplicate messages logged in the system.
                 if (!$DB->record_exists('block_glsubs_messages_log', $filter)) {
-                    $record = new \stdClass();
-                    $record->userid = (int)$new_uncategorised_concept_log_id->userid;
-                    $record->eventlogid = (int)$new_uncategorised_concept_log_id->logid;
+                    $record = new stdClass();
+                    $record->userid = (int)$newuncategorisedconceptlogid->userid;
+                    $record->eventlogid = (int)$newuncategorisedconceptlogid->logid;
                     $record->timecreated = time();
-                    // check if we have valid IDs in order to avoid faulty records
+                    // Check if we have valid IDs in order to avoid faulty records.
                     if ($record->userid * $record->eventlogid > 0) {
                         $records[] = $record;
                     }
                 }
             }
 
-            // if there are any new records store them in the message log
+            // If there are any new records store them in the message log.
             if (count($records) > 0) {
-                // add the new messages to the message log
+                // Add the new messages to the message log.
                 $DB->insert_records('block_glsubs_messages_log', $records);
                 mtrace('Added ' . count($records) . ' new uncategorised concept subscription messages');
             }
-            // clear memory
-            $records = NULL;
-            return TRUE;
-        } catch (\Throwable $exception) {
-            error_log('ERROR: glsubs There was a database access error while processing the glossary new uncategorised concepts subscriptions ' . $exception->getMessage());
+            // Clear memory.
+            $records = null;
+            return true;
+        } catch (Throwable $exception) {
+            debugging('ERROR: glsubs There was a database access error while processing the glossary new '
+                      .'uncategorised concepts subscriptions ' . $exception->getMessage(), DEBUG_DEVELOPER);
         }
-        return FALSE;
+        return false;
     }
 
     /**
@@ -253,61 +259,62 @@ ORDER BY l.id, l.glossaryid, l.conceptid , f.userid";
      *                  to be used for message deliveries
      *
      * @param           $timenow   current time stamp, used to restrict processing up to the records
-     *                  inserted just up to the initiation of the execution of this script
+     *                             inserted just up to the initiation of the execution of this script
      *
      * @return          bool true in case of success, false in case of error
      *
      */
-    protected function find_new_categories_subscriptions($timenow)
-    {
+    protected function find_new_categories_subscriptions($timenow) {
         global $DB;
         mtrace('Fetching log IDs for the New Glossary Categories subscriptions');
-        // Use the Moodle sql_concat_join function to get unique record IDs via combining IDs from the joining tables
-        $rec_id = $DB->sql_concat_join("'_'", ['l.id', 'f.userid']);
-        $sql = " 
-SELECT $rec_id AS i , l.id AS logid , f.userid 
-FROM {block_glsubs_event_subs_log} AS l 
-JOIN {block_glsubs_glossaries_subs} AS f ON f.glossaryid = l.glossaryid
-WHERE l.processed = 0 
-    AND l.categoryid > 0 
-    AND l.timecreated < :timenow  
-    AND l.eventtype = :eventtype 
-    AND ( l.categoryid IS NOT NULL )  
-    AND f.active = 0 
+        // Use the Moodle sql_concat_join function to get unique record IDs via combining IDs from the joining tables.
+        $recid = $DB->sql_concat_join("'_'", ['l.id', 'f.userid']);
+        $sql = "
+SELECT $recid i , l.id logid , f.userid
+FROM {block_glsubs_event_subs_log} l
+JOIN {block_glsubs_glossaries_subs} f ON f.glossaryid = l.glossaryid
+WHERE l.processed = 0
+    AND l.categoryid > 0
+    AND l.timecreated < :timenow
+    AND l.eventtype = :eventtype
+    AND ( l.categoryid IS NOT NULL )
+    AND f.active = 0
     AND f.newcategories = 1
 ORDER BY l.id, l.glossaryid, l.categoryid , f.userid";
 
         try {
-            $new_category_log_ids = $DB->get_records_sql($sql, array('timenow' => $timenow, 'eventtype' => 'G'));
+            $newcategorylogids = $DB->get_records_sql($sql, array('timenow' => $timenow, 'eventtype' => 'G'));
             $records = array();
-            foreach ($new_category_log_ids as $log_id => $new_category_log_id) {
+            foreach ($newcategorylogids as $logid => $newcategorylogid) {
 
-                $filter = array('userid' => (int)$new_category_log_id->userid, 'eventlogid' => (int)$new_category_log_id->logid);
-                // avoid duplicate messages logged in the system
+                $filter = array('userid' => (int)$newcategorylogid->userid,
+                    'eventlogid' => (int)$newcategorylogid->logid);
+                // Avoid duplicate messages logged in the system.
                 if (!$DB->record_exists('block_glsubs_messages_log', $filter)) {
-                    $record = new \stdClass();
-                    $record->userid = (int)$new_category_log_id->userid;
-                    $record->eventlogid = (int)$new_category_log_id->logid;
+                    $record = new stdClass();
+                    $record->userid = (int)$newcategorylogid->userid;
+                    $record->eventlogid = (int)$newcategorylogid->logid;
                     $record->timecreated = time();
-                    // check if we have valid IDs in order to avoid faulty records
+                    // Check if we have valid IDs in order to avoid faulty records.
                     if ($record->userid * $record->eventlogid > 0) {
                         $records[] = $record;
                     }
                 }
             }
-            // if there are any new records store them in the message log
+            // If there are any new records store them in the message log.
             if (count($records) > 0) {
-                // add messages to the meesages log
+                // Add messages to the meesages log.
                 $DB->insert_records('block_glsubs_messages_log', $records);
                 mtrace('Added ' . count($records) . ' new categories subscription messages');
             }
-            // clear memory
-            $records = NULL;
-            return TRUE;
-        } catch (\Throwable $exception) {
-            error_log('ERROR: glsubs There was a database access error while processing the glossary new categories subscriptions ' . $exception->getMessage());
+            // Clear memory.
+            $records = null;
+            return true;
+        } catch (Throwable $exception) {
+            debugging('ERROR: glsubs There was a database access error while processing the glossary new categories subscriptions '
+                      . $exception->getMessage(), DEBUG_DEVELOPER);
         }
-        return FALSE;
+        return false;
     }
 
     /**
@@ -319,60 +326,60 @@ ORDER BY l.id, l.glossaryid, l.categoryid , f.userid";
      *                  to be used for message deliveries
      *
      * @param           $timenow   current time stamp, used to restrict processing up to the records
-     *                  inserted just up to the initiation of the execution of this script
+     *                             inserted just up to the initiation of the execution of this script
      *
      * @return          bool true in case of success, false in case of error
      *
      */
-    protected function find_author_subscriptions($timenow)
-    {
+    protected function find_author_subscriptions($timenow) {
         global $DB;
         mtrace('Fetching log IDs for the Glossary Author subscriptions');
-        // cater for a lot of user IDs to get unique query IDs
-        $rec_id = $DB->sql_concat_join("'_'", ['l.id', 'f.userid']);
-        $sql = " SELECT $rec_id AS i , l.id AS logid , a.userid 
+        // Cater for a lot of user IDs to get unique query IDs.
+        $recid = $DB->sql_concat_join("'_'", ['l.id', 'f.userid']);
+        $sql = " SELECT $recid AS i , l.id AS logid , a.userid
 FROM {block_glsubs_event_subs_log} l
-JOIN {block_glsubs_glossaries_subs} f ON f.glossaryid = l.glossaryid  
-JOIN {block_glsubs_authors_subs} a  ON a.glossaryid = l.glossaryid AND a.authorid = l.authorid 
-WHERE l.processed = 0 
-    AND l.authorid > 0 
+JOIN {block_glsubs_glossaries_subs} f ON f.glossaryid = l.glossaryid
+JOIN {block_glsubs_authors_subs} a  ON a.glossaryid = l.glossaryid AND a.authorid = l.authorid
+WHERE l.processed = 0
+    AND l.authorid > 0
     AND f.active = 0
-    AND l.timecreated < :timenow 
-GROUP BY l.categoryid, l.conceptid 
+    AND l.timecreated < :timenow
+GROUP BY l.categoryid, l.conceptid
 ORDER BY i";
 
         try {
-            $new_author_sub_messages = $DB->get_records_sql($sql, array('timenow' => $timenow));
+            $newauthorsubmessages = $DB->get_records_sql($sql, array('timenow' => $timenow));
             $records = array();
-            foreach ($new_author_sub_messages as $id => $new_author_sub_message) {
+            foreach ($newauthorsubmessages as $id => $newauthorsubmessage) {
 
-                $filter = array('userid' => (int)$new_author_sub_message->userid, 'eventlogid' => (int)$new_author_sub_message->logid);
-                // avoid duplicate messages logged in the system
+                $filter = array('userid' => (int)$newauthorsubmessage->userid, 'eventlogid' => (int)$newauthorsubmessage->logid);
+                // Avoid duplicate messages logged in the system.
                 if (!$DB->record_exists('block_glsubs_messages_log', $filter)) {
-                    $record = new \stdClass();
-                    $record->userid = (int)$new_author_sub_message->userid;
-                    $record->eventlogid = (int)$new_author_sub_message->logid;
+                    $record = new stdClass();
+                    $record->userid = (int)$newauthorsubmessage->userid;
+                    $record->eventlogid = (int)$newauthorsubmessage->logid;
                     $record->timecreated = time();
-                    // check if we have valid IDs in order to avoid faulty records
+                    // Check if we have valid IDs in order to avoid faulty records.
                     if ($record->userid * $record->eventlogid > 0) {
                         $records[] = $record;
                     }
                 }
             }
 
-            // if there are any new records store them in the message log
+            // If there are any new records store them in the message log.
             if (count($records) > 0) {
-                // add messages to the meesages log
+                // Add messages to the meesages log.
                 $DB->insert_records('block_glsubs_messages_log', $records);
                 mtrace('Added ' . count($records) . ' authors subscription messages');
             }
-            // clear memory
-            $records = NULL;
+            // Clear memory.
+            $records = null;
 
-            return TRUE;
-        } catch (\Throwable $exception) {
-            error_log('ERROR: glsubs There was a database access error while processing the glossary authors subscriptions ' . $exception->getMessage());
-            return FALSE;
+            return true;
+        } catch (Throwable $exception) {
+            debugging('ERROR: glsubs There was a database access error while processing the glossary authors subscriptions '
+                      . $exception->getMessage(), DEBUG_DEVELOPER);
+            return false;
         }
     }
 
@@ -385,61 +392,62 @@ ORDER BY i";
      *                  to be used for message deliveries
      *
      * @param           $timenow   current time stamp, used to restrict processing up to the records
-     *                  inserted just up to the initiation of the execution of this script
+     *                             inserted just up to the initiation of the execution of this script
      *
      * @return          bool true in case of success, false in case of error
      *
      */
-    protected function find_category_subscriptions($timenow)
-    {
+    protected function find_category_subscriptions($timenow) {
         global $DB;
         mtrace('Fetching log IDs for the Glossary Category subscriptions');
-        // cater for a lot of user IDs to get unique query IDs
-        $rec_id = $DB->sql_concat_join("'_'", ['l.id', 'f.userid']);
-        $sql = " SELECT $rec_id AS i , l.id AS logid , c.userid , l.categoryid , l.conceptid, l.eventtext 
-FROM {block_glsubs_event_subs_log} AS l
-JOIN {block_glsubs_glossaries_subs} AS f ON f.userid = l.userid 
+        // Cater for a lot of user IDs to get unique query IDs.
+        $recid = $DB->sql_concat_join("'_'", ['l.id', 'f.userid']);
+        $sql = " SELECT $recid AS i , l.id AS logid , c.userid , l.categoryid , l.conceptid, l.eventtext
+FROM {block_glsubs_event_subs_log} l
+JOIN {block_glsubs_glossaries_subs} f ON f.userid = l.userid
 JOIN {block_glsubs_categories_subs} c ON c.glossaryid = l.glossaryid AND c.categoryid = l.categoryid
-WHERE l.processed = 0 
-    AND l.authorid > 0 
-    AND l.categoryid > 0 
+WHERE l.processed = 0
+    AND l.authorid > 0
+    AND l.categoryid > 0
     AND f.active = 0
     AND l.timecreated < :timenow
-GROUP BY c.userid , l.categoryid, l.conceptid 
+GROUP BY c.userid , l.categoryid, l.conceptid
 ORDER BY i";
 
         try {
-            $new_category_sub_messages = $DB->get_records_sql($sql, array('timenow' => $timenow));
+            $newcategorysubmessages = $DB->get_records_sql($sql, array('timenow' => $timenow));
             $records = array();
-            foreach ($new_category_sub_messages as $id => $new_category_sub_message) {
+            foreach ($newcategorysubmessages as $id => $newcategorysubmessage) {
 
-                $filter = array('userid' => (int)$new_category_sub_message->userid, 'eventlogid' => (int)$new_category_sub_message->logid);
-                // avoid duplicate messages logged in the system
+                $filter = array('userid' => (int)$newcategorysubmessage->userid,
+                    'eventlogid' => (int)$newcategorysubmessage->logid);
+                // Avoid duplicate messages logged in the system.
                 if (!$DB->record_exists('block_glsubs_messages_log', $filter)) {
-                    $record = new \stdClass();
-                    $record->userid = (int)$new_category_sub_message->userid;
-                    $record->eventlogid = (int)$new_category_sub_message->logid;
+                    $record = new stdClass();
+                    $record->userid = (int)$newcategorysubmessage->userid;
+                    $record->eventlogid = (int)$newcategorysubmessage->logid;
                     $record->timecreated = time();
-                    // check if we have valid IDs in order to avoid faulty records
+                    // Check if we have valid IDs in order to avoid faulty records.
                     if ($record->userid * $record->eventlogid > 0) {
                         $records[] = $record;
                     }
                 }
             }
 
-            // if there are any new records store them in the message log
+            // If there are any new records store them in the message log.
             if (count($records) > 0) {
-                // add messages to the meesages log
+                // Add messages to the meesages log.
                 $DB->insert_records('block_glsubs_messages_log', $records);
                 mtrace('Added ' . count($records) . ' category subscription messages');
             }
-            // clear memory
-            $records = NULL;
+            // Clear memory.
+            $records = null;
 
-            return TRUE;
-        } catch (\Throwable $exception) {
-            error_log('ERROR: glsubs There was a database access error while processing the glossary category subscriptions ' . $exception->getMessage());
-            return FALSE;
+            return true;
+        } catch (Throwable $exception) {
+            debugging('ERROR: glsubs There was a database access error while processing the glossary category subscriptions '
+                      . $exception->getMessage(), DEBUG_DEVELOPER);
+            return false;
         }
     }
 
@@ -452,64 +460,66 @@ ORDER BY i";
      *                  to be used for message deliveries
      *
      * @param           $timenow   current time stamp, used to restrict processing up to the records
-     *                  inserted just up to the initiation of the execution of this script
+     *                             inserted just up to the initiation of the execution of this script
      *
      * @return          bool true in case of success, false in case of error
      *
      */
-    protected function find_concept_subscriptions($timenow)
-    {
+    protected function find_concept_subscriptions($timenow) {
         global $DB;
         mtrace('Fetching log IDs for the Glossary Concepts subscriptions');
-        // cater for a lot of user IDs to get unique query IDs
-        $rec_id = $DB->sql_concat_join("'_'", ['l.id', 'f.userid']);
-        $sql = " SELECT $rec_id AS i , l.id AS logid , c.userid , c.conceptactive , c.commentsactive
-FROM {block_glsubs_event_subs_log} AS l
-JOIN {block_glsubs_glossaries_subs} AS f ON f.userid = l.userid 
-JOIN {block_glsubs_concept_subs} AS c ON c.glossaryid = l.glossaryid AND c.conceptid = l.conceptid 
-WHERE l.processed = 0 
+        // Cater for a lot of user IDs to get unique query IDs.
+        $recid = $DB->sql_concat_join("'_'", ['l.id', 'f.userid']);
+        $sql = " SELECT $recid i , l.id logid , c.userid , c.conceptactive , c.commentsactive
+FROM {block_glsubs_event_subs_log} l
+JOIN {block_glsubs_glossaries_subs} f ON f.userid = l.userid
+JOIN {block_glsubs_concept_subs} c ON c.glossaryid = l.glossaryid AND c.conceptid = l.conceptid
+WHERE l.processed = 0
     AND l.authorid > 0
-    AND f.active = 0 
+    AND f.active = 0
     AND l.conceptid > 0
-    AND (c.conceptactive = 1 OR c.commentsactive = 1) 
+    AND (c.conceptactive = 1 OR c.commentsactive = 1)
     AND l.timecreated < :timenow
-GROUP BY c.userid , l.categoryid , l.conceptid 
+GROUP BY c.userid , l.categoryid , l.conceptid
 ORDER BY i";
 
         try {
-            $new_concept_sub_messages = $DB->get_records_sql($sql, array('timenow' => $timenow));
+            $newconceptsubmessages = $DB->get_records_sql($sql, array('timenow' => $timenow));
             $records = array();
-            foreach ($new_concept_sub_messages as $id => $new_concept_sub_message) {
+            foreach ($newconceptsubmessages as $id => $newconceptsubmessage) {
 
-                // check if we have either concept or comment related active subscription
-                if ((int)$new_concept_sub_message->conceptactive === 1 || (int)$new_concept_sub_message->commentsactive === 1) {
-                    $filter = array('userid' => (int)$new_concept_sub_message->userid, 'eventlogid' => (int)$new_concept_sub_message->logid);
-                    // avoid duplicate messages logged in the system
+                // Check if we have either concept or comment related active subscription.
+                if ((int)$newconceptsubmessage->conceptactive === 1
+                    || (int)$newconceptsubmessage->commentsactive === 1) {
+                    $filter = array('userid' => (int)$newconceptsubmessage->userid,
+                        'eventlogid' => (int)$newconceptsubmessage->logid);
+                    // Avoid duplicate messages logged in the system.
                     if (!$DB->record_exists('block_glsubs_messages_log', $filter)) {
-                        $record = new \stdClass();
-                        $record->userid = (int)$new_concept_sub_message->userid;
-                        $record->eventlogid = (int)$new_concept_sub_message->logid;
+                        $record = new stdClass();
+                        $record->userid = (int)$newconceptsubmessage->userid;
+                        $record->eventlogid = (int)$newconceptsubmessage->logid;
                         $record->timecreated = time();
-                        // check if we have valid IDs in order to avoid faulty records
+                        // Check if we have valid IDs in order to avoid faulty records.
                         if ($record->userid * $record->eventlogid > 0) {
                             $records[] = $record;
                         }
                     }
                 }
             }
-            // if there are any new records store them in the message log
+            // If there are any new records store them in the message log.
             if (count($records) > 0) {
-                // add messages to the meesages log
+                // Add messages to the meesages log.
                 $DB->insert_records('block_glsubs_messages_log', $records);
                 mtrace('Added ' . count($records) . ' concepts subscription messages');
             }
-            // clear memory
-            $records = NULL;
+            // Clear memory.
+            $records = null;
 
-            return TRUE;
-        } catch (\Throwable $exception) {
-            error_log('ERROR: glsubs There was a database access error while processing the glossary concept subscriptions ' . $exception->getMessage());
-            return FALSE;
+            return true;
+        } catch (Throwable $exception) {
+            debugging('ERROR: glsubs There was a database access error while processing the glossary concept subscriptions '
+                      . $exception->getMessage(), DEBUG_DEVELOPER);
+            return false;
         }
     }
 
@@ -520,46 +530,47 @@ ORDER BY i";
      * Purpose          find and remove deleted concept subscriber users to these glossaries
      *
      * @param           $timenow   current time stamp, used to restrict processing up to the records
-     *                  inserted just up to the initiation of the execution of this script
+     *                             inserted just up to the initiation of the execution of this script
      *
      * @return          bool true in case of success, false in case of error
      *
      */
-    protected function remove_deleted_concepts_subscriptions($timenow)
-    {
+    protected function remove_deleted_concepts_subscriptions($timenow) {
         global $DB;
         mtrace('Removing deleted concepts subscriptions');
         try {
             $counter = $DB->count_records('block_glsubs_concept_subs', array('conceptid' => 0));
-            // delete records refering to a non existing concept ID like 0
+            // Delete records refering to a non existing concept ID like 0.
             $DB->delete_records('block_glsubs_concept_subs', array('conceptid' => 0));
             mtrace('Erased ' . $counter . ' subscriptions with invalid concept ID');
-        } catch (\Throwable $exception) {
-            error_log('ERROR: glsubs while erasing invalid concept subscriptions' . '  ' . $exception->getMessage());
-            return FALSE;
+        } catch (Throwable $exception) {
+            debugging('ERROR: glsubs while erasing invalid concept subscriptions' . '  '
+                      . $exception->getMessage(), DEBUG_DEVELOPER);
+            return false;
         }
-        // get the set of the latest erased glossary concept IDs
-        $sql = 'SELECT DISTINCT t.conceptid 
-FROM {block_glsubs_concept_subs} AS t 
-JOIN {block_glsubs_event_subs_log} AS l ON t.conceptid = l.conceptid  
-WHERE t.conceptid > 0 
-    AND l.processed = 0 
-    AND l.timecreated < :timenow 
+        // Get the set of the latest erased glossary concept IDs.
+        $sql = 'SELECT DISTINCT t.conceptid
+FROM {block_glsubs_concept_subs} t
+JOIN {block_glsubs_event_subs_log} l ON t.conceptid = l.conceptid
+WHERE t.conceptid > 0
+    AND l.processed = 0
+    AND l.timecreated < :timenow
     AND t.conceptid NOT IN (SELECT id FROM {glossary_entries})';
 
         try {
-            $deleted_concept_IDs = $DB->get_records_sql($sql, array('timenow' => $timenow));
+            $deletedconceptids = $DB->get_records_sql($sql, array('timenow' => $timenow));
             $counter = 0;
-            foreach ($deleted_concept_IDs as $key => $deleted_concept_ID) {
+            foreach ($deletedconceptids as $key => $deletedconceptid) {
                 $counter += $DB->count_records('block_glsubs_concept_subs', array('conceptid' => (int)$key));
                 $DB->delete_records('block_glsubs_concept_subs', array('conceptid' => (int)$key));
             }
 
-        } catch (\Throwable $exception) {
-            error_log('ERROR: glsubs There was a database error while removing subscriptions on erased concept IDs ' . $exception->getMessage());
-            return FALSE;
+        } catch (Throwable $exception) {
+            debugging('ERROR: glsubs There was a database error while removing subscriptions on erased concept IDs '
+                      . $exception->getMessage(), DEBUG_DEVELOPER);
+            return false;
         }
-        return TRUE;
+        return true;
     }
 
     /**
@@ -569,46 +580,47 @@ WHERE t.conceptid > 0
      * Purpose          find and remove deleted categories subscriber users to these glossaries
      *
      * @param           $timenow   current time stamp, used to restrict processing up to the records
-     *                  inserted just up to the initiation of the execution of this script
+     *                             inserted just up to the initiation of the execution of this script
      *
      * @return          bool true in case of success, false in case of error
      *
      */
-    protected function remove_deleted_category_subscriptions($timenow)
-    {
+    protected function remove_deleted_category_subscriptions($timenow) {
         global $DB;
         mtrace('Removing deleted category subscriptions');
         try {
             $counter = $DB->count_records('block_glsubs_categories_subs', array('categoryid' => 0));
-            // delete records refering to a non existing category ID like 0
+            // Delete records refering to a non existing category ID like 0.
             $DB->delete_records('block_glsubs_categories_subs', array('categoryid' => 0));
             mtrace('Erased ' . $counter . ' subscriptions with invalid category ID');
-        } catch (\Throwable $exception) {
-            error_log('ERROR: glsubs while erasing invalid category subscriptions' . '  ' . $exception->getMessage());
-            return FALSE;
+        } catch (Throwable $exception) {
+            debugging('ERROR: glsubs while erasing invalid category subscriptions' . '  '
+                      . $exception->getMessage(), DEBUG_DEVELOPER);
+            return false;
         }
-        // get the set of the latest erased glossary category IDs
-        $sql = ' SELECT DISTINCT t.categoryid 
-FROM {block_glsubs_categories_subs} AS t 
-JOIN {block_glsubs_event_subs_log} AS l ON t.categoryid = l.categoryid  
-WHERE t.categoryid > 0 
-    AND l.processed = 0 
+        // Get the set of the latest erased glossary category IDs.
+        $sql = ' SELECT DISTINCT t.categoryid
+FROM {block_glsubs_categories_subs} t
+JOIN {block_glsubs_event_subs_log} l ON t.categoryid = l.categoryid
+WHERE t.categoryid > 0
+    AND l.processed = 0
     AND l.timecreated < :timenow
     AND t.categoryid NOT IN (SELECT id FROM {glossary_categories})';
 
         try {
-            $deleted_category_IDs = $DB->get_records_sql($sql, array('timenow' => $timenow));
+            $deletedcategoryids = $DB->get_records_sql($sql, array('timenow' => $timenow));
             $counter = 0;
-            foreach ($deleted_category_IDs as $key => $deleted_category_ID) {
+            foreach ($deletedcategoryids as $key => $deletedcategoryid) {
                 $counter += $DB->count_records('block_glsubs_categories_subs', array('categoryid' => (int)$key));
                 $DB->delete_records('block_glsubs_categories_subs', array('categoryid' => (int)$key));
             }
 
-        } catch (\Throwable $exception) {
-            error_log('ERROR: glsubs There was a database error while removing subscriptions on erased category IDs ' . $exception->getMessage());
-            return FALSE;
+        } catch (Throwable $exception) {
+            debugging('ERROR: glsubs There was a database error while removing subscriptions on erased category IDs '
+                      . $exception->getMessage(), DEBUG_DEVELOPER);
+            return false;
         }
-        return TRUE;
+        return true;
     }
 
     /**
@@ -618,48 +630,49 @@ WHERE t.categoryid > 0
      * Purpose          find and remove deleted authors subscriber users to these glossaries
      *
      * @param           $timenow   current time stamp, used to restrict processing up to the records
-     *                  inserted just up to the initiation of the execution of this script
+     *                             inserted just up to the initiation of the execution of this script
      *
      * @return          bool true in case of success, false in case of error
      *
      */
-    protected function remove_deleted_author_subscriptions($timenow)
-    {
+    protected function remove_deleted_author_subscriptions($timenow) {
         global $DB;
         mtrace('Removing deleted authors subscriptions');
         try {
             $counter = $DB->count_records('block_glsubs_authors_subs', array('authorid' => 0));
-            // delete records refering to a non existing author ID like 0
+            // Delete records refering to a non existing author ID like 0.
             $DB->delete_records('block_glsubs_authors_subs', array('authorid' => 0));
             mtrace('Erased ' . $counter . ' subscriptions with invalid author ID');
-        } catch (\Throwable $exception) {
-            error_log('ERROR: glsubs while erasing invalid author subscriptions' . '  ' . $exception->getMessage());
-            return FALSE;
+        } catch (Throwable $exception) {
+            debugging('ERROR: glsubs while erasing invalid author subscriptions' . '  '
+                      . $exception->getMessage(), DEBUG_DEVELOPER);
+            return false;
         }
 
-        // get the set of the latest erased glossary author IDs
-        $sql = 'SELECT l.authorid 
-FROM {block_glsubs_event_subs_log} AS l 
-JOIN {user} AS u ON u.id = l.authorid  
-WHERE l.authorid > 0 
+        // Get the set of the latest erased glossary author IDs.
+        $sql = 'SELECT l.authorid
+FROM {block_glsubs_event_subs_log} l
+JOIN {user} u ON u.id = l.authorid
+WHERE l.authorid > 0
     AND u.deleted = 1
-    AND l.processed = 0 
-    AND l.timecreated < :timenow 
+    AND l.processed = 0
+    AND l.timecreated < :timenow
 GROUP BY l.authorid ';
 
         try {
-            $deleted_author_IDs = $DB->get_records_sql($sql, array('timenow' => $timenow));
+            $deletedauthorids = $DB->get_records_sql($sql, array('timenow' => $timenow));
             $counter = 0;
-            foreach ($deleted_author_IDs as $key => $deleted_author_ID) {
+            foreach ($deletedauthorids as $key => $deletedauthorid) {
                 $counter += $DB->count_records('block_glsubs_authors_subs', array('authorid' => (int)$key));
                 $DB->delete_records('block_glsubs_authors_subs', array('authorid' => (int)$key));
             }
 
-        } catch (\Throwable $exception) {
-            error_log('ERROR: glsubs There was a database error while removing subscriptions on erased author IDs ' . $exception->getMessage());
-            return FALSE;
+        } catch (Throwable $exception) {
+            debugging('ERROR: glsubs There was a database error while removing subscriptions on erased author IDs '
+                      . $exception->getMessage(), DEBUG_DEVELOPER);
+            return false;
         }
-        return TRUE;
+        return true;
     }
 
     /**
@@ -669,48 +682,47 @@ GROUP BY l.authorid ';
      * Purpose          find and remove deleted concepts subscriber users to these glossaries
      *
      * @param           $timenow   current time stamp, used to restrict processing up to the records
-     *                  inserted just up to the initiation of the execution of this script
+     *                             inserted just up to the initiation of the execution of this script
      *
      * @return          bool true in case of success, false in case of error
      *
      */
-    protected function remove_deleted_concept_subscriptions($timenow)
-    {
+    protected function remove_deleted_concept_subscriptions($timenow) {
         global $DB;
         mtrace('Removing deleted concept subscriptions');
         try {
-            // $counter = $DB->count_records( 'block_glsubs_concept_subs',array('conceptid' => 0 ));
-            // delete records refering to a non existing concept ID like 0
+            // Delete records refering to a non existing concept ID like 0.
             $DB->delete_records('block_glsubs_concept_subs', array('conceptid' => 0));
-            // mtrace('Erased '. $counter . ' subscriptions with invalid concept ID');
-        } catch (\Throwable $exception) {
-            error_log('ERROR: glsubs while erasing invalid concept subscriptions' . '  ' . $exception->getMessage());
-            return FALSE;
+        } catch (Throwable $exception) {
+            debugging('ERROR: glsubs while erasing invalid concept subscriptions' . '  '
+                      . $exception->getMessage(), DEBUG_DEVELOPER);
+            return false;
         }
 
-        // get the set of the latest erased glossary author IDs
-        $sql = ' SELECT DISTINCT l.conceptid 
-FROM {block_glsubs_event_subs_log} AS l
-WHERE l.conceptid > 0 
-    AND l.processed = 0 
-    AND l.timecreated < :timenow 
+        // Get the set of the latest erased glossary author IDs.
+        $sql = ' SELECT DISTINCT l.conceptid
+FROM {block_glsubs_event_subs_log} l
+WHERE l.conceptid > 0
+    AND l.processed = 0
+    AND l.timecreated < :timenow
     AND l.conceptid NOT IN ( SELECT id FROM {glossary_entries} )
 ORDER BY l.conceptid';
 
         try {
-            $deleted_concept_IDs = $DB->get_records_sql($sql, array('timenow' => $timenow));
+            $deletedconceptids = $DB->get_records_sql($sql, array('timenow' => $timenow));
             $counter = 0;
-            foreach ($deleted_concept_IDs as $key => $deleted_concept_ID) {
+            foreach ($deletedconceptids as $key => $deletedconceptid) {
                 $counter += $DB->count_records('block_glsubs_concept_subs', array('conceptid' => (int)$key));
                 $DB->delete_records('block_glsubs_concept_subs', array('conceptid' => (int)$key));
             }
 
-        } catch (\Throwable $exception) {
-            error_log('ERROR: glsubs There was a database error while removing subscriptions on erased concept IDs ' . $exception->getMessage());
-            return FALSE;
+        } catch (Throwable $exception) {
+            debugging('ERROR: glsubs There was a database error while removing subscriptions on erased concept IDs '
+                      . $exception->getMessage(), DEBUG_DEVELOPER);
+            return false;
         }
 
-        return TRUE;
+        return true;
     }
 
     /**
@@ -722,91 +734,99 @@ ORDER BY l.conceptid';
      *
      * @return          bool true in case of success, false in case of error
      */
-    public function execute()
-    {
+    public function execute() {
         global $DB, $CFG;
-        require_once $CFG->dirroot . '/config.php';
+        require_once($CFG->dirroot . '/config.php');
+        require_login();
         if ($this->execute_condition()) {
-            $error_status = FALSE;
+            $errorstatus = false;
             $timenow = time();
             ini_set('max_execution_time', 0);
 
-            // delete invalid entries
-            $error_status = (!$this->delete_invalid_glossary_entries()) || $error_status;
+            // Delete invalid entries.
+            $errorstatus = (!$this->delete_invalid_glossary_entries()) || $errorstatus;
 
-            // now it is clean to read the unprocessed entries
+            // Now it is clean to read the unprocessed entries.
             try {
-                $new_events_counter = $DB->get_record_sql('SELECT COUNT(id) AS entries FROM {block_glsubs_event_subs_log} WHERE processed = 0 AND timecreated < :timenow ', array('timenow' => $timenow));
-                mtrace("There are $new_events_counter->entries unprocessed log entries ");
-            } catch (\Throwable $exception) {
-                error_log('ERROR: glsubs There was a database access error while getting new glossary event log entries ' . $exception->getMessage());
-                $error_status = TRUE;
-                $new_events_counter = new \stdClass();
-                $new_events_counter->entries = 0;
+                $neweventscounter = $DB->get_record_sql('SELECT COUNT(id) AS entries FROM {block_glsubs_event_subs_log}
+WHERE processed = 0 AND timecreated < :timenow ', array('timenow' => $timenow));
+                mtrace("There are $neweventscounter->entries unprocessed log entries ");
+            } catch (Throwable $exception) {
+                debugging('ERROR: glsubs There was a database access error while getting new glossary event log entries '
+                          . $exception->getMessage(), DEBUG_DEVELOPER);
+                $errorstatus = true;
+                $neweventscounter = new stdClass();
+                $neweventscounter->entries = 0;
             }
-            if (!$error_status && $new_events_counter->entries > 0) {
-                // deal with full subscriptins first
-                $error_status = (!$this->find_full_subscriptions($timenow)) || $error_status;
+            if (!$errorstatus && $neweventscounter->entries > 0) {
+                // Deal with full subscriptins first.
+                $errorstatus = (!$this->find_full_subscriptions($timenow)) || $errorstatus;
 
-                // deal with new categories subscriptions
-                $error_status = (!$this->find_new_categories_subscriptions($timenow)) || $error_status;
+                // Deal with new categories subscriptions.
+                $errorstatus = (!$this->find_new_categories_subscriptions($timenow)) || $errorstatus;
 
-                // deal with new uncategorised concepts subscriptions
-                $error_status = (!$this->find_new_uncategorised_subscriptions($timenow)) || $error_status;
+                // Deal with new uncategorised concepts subscriptions.
+                $errorstatus = (!$this->find_new_uncategorised_subscriptions($timenow)) || $errorstatus;
 
-                // get the list of the author IDs from these log entries
-                // find the glossary authors subscribers that are not having full subscription and register user id , log entry id pairs to be used for message deliveries
-                $error_status = (!$this->find_author_subscriptions($timenow)) || $error_status;
+                // Get the list of the author IDs from these log entries.
+                // Find the glossary authors subscribers that are not having full subscription and.
+                // Register user id , log entry id pairs to be used for message deliveries.
+                $errorstatus = (!$this->find_author_subscriptions($timenow)) || $errorstatus;
 
-                // get the list of the category IDs from these log entries
-                // find the glossary categories subscribers that are not having full subscription and register user id, log entry id pairs to be used for message deliveries
-                $error_status = (!$this->find_category_subscriptions($timenow)) || $error_status;
+                // Get the list of the category IDs from these log entries.
+                // Find the glossary categories subscribers that are not having full subscription and.
+                // Register user id, log entry id pairs to be used for message deliveries.
+                $errorstatus = (!$this->find_category_subscriptions($timenow)) || $errorstatus;
 
-                // get the list of the concept IDs from the latest loeg entries
-                // find the users subscribing to these concepts and / or their comments that are not having full subscription
-                // register user id , log entry id pairs to be used for message deliveries
-                $error_status = (!$this->find_concept_subscriptions($timenow)) || $error_status;
+                // Get the list of the concept IDs from the latest loeg entries.
+                // Find the users subscribing to these concepts and / or their comments that are not having full subscription.
+                // Register user id , log entry id pairs to be used for message deliveries.
+                $errorstatus = (!$this->find_concept_subscriptions($timenow)) || $errorstatus;
 
-                if (!$error_status) {
+                if (!$errorstatus) {
                     mtrace('There were no errors, continuing to remove non existing target subscriptions');
-                    // if no errors occured then
-                    // delete all non existing concept subscriptions
-                    $error_status = (!$this->remove_deleted_concepts_subscriptions($timenow)) || $error_status;
+                    // If no errors occured then.
+                    // Delete all non existing concept subscriptions.
+                    $errorstatus = (!$this->remove_deleted_concepts_subscriptions($timenow)) || $errorstatus;
 
-                    // delete all non existing category subscriptions
-                    $error_status = (!$this->remove_deleted_category_subscriptions($timenow)) || $error_status;
+                    // Delete all non existing category subscriptions.
+                    $errorstatus = (!$this->remove_deleted_category_subscriptions($timenow)) || $errorstatus;
 
-                    // delete all non existing author subscriptions
-                    $error_status = (!$this->remove_deleted_author_subscriptions($timenow)) || $error_status;
+                    // Delete all non existing author subscriptions.
+                    $errorstatus = (!$this->remove_deleted_author_subscriptions($timenow)) || $errorstatus;
 
-                    // delete all non existing glossary subscriptions
-                    $error_status = (!$this->remove_deleted_concept_subscriptions($timenow)) || $error_status;
+                    // Delete all non existing glossary subscriptions.
+                    $errorstatus = (!$this->remove_deleted_concept_subscriptions($timenow)) || $errorstatus;
                 }
 
-                // continue if there is no error and there are unprocessed event log entries
-                if ($error_status) {
-                    error_log('ERROR: glsubs There was an issue while erasing invalid subscriptions ' . '  ' . $exception->getMessage());
+                // Continue if there is no error and there are unprocessed event log entries.
+                if ($errorstatus) {
+                    debugging('ERROR: glsubs There was an issue while erasing invalid subscriptions ' . '  ' .
+                              $exception->getMessage(), DEBUG_DEVELOPER);
                 } else {
-                    // update all events up to now as processed and add time stamp
+                    // Update all events up to now as processed and add time stamp.
                     mtrace('All good, ready to mark all unprocessed events as done');
 
-                    // db update processed and timeprocessed
+                    // Db update processed and timeprocessed.
                     try {
-                        if ($DB->set_field_select('block_glsubs_event_subs_log', 'timeprocessed', time(), ' processed = 0 AND timecreated < :timenow ', array('timenow' => $timenow))) {
-                            $DB->set_field_select('block_glsubs_event_subs_log', 'processed', 1, ' processed = 0 AND timecreated < :timenow ', array('timenow' => $timenow));
+                        if ($DB->set_field_select('block_glsubs_event_subs_log', 'timeprocessed', time(),
+                                                  ' processed = 0 AND timecreated < :timenow ', array('timenow' => $timenow))) {
+                            $DB->set_field_select('block_glsubs_event_subs_log', 'processed', 1,
+                                                  ' processed = 0 AND timecreated < :timenow ', array('timenow' => $timenow));
                         }
                         mtrace('Events up to ' . date('c', $timenow) . ' are marked as processed');
-                    } catch (\Throwable $exception) {
-                        error_log('ERROR: glsubs An error occured on updating the glossary event logs as processed, will try again next time' . '  ' . $exception->getMessage());
-                        return FALSE;
+                    } catch (Throwable $exception) {
+                        debugging('ERROR: glsubs An error occured on updating the glossary event logs as processed,'.
+                                  ' will try again next time' . '  ' . $exception->getMessage(), DEBUG_DEVELOPER);
+                        return false;
                     }
                 }
             }
         } else {
-            return FALSE;
+            return false;
         }
 
-        return TRUE;
+        return true;
     }
 
     /**
@@ -820,9 +840,8 @@ ORDER BY l.conceptid';
      * @return          bool true for enabled execution, false for disabled execution
      *
      */
-    public function execute_condition()
-    {
-        return TRUE;
+    public function execute_condition() {
+        return true;
     }
 
     /**
@@ -834,8 +853,7 @@ ORDER BY l.conceptid';
      *
      * @return          bool true
      */
-    public function send_messages()
-    {
-        return TRUE;
+    public function send_messages() {
+        return true;
     }
 }
