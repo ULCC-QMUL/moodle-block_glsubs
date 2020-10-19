@@ -130,5 +130,6 @@ $string['message_updated'] = ' updated ';
 $string['message_for'] = ' for ';
 $string['message_definition'] = 'Definition ';
 $string['message_author'] = 'Author ';
+$string['message_approved'] = 'Approved message';
 
 $string['goto_messages'] = 'Go to your messages';
