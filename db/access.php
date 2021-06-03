@@ -38,7 +38,6 @@ global $CFG;
 
 $capabilities = [
     'block/glsubs:addinstance' => [
-        'riskbitmask' => RISK_PERSONAL | RISK_CONFIG,
         'captype' => 'write',
         'contextlevel' => CONTEXT_COURSE,
         'archetypes' => [
